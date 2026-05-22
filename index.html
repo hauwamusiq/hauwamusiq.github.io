@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
-<title>HAUWAMUSIQ :: SOLO ANIMATION STUDIO OS</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>HAUWAMUSIQ :: MOBILE ANIMATION STUDIO</title>
 
 <script src="https://cdn.jsdelivr.net/npm/pixi.js@7.x/dist/pixi.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
@@ -11,765 +11,538 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.4/howler.min.js"></script>
 
 <style>
-html,body{
-margin:0;
-padding:0;
-overflow:hidden;
-background:#07070b;
-color:#fff;
-font-family:Arial,Helvetica,sans-serif;
-height:100%;
-width:100%;
+:root {
+  --bg-dark: #09090e;
+  --panel-bg: rgba(22, 22, 35, 0.85);
+  --accent: #ffd54a;
+  --btn-bg: #2b2b42;
+  --btn-hover: #45456c;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
 }
 
-*{
-box-sizing:border-box;
+html, body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background: var(--bg-dark);
+  color: #fff;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  height: 100%;
+  width: 100%;
+  position: fixed;
 }
 
-#app{
-display:flex;
-height:100vh;
-width:100vw;
-overflow:hidden;
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
 }
 
-#ui{
-width:360px;
-background:#111119;
-border-right:1px solid #2a2a3a;
-display:flex;
-flex-direction:column;
-overflow:auto;
+#app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+  position: relative;
 }
 
-#header{
-padding:14px;
-font-size:20px;
-font-weight:bold;
-letter-spacing:2px;
-background:#191927;
-border-bottom:1px solid #2a2a3a;
+/* Stage occupies the full viewport background */
+#stage {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
 }
 
-#controls{
-padding:10px;
-display:flex;
-flex-wrap:wrap;
-gap:8px;
+#subtitle {
+  position: absolute;
+  bottom: 35%;
+  width: 100%;
+  text-align: center;
+  font-size: 28px;
+  font-weight: bold;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.9);
+  pointer-events: none;
+  padding: 0 20px;
+  z-index: 2;
 }
 
-button,input[type=file]{
-background:#2b2b42;
-color:white;
-border:none;
-padding:10px;
-border-radius:8px;
-font-weight:bold;
-cursor:pointer;
+.word {
+  color: #fff;
+  transition: color 0.08s linear;
+  display: inline-block;
+  margin-right: 6px;
 }
 
-button:hover{
-background:#45456c;
+.word.active {
+  color: var(--accent);
 }
 
-textarea{
-width:100%;
-height:180px;
-background:#09090d;
-color:white;
-border:none;
-padding:10px;
-resize:none;
-font-size:14px;
+#agi {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  right: 16px;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-size: 11px;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.1);
+  z-index: 2;
+  pointer-events: none;
 }
 
-#queue{
-padding:10px;
-display:flex;
-flex-direction:column;
-gap:10px;
+/* Bottom Sheet UI Components */
+#ui-toggle {
+  position: absolute;
+  bottom: calc(16px + var(--safe-bottom));
+  right: 16px;
+  z-index: 10;
+  background: var(--accent);
+  color: #000;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 20px;
+  font-weight: bold;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
 }
 
-.card{
-background:#1a1a28;
-padding:10px;
-border-radius:12px;
+#ui-panel {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 60vh;
+  background: var(--panel-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(255,255,255,0.1);
+  border-radius: 24px 24px 0 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  transform: translateY(100%);
+  transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+  padding-bottom: var(--safe-bottom);
 }
 
-.name{
-font-weight:bold;
-color:#ffd54a;
-margin-bottom:6px;
+#ui-panel.open {
+  transform: translateY(0);
 }
 
-.text{
-opacity:.92;
-margin-bottom:8px;
+.drag-handle {
+  width: 40px;
+  height: 5px;
+  background: rgba(255,255,255,0.3);
+  border-radius: 3px;
+  margin: 12px auto;
+  cursor: pointer;
 }
 
-.row{
-display:flex;
-gap:8px;
+#panel-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 16px 16px 16px;
 }
 
-#wave{
-height:90px;
-background:black;
+#controls {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin-bottom: 12px;
 }
 
-#status{
-padding:10px;
-font-size:12px;
-opacity:.7;
+button, .file-label {
+  background: var(--btn-bg);
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: 12px;
+  font-weight: bold;
+  font-size: 14px;
+  text-align: center;
+  cursor: pointer;
 }
 
-#stage{
-flex:1;
-position:relative;
-overflow:hidden;
+button:active, .file-label:active {
+  background: var(--btn-hover);
 }
 
-#subtitle{
-position:absolute;
-bottom:30px;
-width:100%;
-text-align:center;
-font-size:42px;
-font-weight:bold;
-text-shadow:0 0 10px black;
-pointer-events:none;
-padding:20px;
+.file-label input {
+  display: none;
 }
 
-.word{
-color:white;
-transition:all .08s linear;
+textarea {
+  width: 100%;
+  height: 100px;
+  background: rgba(0,0,0,0.3);
+  color: white;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 12px;
+  padding: 10px;
+  resize: none;
+  font-size: 14px;
+  margin-bottom: 12px;
 }
 
-.word.active{
-color:yellow;
+#queue {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 12px;
 }
 
-#agi{
-position:absolute;
-top:12px;
-right:12px;
-background:rgba(0,0,0,.45);
-padding:10px;
-border-radius:10px;
-font-size:12px;
-max-width:300px;
-backdrop-filter:blur(6px);
-line-height:1.4;
+.card {
+  background: rgba(255,255,255,0.05);
+  padding: 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.05);
 }
 
+.name {
+  font-weight: bold;
+  color: var(--accent);
+  margin-bottom: 4px;
+  font-size: 14px;
+}
+
+.text {
+  font-size: 13px;
+  opacity: 0.9;
+  margin-bottom: 10px;
+}
+
+.card-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+#wave {
+  height: 60px;
+  background: rgba(0,0,0,0.2);
+  border-radius: 12px;
+  margin-bottom: 12px;
+}
 </style>
 </head>
 <body>
 
 <div id="app">
+  <div id="stage"></div>
+  <div id="subtitle"></div>
+  <div id="agi">Initializing Core Neural State...</div>
 
-<div id="ui">
+  <button id="ui-toggle" onclick="togglePanel()">STUDIO UI</button>
 
-<div id="header">
-HAUWAMUSIQ :: SOLO ANIMATION STUDIO OS
-</div>
+  <div id="ui-panel">
+    <div class="drag-handle" onclick="togglePanel()"></div>
+    <div id="panel-content">
+      <div id="controls">
+        <button id="parse">PARSE</button>
+        <button id="play">PLAY SCENE</button>
+        <button id="export">EXPORT</button>
+        <label class="file-label">
+          🎵 MUSIC
+          <input type="file" id="music" accept="audio/*">
+        </label>
+      </div>
 
-<div id="controls">
-<button id="parse">PARSE</button>
-<button id="play">PLAY</button>
-<button id="export">EXPORT</button>
-<input type="file" id="music" accept="audio/*">
-</div>
-
-<textarea id="script">
+      <textarea id="script">
 ARI: I opened the microwave dimension again.
 GHOST: Your cooking has destabilized spacetime.
 ARI: Honestly that explains a lot.
-</textarea>
+      </textarea>
 
-<div id="wave"></div>
-
-<div id="queue"></div>
-
-<div id="status">
-Recursive Symbolic Theater Runtime Initialized.
-</div>
-
-</div>
-
-<div id="stage">
-
-<div id="subtitle"></div>
-
-<div id="agi"></div>
-
-</div>
-
+      <div id="wave"></div>
+      <div id="queue"></div>
+    </div>
+  </div>
 </div>
 
 <script>
-
 ////////////////////////////////////////////////////////////
-// FRACTAL AGI CORE
+// UI PANEL INTERACTION
 ////////////////////////////////////////////////////////////
-
-const AGI=((()=>{
-
-const node=(s,c=[],p=[],u=1,t=performance.now())=>({
-
-s,c,p,u,t,
-
-spawn:x=>node(x),
-
-decay(){
-this.u*=0.995;
-},
-
-promise(f){
-const pr=new Promise(r=>
-setTimeout(
-()=>r(f(this)),
-Math.random()*500
-));
-this.p.push(pr);
-return pr;
-},
-
-tick(){
-this.decay();
-this.c.forEach(x=>x.tick?.());
+function togglePanel() {
+  const panel = document.getElementById('ui-panel');
+  const toggleBtn = document.getElementById('ui-toggle');
+  panel.classList.toggle('open');
+  toggleBtn.textContent = panel.classList.contains('open') ? 'CLOSE UI' : 'STUDIO UI';
 }
 
+////////////////////////////////////////////////////////////
+// FRACTAL STATE MOCK ENGINE
+////////////////////////////////////////////////////////////
+const AGI = (() => {
+  const node = (s, c=[], p=[], u=1) => ({
+    s, c, p, u, t: performance.now(),
+    spawn: x => node(x),
+    decay() { this.u *= 0.995; },
+    promise(f) {
+      return new Promise(r => setTimeout(() => r(f(this)), Math.random() * 300));
+    }
+  });
+
+  const root = node("root");
+  const cortex = {
+    think: async (x) => {
+      const n = root.spawn(x);
+      return Promise.any([
+        n.promise(() => ({ type: "emotion", value: "intrigued" })),
+        n.promise(() => ({ type: "camera", value: "dynamic-zoom" })),
+        n.promise(() => ({ type: "logic", value: "processing script" }))
+      ]);
+    }
+  };
+  return { root, cortex };
+})();
+
+////////////////////////////////////////////////////////////
+// PIXI RUNTIME SETUP
+////////////////////////////////////////////////////////////
+const stageDiv = document.getElementById("stage");
+const app = new PIXI.Application({
+  resizeTo: stageDiv,
+  background: "#121222",
+  antialias: true,
+  resolution: window.devicePixelRatio || 1,
+  autoDensity: true
 });
+stageDiv.appendChild(app.view);
 
-const root=node("root");
+// Layers
+const bgLayer = new PIXI.Container();
+const actorLayer = new PIXI.Container();
+app.stage.addChild(bgLayer, actorLayer);
 
-const cortex=((()=>{
+const bg = new PIXI.Graphics();
+bg.beginFill(0x121222).drawRect(0, 0, 4000, 4000).endFill();
+bgLayer.addChild(bg);
 
-const thoughts=[];
-
-const think=x=>{
-
-const n=root.spawn(x);
-
-thoughts.push(n);
-
-return Promise.any([
-
-n.promise(a=>({
-type:"emotion",
-value:"curious",
-time:performance.now()
-})),
-
-n.promise(a=>({
-type:"camera",
-value:"closeup",
-time:performance.now()
-})),
-
-n.promise(a=>({
-type:"joke",
-value:"microwave dimension",
-time:performance.now()
-}))
-
-]);
-
-};
-
-return{
-think,
-thoughts
-};
-
-})());
-
-return{
-root,
-cortex
-};
-
-})());
-
-////////////////////////////////////////////////////////////
-// PIXI
-////////////////////////////////////////////////////////////
-
-const stage=document.getElementById("stage");
-
-const app=new PIXI.Application({
-resizeTo:stage,
-background:"#1d1d30",
-antialias:true
-});
-
-stage.appendChild(app.view);
-
-////////////////////////////////////////////////////////////
-// BACKGROUND
-////////////////////////////////////////////////////////////
-
-const bg=new PIXI.Graphics();
-bg.beginFill(0x1d1d30);
-bg.drawRect(0,0,5000,5000);
-bg.endFill();
-app.stage.addChild(bg);
-
-////////////////////////////////////////////////////////////
-// STARS
-////////////////////////////////////////////////////////////
-
-for(let i=0;i<200;i++){
-
-const s=new PIXI.Graphics();
-
-s.beginFill(0xffffff,Math.random());
-s.drawCircle(0,0,Math.random()*2);
-s.endFill();
-
-s.x=Math.random()*2000;
-s.y=Math.random()*1200;
-
-app.stage.addChild(s);
-
+// Dynamic Starfield Layout
+for(let i=0; i<80; i++){
+  const s = new PIXI.Graphics();
+  s.beginFill(0xffffff, Math.random()).drawCircle(0, 0, Math.random() * 1.5 + 0.5).endFill();
+  s.x = Math.random() * window.innerWidth;
+  s.y = Math.random() * window.innerHeight;
+  bgLayer.addChild(s);
 }
 
 ////////////////////////////////////////////////////////////
 // CHARACTER FACTORY
 ////////////////////////////////////////////////////////////
+const makeCharacter = (color) => {
+  const container = new PIXI.Container();
 
-const makeCharacter=(c)=>{
+  const body = new PIXI.Graphics().beginFill(color).drawRoundedRect(-30, -70, 60, 100, 16).endFill();
+  const head = new PIXI.Graphics().beginFill(0xffddc1).drawCircle(0, -100, 36).endFill();
+  const eye1 = new PIXI.Graphics().beginFill(0x000000).drawCircle(-10, -105, 4).endFill();
+  const eye2 = new PIXI.Graphics().beginFill(0x000000).drawCircle(10, -105, 4).endFill();
+  const mouth = new PIXI.Graphics().beginFill(0x000000).drawRoundedRect(-12, -85, 24, 6, 3).endFill();
 
-const o=new PIXI.Container();
-
-const body=new PIXI.Graphics();
-body.beginFill(c);
-body.drawRoundedRect(-40,-100,80,140,24);
-body.endFill();
-
-const head=new PIXI.Graphics();
-head.beginFill(0xffddc1);
-head.drawCircle(0,-140,54);
-head.endFill();
-
-const eye1=new PIXI.Graphics();
-eye1.beginFill(0x000000);
-eye1.drawCircle(-14,-150,5);
-eye1.endFill();
-
-const eye2=new PIXI.Graphics();
-eye2.beginFill(0x000000);
-eye2.drawCircle(14,-150,5);
-eye2.endFill();
-
-const mouth=new PIXI.Graphics();
-mouth.beginFill(0x000000);
-mouth.drawRoundedRect(-16,-120,32,8,4);
-mouth.endFill();
-
-o.addChild(body);
-o.addChild(head);
-o.addChild(eye1);
-o.addChild(eye2);
-o.addChild(mouth);
-
-o.mouth=mouth;
-
-return o;
-
+  container.addChild(body, head, eye1, eye2, mouth);
+  container.mouth = mouth;
+  return container;
 };
 
-////////////////////////////////////////////////////////////
-// ACTORS
-////////////////////////////////////////////////////////////
+const ari = makeCharacter(0xff66aa);
+const ghost = makeCharacter(0x66ffff);
+ghost.alpha = 0.85;
+actorLayer.addChild(ari, ghost);
 
-const ari=makeCharacter(0xff66aa);
-ari.x=450;
-ari.y=680;
+// Position Puppets Adaptively based on screen sizes
+function layoutActors() {
+  const w = app.screen.width;
+  const h = app.screen.height;
+  
+  ari.x = w * 0.25;
+  ari.y = h * 0.55;
+  
+  ghost.x = w * 0.75;
+  ghost.y = h * 0.55;
+}
+window.addEventListener('resize', layoutActors);
+layoutActors();
 
-const ghost=makeCharacter(0x66ffff);
-ghost.x=1050;
-ghost.y=680;
-ghost.alpha=.82;
+// Idle Floating Loop Animations
+gsap.to(ari, { y: "+=12", duration: 1.8, repeat: -1, yoyo: true, ease: "sine.inOut" });
+gsap.to(ghost, { y: "-=10", duration: 2.2, repeat: -1, yoyo: true, ease: "sine.inOut" });
 
-app.stage.addChild(ari);
-app.stage.addChild(ghost);
-
-////////////////////////////////////////////////////////////
-// FLOATING MOTION
-////////////////////////////////////////////////////////////
-
-gsap.to(ari,{
-y:690,
-duration:1.5,
-repeat:-1,
-yoyo:true,
-ease:"sine.inOut"
-});
-
-gsap.to(ghost,{
-y:665,
-duration:2.4,
-repeat:-1,
-yoyo:true,
-ease:"sine.inOut"
-});
-
-////////////////////////////////////////////////////////////
-// CAMERA PARALLAX
-////////////////////////////////////////////////////////////
-
-window.addEventListener("mousemove",e=>{
-
-const x=(e.clientX/window.innerWidth-.5)*40;
-const y=(e.clientY/window.innerHeight-.5)*20;
-
-gsap.to(app.stage,{
-x:-x,
-y:-y,
-duration:1
-});
-
-});
-
-////////////////////////////////////////////////////////////
-// WAVESURFER
-////////////////////////////////////////////////////////////
-
-const wavesurfer=WaveSurfer.create({
-container:"#wave",
-waveColor:"#666",
-progressColor:"#ffd54a",
-height:80
-});
-
-////////////////////////////////////////////////////////////
-// SCRIPT PARSER
-////////////////////////////////////////////////////////////
-
-const queue=document.getElementById("queue");
-
-let lines=[];
-
-const parse=()=>{
-
-queue.innerHTML="";
-lines=[];
-
-document
-.getElementById("script")
-.value
-.split("\n")
-.forEach((l,i)=>{
-
-if(!l.includes(":")) return;
-
-const sp=l.split(":");
-
-const speaker=sp[0].trim();
-const text=sp.slice(1).join(":").trim();
-
-const obj={
-speaker,
-text,
-audio:null
+// Mobile Gyroscope / Mouse Device Parallax Effect
+const handleMotion = (xOffset, yOffset) => {
+  gsap.to(actorLayer, { x: xOffset * 15, y: yOffset * 10, duration: 0.8 });
 };
 
-lines.push(obj);
-
-const card=document.createElement("div");
-card.className="card";
-
-card.innerHTML=`
-<div class="name">${speaker}</div>
-<div class="text">${text}</div>
-<div class="row">
-<button onclick="recordLine(${i})">RECORD</button>
-<button onclick="playLine(${i})">PLAY</button>
-</div>
-`;
-
-queue.appendChild(card);
-
+window.addEventListener("mousemove", (e) => {
+  const x = (e.clientX / window.innerWidth - 0.5);
+  const y = (e.clientY / window.innerHeight - 0.5);
+  handleMotion(x, y);
 });
 
-};
-
-////////////////////////////////////////////////////////////
-// RECORDING
-////////////////////////////////////////////////////////////
-
-let rec;
-let chunks=[];
-
-window.recordLine=async i=>{
-
-const stream=await navigator.mediaDevices.getUserMedia({
-audio:true
-});
-
-chunks=[];
-
-rec=new MediaRecorder(stream);
-
-rec.ondataavailable=e=>chunks.push(e.data);
-
-rec.onstop=()=>{
-
-const blob=new Blob(chunks,{
-type:"audio/webm"
-});
-
-const url=URL.createObjectURL(blob);
-
-lines[i].audio=url;
-
-wavesurfer.load(url);
-
-};
-
-rec.start();
-
-alert("Recording... press OK to stop.");
-
-rec.stop();
-
-};
-
-////////////////////////////////////////////////////////////
-// PLAY INDIVIDUAL
-////////////////////////////////////////////////////////////
-
-window.playLine=i=>{
-
-if(!lines[i].audio) return;
-
-new Howl({
-src:[lines[i].audio]
-}).play();
-
-};
-
-////////////////////////////////////////////////////////////
-// KARAOKE
-////////////////////////////////////////////////////////////
-
-const subtitle=document.getElementById("subtitle");
-
-const karaoke=(txt,d=2500)=>{
-
-subtitle.innerHTML="";
-
-const words=txt.split(" ");
-
-words.forEach(w=>{
-
-const span=document.createElement("span");
-
-span.className="word";
-span.textContent=w+" ";
-
-subtitle.appendChild(span);
-
-});
-
-const spans=[...document.querySelectorAll(".word")];
-
-spans.forEach((s,i)=>{
-
-setTimeout(()=>{
-s.classList.add("active");
-},(d/words.length)*i);
-
-});
-
-};
-
-////////////////////////////////////////////////////////////
-// TALKING
-////////////////////////////////////////////////////////////
-
-const talk=(a)=>{
-
-const tl=gsap.timeline();
-
-for(let i=0;i<18;i++){
-
-tl.to(a.mouth.scale,{
-y:Math.random()*2+.4,
-duration:.05
-});
-
+if (window.DeviceOrientationEvent) {
+  window.addEventListener("deviceorientation", (e) => {
+    if(e.gamma === null) return;
+    const x = e.gamma / 45; // clamp rotation values
+    const y = e.beta / 45;
+    handleMotion(x, y);
+  }, true);
 }
 
-tl.to(a.mouth.scale,{
-y:1,
-duration:.1
+////////////////////////////////////////////////////////////
+// CORE ENGINE FUNCTIONALITIES
+////////////////////////////////////////////////////////////
+const wavesurfer = WaveSurfer.create({
+  container: "#wave",
+  waveColor: "#555577",
+  progressColor: "#ffd54a",
+  height: 50
 });
 
+let lines = [];
+
+const parse = () => {
+  const queue = document.getElementById("queue");
+  queue.innerHTML = "";
+  lines = [];
+
+  document.getElementById("script").value.split("\n").forEach((l, i) => {
+    if (!l.includes(":")) return;
+    const sp = l.split(":");
+    const speaker = sp[0].trim();
+    const text = sp.slice(1).join(":").trim();
+
+    lines.push({ speaker, text, audio: null });
+
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML = `
+      <div class="name">${speaker}</div>
+      <div class="text">${text}</div>
+      <div class="card-actions">
+        <button onclick="recordLine(${i})">🎙️ REC</button>
+        <button onclick="playLine(${i})">▶️ TEST</button>
+      </div>
+    `;
+    queue.appendChild(card);
+  });
 };
 
-////////////////////////////////////////////////////////////
-// AGI THOUGHTS
-////////////////////////////////////////////////////////////
-
-const agiDiv=document.getElementById("agi");
-
-const agiTick=async line=>{
-
-const thought=await AGI.cortex.think(line);
-
-agiDiv.innerHTML=`
-<div><b>AGI THOUGHT</b></div>
-<div>TYPE :: ${thought.type}</div>
-<div>VALUE :: ${thought.value}</div>
-`;
-
+window.recordLine = async (i) => {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    let chunks = [];
+    const rec = new MediaRecorder(stream);
+    rec.ondataavailable = e => chunks.push(e.data);
+    rec.onstop = () => {
+      const blob = new Blob(chunks, { type: "audio/webm" });
+      lines[i].audio = URL.createObjectURL(blob);
+      wavesurfer.load(lines[i].audio);
+    };
+    rec.start();
+    // Mobile friendly prompt configuration
+    setTimeout(() => { 
+      rec.stop(); 
+      stream.getTracks().forEach(track => track.stop());
+      alert("Recording saved!");
+    }, 2500); 
+  } catch(e) {
+    alert("Microphone access denied or unsupported on this device.");
+  }
 };
 
-////////////////////////////////////////////////////////////
-// PLAY SCENE
-////////////////////////////////////////////////////////////
-
-const play=async()=>{
-
-for(const l of lines){
-
-karaoke(l.text,2600);
-
-agiTick(l.text);
-
-const actor=
-l.speaker==="ARI"
-?ari
-:ghost;
-
-talk(actor);
-
-gsap.fromTo(actor.scale,{
-x:1.05,
-y:.96
-},{
-x:1,
-y:1,
-duration:.3
-});
-
-if(l.audio){
-
-new Howl({
-src:[l.audio]
-}).play();
-
-}
-
-await new Promise(r=>setTimeout(r,2600));
-
-}
-
+window.playLine = (i) => {
+  if (!lines[i].audio) return alert("Record audio first!");
+  new Howl({ src: [lines[i].audio] }).play();
 };
 
-////////////////////////////////////////////////////////////
-// MUSIC
-////////////////////////////////////////////////////////////
+const karaoke = (txt, duration = 2400) => {
+  const subtitle = document.getElementById("subtitle");
+  subtitle.innerHTML = "";
+  const words = txt.split(" ");
+  words.forEach(w => {
+    const span = document.createElement("span");
+    span.className = "word";
+    span.textContent = w;
+    subtitle.appendChild(span);
+  });
 
-let music=null;
-
-document
-.getElementById("music")
-.addEventListener("change",e=>{
-
-const f=e.target.files[0];
-
-if(!f) return;
-
-const url=URL.createObjectURL(f);
-
-music=new Howl({
-src:[url],
-loop:true,
-volume:.35
-});
-
-music.play();
-
-});
-
-////////////////////////////////////////////////////////////
-// EXPORT
-////////////////////////////////////////////////////////////
-
-const exportVideo=async()=>{
-
-const stream=app.view.captureStream(30);
-
-const recorder=new MediaRecorder(stream,{
-mimeType:"video/webm"
-});
-
-const chunks=[];
-
-recorder.ondataavailable=e=>chunks.push(e.data);
-
-recorder.onstop=()=>{
-
-const blob=new Blob(chunks,{
-type:"video/webm"
-});
-
-const url=URL.createObjectURL(blob);
-
-const a=document.createElement("a");
-
-a.href=url;
-a.download="hauwamusiq_animation.webm";
-a.click();
-
+  const spans = document.querySelectorAll(".word");
+  spans.forEach((s, idx) => {
+    setTimeout(() => s.classList.add("active"), (duration / words.length) * idx);
+  });
 };
 
-recorder.start();
-
-await play();
-
-recorder.stop();
-
+const talk = (actor) => {
+  const tl = gsap.timeline();
+  for (let i = 0; i < 12; i++) {
+    tl.to(actor.mouth.scale, { y: Math.random() * 2.5 + 0.3, duration: 0.06 });
+  }
+  tl.to(actor.mouth.scale, { y: 1, duration: 0.1 });
 };
 
-////////////////////////////////////////////////////////////
-// BUTTONS
-////////////////////////////////////////////////////////////
+const play = async () => {
+  // Collapse sheet to view layout execution animation
+  document.getElementById('ui-panel').classList.remove('open');
+  
+  for (const l of lines) {
+    karaoke(l.text, 2500);
+    
+    const thought = await AGI.cortex.think(l.text);
+    document.getElementById("agi").innerHTML = `<b>RUNTIME REACTION</b> :: TYPE: ${thought.type} | VALUE: ${thought.value}`;
 
-document
-.getElementById("parse")
-.onclick=parse;
+    const actor = (l.speaker.toUpperCase() === "ARI") ? ari : ghost;
+    talk(actor);
 
-document
-.getElementById("play")
-.onclick=play;
+    gsap.fromTo(actor.scale, { x: 1.1, y: 0.9 }, { x: 1, y: 1, duration: 0.4, ease: "back.out(2)" });
 
-document
-.getElementById("export")
-.onclick=exportVideo;
+    if (l.audio) {
+      new Howl({ src: [l.audio] }).play();
+    }
+    await new Promise(r => setTimeout(r, 2600));
+  }
+};
 
-////////////////////////////////////////////////////////////
-// BOOT
-////////////////////////////////////////////////////////////
+// Music & Audio Context Handling (Safe on Mobile Webkit)
+let music = null;
+document.getElementById("music").addEventListener("change", e => {
+  const f = e.target.files[0];
+  if (!f) return;
+  if (music) music.stop();
+  music = new Howl({ src: [URL.createObjectURL(f)], loop: true, volume: 0.25 });
+  music.play();
+});
 
+// Structural WebM Camera Stream Export
+const exportVideo = async () => {
+  if(!window.MediaRecorder) return alert("Your browser doesn't support direct video capture.");
+  const stream = app.view.captureStream(30);
+  const recorder = new MediaRecorder(stream, { mimeType: "video/webm" });
+  const chunks = [];
+  
+  recorder.ondataavailable = e => chunks.push(e.data);
+  recorder.onstop = () => {
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob(chunks, { type: "video/webm" }));
+    a.download = "mobile_studio_capture.webm";
+    a.click();
+  };
+  
+  recorder.start();
+  await play();
+  recorder.stop();
+};
+
+// Hook Events
+document.getElementById("parse").onclick = parse;
+document.getElementById("play").onclick = play;
+document.getElementById("export").onclick = exportVideo;
+
+// Initialization
 parse();
-
-////////////////////////////////////////////////////////////
-// FRACTAL RUNTIME PULSE
-////////////////////////////////////////////////////////////
-
-setInterval(()=>{
-
-AGI.root.tick();
-
-},16);
-
 </script>
-
 </body>
 </html>
