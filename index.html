@@ -2,160 +2,165 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no"/>
-<title>Solo Animation Studio OS</title>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
+<title>HAUWAMUSIQ :: SOLO ANIMATION STUDIO OS</title>
 
-<!-- PIXI -->
 <script src="https://cdn.jsdelivr.net/npm/pixi.js@7.x/dist/pixi.min.js"></script>
-
-<!-- GSAP -->
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
-
-<!-- WAVESURFER -->
 <script src="https://unpkg.com/wavesurfer.js"></script>
-
-<!-- HOWLER -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.4/howler.min.js"></script>
 
 <style>
 html,body{
-    margin:0;
-    padding:0;
-    overflow:hidden;
-    background:#0d0d12;
-    color:white;
-    font-family:Arial,Helvetica,sans-serif;
-    height:100%;
+margin:0;
+padding:0;
+overflow:hidden;
+background:#07070b;
+color:#fff;
+font-family:Arial,Helvetica,sans-serif;
+height:100%;
+width:100%;
+}
+
+*{
+box-sizing:border-box;
 }
 
 #app{
-    display:flex;
-    flex-direction:column;
-    height:100vh;
-    width:100vw;
+display:flex;
+height:100vh;
+width:100vw;
+overflow:hidden;
 }
 
-#topbar{
-    height:50px;
-    display:flex;
-    align-items:center;
-    gap:10px;
-    padding:10px;
-    background:#181822;
-    border-bottom:1px solid #333;
-    flex-shrink:0;
+#ui{
+width:360px;
+background:#111119;
+border-right:1px solid #2a2a3a;
+display:flex;
+flex-direction:column;
+overflow:auto;
 }
 
-button{
-    background:#2a2a3d;
-    color:white;
-    border:none;
-    border-radius:8px;
-    padding:10px 14px;
-    cursor:pointer;
-    font-weight:bold;
+#header{
+padding:14px;
+font-size:20px;
+font-weight:bold;
+letter-spacing:2px;
+background:#191927;
+border-bottom:1px solid #2a2a3a;
+}
+
+#controls{
+padding:10px;
+display:flex;
+flex-wrap:wrap;
+gap:8px;
+}
+
+button,input[type=file]{
+background:#2b2b42;
+color:white;
+border:none;
+padding:10px;
+border-radius:8px;
+font-weight:bold;
+cursor:pointer;
 }
 
 button:hover{
-    background:#3b3b56;
+background:#45456c;
 }
 
-#main{
-    flex:1;
-    display:flex;
-    overflow:hidden;
+textarea{
+width:100%;
+height:180px;
+background:#09090d;
+color:white;
+border:none;
+padding:10px;
+resize:none;
+font-size:14px;
 }
 
-#leftPanel{
-    width:340px;
-    background:#111118;
-    border-right:1px solid #333;
-    display:flex;
-    flex-direction:column;
-    overflow:auto;
+#queue{
+padding:10px;
+display:flex;
+flex-direction:column;
+gap:10px;
 }
 
-#scriptInput{
-    width:100%;
-    height:180px;
-    resize:none;
-    background:#0d0d12;
-    color:white;
-    border:none;
-    padding:10px;
-    font-size:14px;
-    box-sizing:border-box;
+.card{
+background:#1a1a28;
+padding:10px;
+border-radius:12px;
 }
 
-#recordQueue{
-    padding:10px;
-    display:flex;
-    flex-direction:column;
-    gap:10px;
+.name{
+font-weight:bold;
+color:#ffd54a;
+margin-bottom:6px;
 }
 
-.lineItem{
-    background:#1b1b29;
-    padding:10px;
-    border-radius:10px;
+.text{
+opacity:.92;
+margin-bottom:8px;
 }
 
-.lineSpeaker{
-    font-weight:bold;
-    color:#ffd54a;
+.row{
+display:flex;
+gap:8px;
 }
 
-.lineText{
-    margin-top:4px;
-    opacity:.9;
-}
-
-.lineControls{
-    margin-top:8px;
-    display:flex;
-    gap:8px;
-}
-
-canvas{
-    display:block;
-}
-
-#stage{
-    flex:1;
-    position:relative;
-    overflow:hidden;
-}
-
-#subtitleBar{
-    position:absolute;
-    bottom:20px;
-    width:100%;
-    text-align:center;
-    font-size:36px;
-    font-weight:bold;
-    text-shadow:0 0 8px black;
-    pointer-events:none;
-}
-
-.word{
-    color:white;
-    transition:color .1s linear;
-}
-
-.word.active{
-    color:yellow;
-}
-
-#waveform{
-    height:100px;
-    width:100%;
-    background:#000;
+#wave{
+height:90px;
+background:black;
 }
 
 #status{
-    padding:8px;
-    font-size:12px;
-    opacity:.7;
+padding:10px;
+font-size:12px;
+opacity:.7;
+}
+
+#stage{
+flex:1;
+position:relative;
+overflow:hidden;
+}
+
+#subtitle{
+position:absolute;
+bottom:30px;
+width:100%;
+text-align:center;
+font-size:42px;
+font-weight:bold;
+text-shadow:0 0 10px black;
+pointer-events:none;
+padding:20px;
+}
+
+.word{
+color:white;
+transition:all .08s linear;
+}
+
+.word.active{
+color:yellow;
+}
+
+#agi{
+position:absolute;
+top:12px;
+right:12px;
+background:rgba(0,0,0,.45);
+padding:10px;
+border-radius:10px;
+font-size:12px;
+max-width:300px;
+backdrop-filter:blur(6px);
+line-height:1.4;
 }
 
 </style>
@@ -164,475 +169,605 @@ canvas{
 
 <div id="app">
 
-    <div id="topbar">
-        <button id="parseBtn">PARSE SCRIPT</button>
-        <button id="playBtn">PLAY SCENE</button>
-        <button id="exportBtn">EXPORT WEBM</button>
-        <input type="file" id="musicInput" accept="audio/*"/>
-    </div>
+<div id="ui">
 
-    <div id="main">
+<div id="header">
+HAUWAMUSIQ :: SOLO ANIMATION STUDIO OS
+</div>
 
-        <div id="leftPanel">
+<div id="controls">
+<button id="parse">PARSE</button>
+<button id="play">PLAY</button>
+<button id="export">EXPORT</button>
+<input type="file" id="music" accept="audio/*">
+</div>
 
-<textarea id="scriptInput">
-ARI: I summoned the ghost wrong again.
-GHOST: You opened the microwave dimension.
-ARI: That explains the screaming.
+<textarea id="script">
+ARI: I opened the microwave dimension again.
+GHOST: Your cooking has destabilized spacetime.
+ARI: Honestly that explains a lot.
 </textarea>
 
-            <div id="waveform"></div>
+<div id="wave"></div>
 
-            <div id="recordQueue"></div>
+<div id="queue"></div>
 
-            <div id="status">
-                SOLO ANIMATION STUDIO OS v0.1
-            </div>
+<div id="status">
+Recursive Symbolic Theater Runtime Initialized.
+</div>
 
-        </div>
+</div>
 
-        <div id="stage">
+<div id="stage">
 
-            <div id="subtitleBar"></div>
+<div id="subtitle"></div>
 
-        </div>
+<div id="agi"></div>
 
-    </div>
+</div>
 
 </div>
 
 <script>
 
 ////////////////////////////////////////////////////////////
-// PIXI STAGE
+// FRACTAL AGI CORE
 ////////////////////////////////////////////////////////////
 
-const stageDiv = document.getElementById("stage");
+const AGI=((()=>{
 
-const app = new PIXI.Application({
-    resizeTo: stageDiv,
-    background: "#202030",
-    antialias:true
+const node=(s,c=[],p=[],u=1,t=performance.now())=>({
+
+s,c,p,u,t,
+
+spawn:x=>node(x),
+
+decay(){
+this.u*=0.995;
+},
+
+promise(f){
+const pr=new Promise(r=>
+setTimeout(
+()=>r(f(this)),
+Math.random()*500
+));
+this.p.push(pr);
+return pr;
+},
+
+tick(){
+this.decay();
+this.c.forEach(x=>x.tick?.());
+}
+
 });
 
-stageDiv.appendChild(app.view);
+const root=node("root");
+
+const cortex=((()=>{
+
+const thoughts=[];
+
+const think=x=>{
+
+const n=root.spawn(x);
+
+thoughts.push(n);
+
+return Promise.any([
+
+n.promise(a=>({
+type:"emotion",
+value:"curious",
+time:performance.now()
+})),
+
+n.promise(a=>({
+type:"camera",
+value:"closeup",
+time:performance.now()
+})),
+
+n.promise(a=>({
+type:"joke",
+value:"microwave dimension",
+time:performance.now()
+}))
+
+]);
+
+};
+
+return{
+think,
+thoughts
+};
+
+})());
+
+return{
+root,
+cortex
+};
+
+})());
+
+////////////////////////////////////////////////////////////
+// PIXI
+////////////////////////////////////////////////////////////
+
+const stage=document.getElementById("stage");
+
+const app=new PIXI.Application({
+resizeTo:stage,
+background:"#1d1d30",
+antialias:true
+});
+
+stage.appendChild(app.view);
 
 ////////////////////////////////////////////////////////////
 // BACKGROUND
 ////////////////////////////////////////////////////////////
 
-const bg = new PIXI.Graphics();
-bg.beginFill(0x202030);
-bg.drawRect(0,0,1920,1080);
+const bg=new PIXI.Graphics();
+bg.beginFill(0x1d1d30);
+bg.drawRect(0,0,5000,5000);
 bg.endFill();
 app.stage.addChild(bg);
+
+////////////////////////////////////////////////////////////
+// STARS
+////////////////////////////////////////////////////////////
+
+for(let i=0;i<200;i++){
+
+const s=new PIXI.Graphics();
+
+s.beginFill(0xffffff,Math.random());
+s.drawCircle(0,0,Math.random()*2);
+s.endFill();
+
+s.x=Math.random()*2000;
+s.y=Math.random()*1200;
+
+app.stage.addChild(s);
+
+}
 
 ////////////////////////////////////////////////////////////
 // CHARACTER FACTORY
 ////////////////////////////////////////////////////////////
 
-function createCharacter(color=0xffcc00){
+const makeCharacter=(c)=>{
 
-    const container = new PIXI.Container();
+const o=new PIXI.Container();
 
-    // body
-    const body = new PIXI.Graphics();
-    body.beginFill(color);
-    body.drawRoundedRect(-40,-100,80,140,20);
-    body.endFill();
+const body=new PIXI.Graphics();
+body.beginFill(c);
+body.drawRoundedRect(-40,-100,80,140,24);
+body.endFill();
 
-    // head
-    const head = new PIXI.Graphics();
-    head.beginFill(0xffe0bd);
-    head.drawCircle(0,-140,50);
-    head.endFill();
+const head=new PIXI.Graphics();
+head.beginFill(0xffddc1);
+head.drawCircle(0,-140,54);
+head.endFill();
 
-    // eyes
-    const leftEye = new PIXI.Graphics();
-    leftEye.beginFill(0x000000);
-    leftEye.drawCircle(-15,-150,5);
-    leftEye.endFill();
+const eye1=new PIXI.Graphics();
+eye1.beginFill(0x000000);
+eye1.drawCircle(-14,-150,5);
+eye1.endFill();
 
-    const rightEye = new PIXI.Graphics();
-    rightEye.beginFill(0x000000);
-    rightEye.drawCircle(15,-150,5);
-    rightEye.endFill();
+const eye2=new PIXI.Graphics();
+eye2.beginFill(0x000000);
+eye2.drawCircle(14,-150,5);
+eye2.endFill();
 
-    // mouth
-    const mouth = new PIXI.Graphics();
-    mouth.beginFill(0x000000);
-    mouth.drawRoundedRect(-15,-120,30,8,4);
-    mouth.endFill();
+const mouth=new PIXI.Graphics();
+mouth.beginFill(0x000000);
+mouth.drawRoundedRect(-16,-120,32,8,4);
+mouth.endFill();
 
-    container.addChild(body);
-    container.addChild(head);
-    container.addChild(leftEye);
-    container.addChild(rightEye);
-    container.addChild(mouth);
+o.addChild(body);
+o.addChild(head);
+o.addChild(eye1);
+o.addChild(eye2);
+o.addChild(mouth);
 
-    container.mouth = mouth;
+o.mouth=mouth;
 
-    return container;
-}
+return o;
+
+};
 
 ////////////////////////////////////////////////////////////
-// CHARACTERS
+// ACTORS
 ////////////////////////////////////////////////////////////
 
-const ari = createCharacter(0xff66aa);
-ari.x = 400;
-ari.y = 600;
+const ari=makeCharacter(0xff66aa);
+ari.x=450;
+ari.y=680;
 
-const ghost = createCharacter(0x66ffff);
-ghost.x = 900;
-ghost.y = 600;
-ghost.alpha = .8;
+const ghost=makeCharacter(0x66ffff);
+ghost.x=1050;
+ghost.y=680;
+ghost.alpha=.82;
 
 app.stage.addChild(ari);
 app.stage.addChild(ghost);
 
 ////////////////////////////////////////////////////////////
-// IDLE ANIMATION
+// FLOATING MOTION
 ////////////////////////////////////////////////////////////
 
 gsap.to(ari,{
-    y:610,
-    duration:1.2,
-    repeat:-1,
-    yoyo:true,
-    ease:"sine.inOut"
+y:690,
+duration:1.5,
+repeat:-1,
+yoyo:true,
+ease:"sine.inOut"
 });
 
 gsap.to(ghost,{
-    y:590,
-    duration:2,
-    repeat:-1,
-    yoyo:true,
-    ease:"sine.inOut"
+y:665,
+duration:2.4,
+repeat:-1,
+yoyo:true,
+ease:"sine.inOut"
+});
+
+////////////////////////////////////////////////////////////
+// CAMERA PARALLAX
+////////////////////////////////////////////////////////////
+
+window.addEventListener("mousemove",e=>{
+
+const x=(e.clientX/window.innerWidth-.5)*40;
+const y=(e.clientY/window.innerHeight-.5)*20;
+
+gsap.to(app.stage,{
+x:-x,
+y:-y,
+duration:1
+});
+
 });
 
 ////////////////////////////////////////////////////////////
 // WAVESURFER
 ////////////////////////////////////////////////////////////
 
-const wavesurfer = WaveSurfer.create({
-    container:"#waveform",
-    waveColor:"#666",
-    progressColor:"#ffd54a",
-    height:80
+const wavesurfer=WaveSurfer.create({
+container:"#wave",
+waveColor:"#666",
+progressColor:"#ffd54a",
+height:80
 });
 
 ////////////////////////////////////////////////////////////
-// SCRIPT PARSING
+// SCRIPT PARSER
 ////////////////////////////////////////////////////////////
 
-const queueDiv = document.getElementById("recordQueue");
+const queue=document.getElementById("queue");
 
-let parsedLines = [];
-let recordings = [];
+let lines=[];
 
-function parseScript(){
+const parse=()=>{
 
-    queueDiv.innerHTML = "";
+queue.innerHTML="";
+lines=[];
 
-    parsedLines = [];
+document
+.getElementById("script")
+.value
+.split("\n")
+.forEach((l,i)=>{
 
-    const raw = document
-        .getElementById("scriptInput")
-        .value
-        .split("\n");
+if(!l.includes(":")) return;
 
-    raw.forEach((line,index)=>{
+const sp=l.split(":");
 
-        if(!line.includes(":")) return;
+const speaker=sp[0].trim();
+const text=sp.slice(1).join(":").trim();
 
-        const split = line.split(":");
+const obj={
+speaker,
+text,
+audio:null
+};
 
-        const speaker = split[0].trim();
-        const text = split.slice(1).join(":").trim();
+lines.push(obj);
 
-        parsedLines.push({
-            speaker,
-            text,
-            audio:null
-        });
+const card=document.createElement("div");
+card.className="card";
 
-        createQueueItem(index,speaker,text);
+card.innerHTML=`
+<div class="name">${speaker}</div>
+<div class="text">${text}</div>
+<div class="row">
+<button onclick="recordLine(${i})">RECORD</button>
+<button onclick="playLine(${i})">PLAY</button>
+</div>
+`;
 
-    });
+queue.appendChild(card);
 
-}
+});
 
-////////////////////////////////////////////////////////////
-// QUEUE ITEMS
-////////////////////////////////////////////////////////////
-
-function createQueueItem(index,speaker,text){
-
-    const div = document.createElement("div");
-    div.className = "lineItem";
-
-    div.innerHTML = `
-        <div class="lineSpeaker">${speaker}</div>
-        <div class="lineText">${text}</div>
-        <div class="lineControls">
-            <button onclick="recordLine(${index})">RECORD</button>
-            <button onclick="playLine(${index})">PLAY</button>
-        </div>
-    `;
-
-    queueDiv.appendChild(div);
-
-}
+};
 
 ////////////////////////////////////////////////////////////
 // RECORDING
 ////////////////////////////////////////////////////////////
 
-let mediaRecorder;
-let chunks = [];
+let rec;
+let chunks=[];
 
-async function recordLine(index){
+window.recordLine=async i=>{
 
-    const stream = await navigator.mediaDevices.getUserMedia({
-        audio:true
-    });
+const stream=await navigator.mediaDevices.getUserMedia({
+audio:true
+});
 
-    chunks = [];
+chunks=[];
 
-    mediaRecorder = new MediaRecorder(stream);
+rec=new MediaRecorder(stream);
 
-    mediaRecorder.ondataavailable = e=>{
-        chunks.push(e.data);
-    };
+rec.ondataavailable=e=>chunks.push(e.data);
 
-    mediaRecorder.onstop = ()=>{
+rec.onstop=()=>{
 
-        const blob = new Blob(chunks,{
-            type:"audio/webm"
-        });
+const blob=new Blob(chunks,{
+type:"audio/webm"
+});
 
-        const url = URL.createObjectURL(blob);
+const url=URL.createObjectURL(blob);
 
-        parsedLines[index].audio = url;
+lines[i].audio=url;
 
-        wavesurfer.load(url);
+wavesurfer.load(url);
 
-    };
+};
 
-    mediaRecorder.start();
+rec.start();
 
-    alert("Recording started. Press OK to stop.");
+alert("Recording... press OK to stop.");
 
-    mediaRecorder.stop();
+rec.stop();
+
+};
+
+////////////////////////////////////////////////////////////
+// PLAY INDIVIDUAL
+////////////////////////////////////////////////////////////
+
+window.playLine=i=>{
+
+if(!lines[i].audio) return;
+
+new Howl({
+src:[lines[i].audio]
+}).play();
+
+};
+
+////////////////////////////////////////////////////////////
+// KARAOKE
+////////////////////////////////////////////////////////////
+
+const subtitle=document.getElementById("subtitle");
+
+const karaoke=(txt,d=2500)=>{
+
+subtitle.innerHTML="";
+
+const words=txt.split(" ");
+
+words.forEach(w=>{
+
+const span=document.createElement("span");
+
+span.className="word";
+span.textContent=w+" ";
+
+subtitle.appendChild(span);
+
+});
+
+const spans=[...document.querySelectorAll(".word")];
+
+spans.forEach((s,i)=>{
+
+setTimeout(()=>{
+s.classList.add("active");
+},(d/words.length)*i);
+
+});
+
+};
+
+////////////////////////////////////////////////////////////
+// TALKING
+////////////////////////////////////////////////////////////
+
+const talk=(a)=>{
+
+const tl=gsap.timeline();
+
+for(let i=0;i<18;i++){
+
+tl.to(a.mouth.scale,{
+y:Math.random()*2+.4,
+duration:.05
+});
 
 }
 
-////////////////////////////////////////////////////////////
-// PLAY INDIVIDUAL LINE
-////////////////////////////////////////////////////////////
+tl.to(a.mouth.scale,{
+y:1,
+duration:.1
+});
 
-function playLine(index){
-
-    const line = parsedLines[index];
-
-    if(!line.audio) return;
-
-    const sound = new Howl({
-        src:[line.audio]
-    });
-
-    sound.play();
-
-}
+};
 
 ////////////////////////////////////////////////////////////
-// KARAOKE SUBTITLES
+// AGI THOUGHTS
 ////////////////////////////////////////////////////////////
 
-const subtitleBar = document.getElementById("subtitleBar");
+const agiDiv=document.getElementById("agi");
 
-function showSubtitle(text,duration=3000){
+const agiTick=async line=>{
 
-    subtitleBar.innerHTML = "";
+const thought=await AGI.cortex.think(line);
 
-    const words = text.split(" ");
+agiDiv.innerHTML=`
+<div><b>AGI THOUGHT</b></div>
+<div>TYPE :: ${thought.type}</div>
+<div>VALUE :: ${thought.value}</div>
+`;
 
-    words.forEach(word=>{
-
-        const span = document.createElement("span");
-
-        span.className = "word";
-        span.textContent = word + " ";
-
-        subtitleBar.appendChild(span);
-
-    });
-
-    const spans = [...document.querySelectorAll(".word")];
-
-    spans.forEach((span,index)=>{
-
-        setTimeout(()=>{
-
-            span.classList.add("active");
-
-        },(duration/words.length)*index);
-
-    });
-
-}
-
-////////////////////////////////////////////////////////////
-// TALK ANIMATION
-////////////////////////////////////////////////////////////
-
-function animateTalking(character,duration=2000){
-
-    const tl = gsap.timeline();
-
-    for(let i=0;i<10;i++){
-
-        tl.to(character.mouth.scale,{
-            y:Math.random()*2+.5,
-            duration:.08
-        });
-
-    }
-
-    tl.to(character.mouth.scale,{
-        y:1,
-        duration:.1
-    });
-
-}
+};
 
 ////////////////////////////////////////////////////////////
 // PLAY SCENE
 ////////////////////////////////////////////////////////////
 
-async function playScene(){
+const play=async()=>{
 
-    for(const line of parsedLines){
+for(const l of lines){
 
-        showSubtitle(line.text,2500);
+karaoke(l.text,2600);
 
-        const actor =
-            line.speaker === "ARI"
-            ? ari
-            : ghost;
+agiTick(l.text);
 
-        animateTalking(actor);
+const actor=
+l.speaker==="ARI"
+?ari
+:ghost;
 
-        if(line.audio){
+talk(actor);
 
-            const sound = new Howl({
-                src:[line.audio]
-            });
+gsap.fromTo(actor.scale,{
+x:1.05,
+y:.96
+},{
+x:1,
+y:1,
+duration:.3
+});
 
-            sound.play();
+if(l.audio){
 
-            await new Promise(r=>setTimeout(r,2500));
-
-        }else{
-
-            await new Promise(r=>setTimeout(r,2500));
-
-        }
-
-    }
+new Howl({
+src:[l.audio]
+}).play();
 
 }
 
+await new Promise(r=>setTimeout(r,2600));
+
+}
+
+};
+
 ////////////////////////////////////////////////////////////
-// MUSIC IMPORT
+// MUSIC
 ////////////////////////////////////////////////////////////
 
-let bgMusic = null;
+let music=null;
 
 document
-.getElementById("musicInput")
+.getElementById("music")
 .addEventListener("change",e=>{
 
-    const file = e.target.files[0];
+const f=e.target.files[0];
 
-    if(!file) return;
+if(!f) return;
 
-    const url = URL.createObjectURL(file);
+const url=URL.createObjectURL(f);
 
-    bgMusic = new Howl({
-        src:[url],
-        loop:true,
-        volume:.4
-    });
+music=new Howl({
+src:[url],
+loop:true,
+volume:.35
+});
 
-    bgMusic.play();
+music.play();
 
 });
 
 ////////////////////////////////////////////////////////////
-// EXPORT WEBM
+// EXPORT
 ////////////////////////////////////////////////////////////
 
-async function exportVideo(){
+const exportVideo=async()=>{
 
-    const stream = app.view.captureStream(30);
+const stream=app.view.captureStream(30);
 
-    const recorder = new MediaRecorder(stream,{
-        mimeType:"video/webm"
-    });
+const recorder=new MediaRecorder(stream,{
+mimeType:"video/webm"
+});
 
-    const chunks = [];
+const chunks=[];
 
-    recorder.ondataavailable = e=>{
-        chunks.push(e.data);
-    };
+recorder.ondataavailable=e=>chunks.push(e.data);
 
-    recorder.onstop = ()=>{
+recorder.onstop=()=>{
 
-        const blob = new Blob(chunks,{
-            type:"video/webm"
-        });
+const blob=new Blob(chunks,{
+type:"video/webm"
+});
 
-        const url = URL.createObjectURL(blob);
+const url=URL.createObjectURL(blob);
 
-        const a = document.createElement("a");
+const a=document.createElement("a");
 
-        a.href = url;
-        a.download = "animation.webm";
-        a.click();
+a.href=url;
+a.download="hauwamusiq_animation.webm";
+a.click();
 
-    };
+};
 
-    recorder.start();
+recorder.start();
 
-    await playScene();
+await play();
 
-    recorder.stop();
+recorder.stop();
 
-}
+};
 
 ////////////////////////////////////////////////////////////
 // BUTTONS
 ////////////////////////////////////////////////////////////
 
 document
-.getElementById("parseBtn")
-.onclick = parseScript;
+.getElementById("parse")
+.onclick=parse;
 
 document
-.getElementById("playBtn")
-.onclick = playScene;
+.getElementById("play")
+.onclick=play;
 
 document
-.getElementById("exportBtn")
-.onclick = exportVideo;
+.getElementById("export")
+.onclick=exportVideo;
 
 ////////////////////////////////////////////////////////////
-// INITIALIZE
+// BOOT
 ////////////////////////////////////////////////////////////
 
-parseScript();
+parse();
+
+////////////////////////////////////////////////////////////
+// FRACTAL RUNTIME PULSE
+////////////////////////////////////////////////////////////
+
+setInterval(()=>{
+
+AGI.root.tick();
+
+},16);
 
 </script>
 
