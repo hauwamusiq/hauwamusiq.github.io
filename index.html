@@ -3,17 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>HAUWAMUSIQ :: MOBILE ANIMATION STUDIO</title>
+<title>HAUWAMUSIQ :: MOBILE ANIMATION STUDIO Pro</title>
 
 <script src="https://cdn.jsdelivr.net/npm/pixi.js@7.x/dist/pixi.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
 <script src="https://unpkg.com/wavesurfer.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.4/howler.min.js"></script>
 
 <style>
 :root {
   --bg-dark: #09090e;
-  --panel-bg: rgba(22, 22, 35, 0.85);
+  --panel-bg: rgba(22, 22, 35, 0.92);
   --accent: #ffd54a;
   --btn-bg: #2b2b42;
   --btn-hover: #45456c;
@@ -21,212 +20,77 @@
 }
 
 html, body {
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
-  background: var(--bg-dark);
-  color: #fff;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  height: 100%;
-  width: 100%;
-  position: fixed;
+  margin: 0; padding: 0; overflow: hidden;
+  background: var(--bg-dark); color: #fff;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  height: 100%; width: 100%; position: fixed;
 }
 
-* {
-  box-sizing: border-box;
-  -webkit-tap-highlight-color: transparent;
-}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
-#app {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  width: 100vw;
-  position: relative;
-}
-
-/* Stage occupies the full viewport background */
-#stage {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 1;
-}
+#app { display: flex; flex-direction: column; height: 100vh; width: 100vw; position: relative; }
+#stage { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
 
 #subtitle {
-  position: absolute;
-  bottom: 35%;
-  width: 100%;
-  text-align: center;
-  font-size: 28px;
-  font-weight: bold;
-  text-shadow: 0 2px 8px rgba(0,0,0,0.9);
-  pointer-events: none;
-  padding: 0 20px;
-  z-index: 2;
+  position: absolute; bottom: 38%; width: 100%; text-align: center;
+  font-size: 26px; font-weight: bold; text-shadow: 0 2px 10px rgba(0,0,0,1);
+  pointer-events: none; padding: 0 20px; z-index: 2;
 }
 
-.word {
-  color: #fff;
-  transition: color 0.08s linear;
-  display: inline-block;
-  margin-right: 6px;
-}
-
-.word.active {
-  color: var(--accent);
-}
+.word { color: #fff; transition: color 0.08s linear; display: inline-block; margin-right: 6px; }
+.word.active { color: var(--accent); }
 
 #agi {
-  position: absolute;
-  top: 16px;
-  left: 16px;
-  right: 16px;
-  background: rgba(0, 0, 0, 0.6);
-  padding: 10px 14px;
-  border-radius: 12px;
-  font-size: 11px;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(255,255,255,0.1);
-  z-index: 2;
-  pointer-events: none;
+  position: absolute; top: 16px; left: 16px; right: 16px;
+  background: rgba(0, 0, 0, 0.7); padding: 12px; border-radius: 12px;
+  font-size: 11px; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.1); z-index: 2; pointer-events: none;
 }
 
-/* Bottom Sheet UI Components */
 #ui-toggle {
-  position: absolute;
-  bottom: calc(16px + var(--safe-bottom));
-  right: 16px;
-  z-index: 10;
-  background: var(--accent);
-  color: #000;
-  border: none;
-  padding: 12px 20px;
-  border-radius: 20px;
-  font-weight: bold;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  position: absolute; bottom: calc(16px + var(--safe-bottom)); right: 16px; z-index: 10;
+  background: var(--accent); color: #000; border: none; padding: 14px 24px;
+  border-radius: 30px; font-weight: bold; box-shadow: 0 4px 15px rgba(0,0,0,0.4);
 }
 
 #ui-panel {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 60vh;
-  background: var(--panel-bg);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-top: 1px solid rgba(255,255,255,0.1);
-  border-radius: 24px 24px 0 0;
-  z-index: 5;
-  display: flex;
-  flex-direction: column;
-  transform: translateY(100%);
-  transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+  position: absolute; bottom: 0; left: 0; width: 100%; height: 65vh;
+  background: var(--panel-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(255,255,255,0.15); border-radius: 24px 24px 0 0;
+  z-index: 5; display: flex; flex-direction: column;
+  transform: translateY(100%); transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
   padding-bottom: var(--safe-bottom);
 }
+#ui-panel.open { transform: translateY(0); }
 
-#ui-panel.open {
-  transform: translateY(0);
-}
-
-.drag-handle {
-  width: 40px;
-  height: 5px;
-  background: rgba(255,255,255,0.3);
-  border-radius: 3px;
-  margin: 12px auto;
-  cursor: pointer;
-}
-
-#panel-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 0 16px 16px 16px;
-}
-
-#controls {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
-  margin-bottom: 12px;
-}
+.drag-handle { width: 45px; height: 6px; background: rgba(255,255,255,0.3); border-radius: 3px; margin: 12px auto; cursor: pointer; }
+#panel-content { flex: 1; overflow-y: auto; padding: 0 16px 16px 16px; }
+#controls { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 12px; }
 
 button, .file-label {
-  background: var(--btn-bg);
-  color: white;
-  border: none;
-  padding: 12px;
-  border-radius: 12px;
-  font-weight: bold;
-  font-size: 14px;
-  text-align: center;
-  cursor: pointer;
+  background: var(--btn-bg); color: white; border: none; padding: 14px;
+  border-radius: 14px; font-weight: bold; font-size: 13px; text-align: center; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
 }
-
-button:active, .file-label:active {
-  background: var(--btn-hover);
-}
-
-.file-label input {
-  display: none;
-}
+button:active, .file-label:active { background: var(--btn-hover); }
+.file-label input { display: none; }
+#music-status { grid-column: span 2; font-size: 11px; text-align: center; color: #a0a0c0; margin-top: -4px; }
 
 textarea {
-  width: 100%;
-  height: 100px;
-  background: rgba(0,0,0,0.3);
-  color: white;
-  border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 12px;
-  padding: 10px;
-  resize: none;
-  font-size: 14px;
-  margin-bottom: 12px;
+  width: 100%; height: 90px; background: rgba(0,0,0,0.4); color: white;
+  border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; padding: 12px;
+  resize: none; font-size: 14px; margin-bottom: 12px; font-family: inherit;
 }
 
-#queue {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-top: 12px;
-}
+#wave { height: 60px; background: rgba(0,0,0,0.3); border-radius: 14px; margin-bottom: 12px; overflow: hidden; }
+#queue { display: flex; flex-direction: column; gap: 10px; }
+.card { background: rgba(255,255,255,0.06); padding: 14px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.05); }
+.name { font-weight: bold; color: var(--accent); margin-bottom: 6px; font-size: 14px; letter-spacing: 0.5px; }
+.text { font-size: 13px; opacity: 0.95; margin-bottom: 12px; line-height: 1.4; }
+.card-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.btn-recording { background: #ff4a4a !important; animation: pulse 1s infinite alternate; }
 
-.card {
-  background: rgba(255,255,255,0.05);
-  padding: 12px;
-  border-radius: 14px;
-  border: 1px solid rgba(255,255,255,0.05);
-}
-
-.name {
-  font-weight: bold;
-  color: var(--accent);
-  margin-bottom: 4px;
-  font-size: 14px;
-}
-
-.text {
-  font-size: 13px;
-  opacity: 0.9;
-  margin-bottom: 10px;
-}
-
-.card-actions {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-}
-
-#wave {
-  height: 60px;
-  background: rgba(0,0,0,0.2);
-  border-radius: 12px;
-  margin-bottom: 12px;
-}
+@keyframes pulse { from { opacity: 1; } to { opacity: 0.6; } }
 </style>
 </head>
 <body>
@@ -234,21 +98,22 @@ textarea {
 <div id="app">
   <div id="stage"></div>
   <div id="subtitle"></div>
-  <div id="agi">Initializing Core Neural State...</div>
+  <div id="agi">✨ Engine Status: Ready to parse script.</div>
 
-  <button id="ui-toggle" onclick="togglePanel()">STUDIO UI</button>
+  <button id="ui-toggle" onclick="togglePanel()">⚙️ STUDIO UI</button>
 
   <div id="ui-panel">
     <div class="drag-handle" onclick="togglePanel()"></div>
     <div id="panel-content">
       <div id="controls">
-        <button id="parse">PARSE</button>
-        <button id="play">PLAY SCENE</button>
-        <button id="export">EXPORT</button>
+        <button id="parse">🔄 PARSE SCRIPT</button>
+        <button id="play">🎬 PLAY SCENE</button>
         <label class="file-label">
-          🎵 MUSIC
+          🎵 CHOOSE MUSIC
           <input type="file" id="music" accept="audio/*">
         </label>
+        <button id="export">📥 EXPORT VIDEO</button>
+        <div id="music-status">No background music loaded</div>
       </div>
 
       <textarea id="script">
@@ -264,86 +129,48 @@ ARI: Honestly that explains a lot.
 </div>
 
 <script>
-////////////////////////////////////////////////////////////
-// UI PANEL INTERACTION
-////////////////////////////////////////////////////////////
+let lines = [];
+let bgMusic = null;
+let activeRecorder = null;
+let recordingStream = null;
+
 function togglePanel() {
   const panel = document.getElementById('ui-panel');
   const toggleBtn = document.getElementById('ui-toggle');
   panel.classList.toggle('open');
-  toggleBtn.textContent = panel.classList.contains('open') ? 'CLOSE UI' : 'STUDIO UI';
+  toggleBtn.textContent = panel.classList.contains('open') ? '❌ CLOSE UI' : '⚙️ STUDIO UI';
 }
 
 ////////////////////////////////////////////////////////////
-// FRACTAL STATE MOCK ENGINE
-////////////////////////////////////////////////////////////
-const AGI = (() => {
-  const node = (s, c=[], p=[], u=1) => ({
-    s, c, p, u, t: performance.now(),
-    spawn: x => node(x),
-    decay() { this.u *= 0.995; },
-    promise(f) {
-      return new Promise(r => setTimeout(() => r(f(this)), Math.random() * 300));
-    }
-  });
-
-  const root = node("root");
-  const cortex = {
-    think: async (x) => {
-      const n = root.spawn(x);
-      return Promise.any([
-        n.promise(() => ({ type: "emotion", value: "intrigued" })),
-        n.promise(() => ({ type: "camera", value: "dynamic-zoom" })),
-        n.promise(() => ({ type: "logic", value: "processing script" }))
-      ]);
-    }
-  };
-  return { root, cortex };
-})();
-
-////////////////////////////////////////////////////////////
-// PIXI RUNTIME SETUP
+// PIXI ANIMATION ENVIRONMENT
 ////////////////////////////////////////////////////////////
 const stageDiv = document.getElementById("stage");
 const app = new PIXI.Application({
-  resizeTo: stageDiv,
-  background: "#121222",
-  antialias: true,
-  resolution: window.devicePixelRatio || 1,
-  autoDensity: true
+  resizeTo: stageDiv, background: "#0e0e18", antialias: true,
+  resolution: window.devicePixelRatio || 1, autoDensity: true
 });
 stageDiv.appendChild(app.view);
 
-// Layers
 const bgLayer = new PIXI.Container();
 const actorLayer = new PIXI.Container();
 app.stage.addChild(bgLayer, actorLayer);
 
-const bg = new PIXI.Graphics();
-bg.beginFill(0x121222).drawRect(0, 0, 4000, 4000).endFill();
+const bg = new PIXI.Graphics().beginFill(0x0e0e18).drawRect(0, 0, 4000, 4000).endFill();
 bgLayer.addChild(bg);
 
-// Dynamic Starfield Layout
-for(let i=0; i<80; i++){
-  const s = new PIXI.Graphics();
-  s.beginFill(0xffffff, Math.random()).drawCircle(0, 0, Math.random() * 1.5 + 0.5).endFill();
-  s.x = Math.random() * window.innerWidth;
-  s.y = Math.random() * window.innerHeight;
+for(let i=0; i<60; i++){
+  const s = new PIXI.Graphics().beginFill(0xffffff, Math.random()).drawCircle(0, 0, Math.random() * 1.5 + 0.5).endFill();
+  s.x = Math.random() * window.innerWidth; s.y = Math.random() * window.innerHeight;
   bgLayer.addChild(s);
 }
 
-////////////////////////////////////////////////////////////
-// CHARACTER FACTORY
-////////////////////////////////////////////////////////////
 const makeCharacter = (color) => {
   const container = new PIXI.Container();
-
-  const body = new PIXI.Graphics().beginFill(color).drawRoundedRect(-30, -70, 60, 100, 16).endFill();
-  const head = new PIXI.Graphics().beginFill(0xffddc1).drawCircle(0, -100, 36).endFill();
-  const eye1 = new PIXI.Graphics().beginFill(0x000000).drawCircle(-10, -105, 4).endFill();
-  const eye2 = new PIXI.Graphics().beginFill(0x000000).drawCircle(10, -105, 4).endFill();
-  const mouth = new PIXI.Graphics().beginFill(0x000000).drawRoundedRect(-12, -85, 24, 6, 3).endFill();
-
+  const body = new PIXI.Graphics().beginFill(color).drawRoundedRect(-25, -60, 50, 90, 14).endFill();
+  const head = new PIXI.Graphics().beginFill(0xffddc1).drawCircle(0, -85, 30).endFill();
+  const eye1 = new PIXI.Graphics().beginFill(0x000000).drawCircle(-8, -90, 3.5).endFill();
+  const eye2 = new PIXI.Graphics().beginFill(0x000000).drawCircle(8, -90, 3.5).endFill();
+  const mouth = new PIXI.Graphics().beginFill(0x000000).drawRoundedRect(-10, -72, 20, 5, 2.5).endFill();
   container.addChild(body, head, eye1, eye2, mouth);
   container.mouth = mouth;
   return container;
@@ -354,56 +181,30 @@ const ghost = makeCharacter(0x66ffff);
 ghost.alpha = 0.85;
 actorLayer.addChild(ari, ghost);
 
-// Position Puppets Adaptively based on screen sizes
 function layoutActors() {
-  const w = app.screen.width;
-  const h = app.screen.height;
-  
-  ari.x = w * 0.25;
-  ari.y = h * 0.55;
-  
-  ghost.x = w * 0.75;
-  ghost.y = h * 0.55;
+  ari.x = app.screen.width * 0.25; ari.y = app.screen.height * 0.52;
+  ghost.x = app.screen.width * 0.75; ghost.y = app.screen.height * 0.52;
 }
 window.addEventListener('resize', layoutActors);
 layoutActors();
 
-// Idle Floating Loop Animations
-gsap.to(ari, { y: "+=12", duration: 1.8, repeat: -1, yoyo: true, ease: "sine.inOut" });
-gsap.to(ghost, { y: "-=10", duration: 2.2, repeat: -1, yoyo: true, ease: "sine.inOut" });
-
-// Mobile Gyroscope / Mouse Device Parallax Effect
-const handleMotion = (xOffset, yOffset) => {
-  gsap.to(actorLayer, { x: xOffset * 15, y: yOffset * 10, duration: 0.8 });
-};
+gsap.to(ari, { y: "+=10", duration: 1.8, repeat: -1, yoyo: true, ease: "sine.inOut" });
+gsap.to(ghost, { y: "-=8", duration: 2.2, repeat: -1, yoyo: true, ease: "sine.inOut" });
 
 window.addEventListener("mousemove", (e) => {
-  const x = (e.clientX / window.innerWidth - 0.5);
-  const y = (e.clientY / window.innerHeight - 0.5);
-  handleMotion(x, y);
+  gsap.to(actorLayer, { x: (e.clientX / window.innerWidth - 0.5) * 20, y: (e.clientY / window.innerHeight - 0.5) * 15, duration: 0.8 });
 });
 
-if (window.DeviceOrientationEvent) {
-  window.addEventListener("deviceorientation", (e) => {
-    if(e.gamma === null) return;
-    const x = e.gamma / 45; // clamp rotation values
-    const y = e.beta / 45;
-    handleMotion(x, y);
-  }, true);
-}
-
 ////////////////////////////////////////////////////////////
-// CORE ENGINE FUNCTIONALITIES
+// AUDIO UTILITIES (WAVESURFER)
 ////////////////////////////////////////////////////////////
 const wavesurfer = WaveSurfer.create({
-  container: "#wave",
-  waveColor: "#555577",
-  progressColor: "#ffd54a",
-  height: 50
+  container: "#wave", waveColor: "#4a4a6a", progressColor: "#ffd54a", height: 60, barWidth: 2
 });
 
-let lines = [];
-
+////////////////////////////////////////////////////////////
+// ENGINE HANDLERS
+////////////////////////////////////////////////////////////
 const parse = () => {
   const queue = document.getElementById("queue");
   queue.innerHTML = "";
@@ -415,7 +216,7 @@ const parse = () => {
     const speaker = sp[0].trim();
     const text = sp.slice(1).join(":").trim();
 
-    lines.push({ speaker, text, audio: null });
+    lines.push({ speaker, text, audioBlob: null, audioUrl: null });
 
     const card = document.createElement("div");
     card.className = "card";
@@ -423,111 +224,145 @@ const parse = () => {
       <div class="name">${speaker}</div>
       <div class="text">${text}</div>
       <div class="card-actions">
-        <button onclick="recordLine(${i})">🎙️ REC</button>
-        <button onclick="playLine(${i})">▶️ TEST</button>
+        <button id="rec-btn-${i}" onclick="recordLine(${i})">🎙️ RECORD</button>
+        <button id="test-btn-${i}" onclick="playLine(${i})">▶️ TEST</button>
       </div>
     `;
     queue.appendChild(card);
   });
+  document.getElementById("agi").innerHTML = `✨ Script parsed: ${lines.length} lines lines generated.`;
 };
 
 window.recordLine = async (i) => {
+  const btn = document.getElementById(`rec-btn-${i}`);
+  
+  if (activeRecorder && activeRecorder.state === "recording") {
+    activeRecorder.stop();
+    return;
+  }
+
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    recordingStream = await navigator.mediaDevices.getUserMedia({ audio: true });
     let chunks = [];
-    const rec = new MediaRecorder(stream);
-    rec.ondataavailable = e => chunks.push(e.data);
-    rec.onstop = () => {
-      const blob = new Blob(chunks, { type: "audio/webm" });
-      lines[i].audio = URL.createObjectURL(blob);
-      wavesurfer.load(lines[i].audio);
+    activeRecorder = new MediaRecorder(recordingStream);
+    
+    activeRecorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
+    
+    activeRecorder.onstop = () => {
+      const blob = new Blob(chunks, { type: "audio/mp3" });
+      lines[i].audioBlob = blob;
+      lines[i].audioUrl = URL.createObjectURL(blob);
+      
+      wavesurfer.load(lines[i].audioUrl);
+      
+      btn.textContent = "🎙️ RECORD";
+      btn.classList.remove("btn-recording");
+      
+      recordingStream.getTracks().forEach(track => track.stop());
+      document.getElementById("agi").innerHTML = `🎙️ Recorded line ${i+1} successfully.`;
     };
-    rec.start();
-    // Mobile friendly prompt configuration
-    setTimeout(() => { 
-      rec.stop(); 
-      stream.getTracks().forEach(track => track.stop());
-      alert("Recording saved!");
-    }, 2500); 
+    
+    activeRecorder.start();
+    btn.textContent = "🛑 STOP";
+    btn.classList.add("btn-recording");
   } catch(e) {
-    alert("Microphone access denied or unsupported on this device.");
+    alert("Microphone capture blocked or device incompatible.");
   }
 };
 
 window.playLine = (i) => {
-  if (!lines[i].audio) return alert("Record audio first!");
-  new Howl({ src: [lines[i].audio] }).play();
-};
-
-const karaoke = (txt, duration = 2400) => {
-  const subtitle = document.getElementById("subtitle");
-  subtitle.innerHTML = "";
-  const words = txt.split(" ");
-  words.forEach(w => {
-    const span = document.createElement("span");
-    span.className = "word";
-    span.textContent = w;
-    subtitle.appendChild(span);
-  });
-
-  const spans = document.querySelectorAll(".word");
-  spans.forEach((s, idx) => {
-    setTimeout(() => s.classList.add("active"), (duration / words.length) * idx);
-  });
+  if (!lines[i].audioUrl) {
+    alert("No recording found for this line. Please record first!");
+    return;
+  }
+  wavesurfer.load(lines[i].audioUrl);
+  const audio = new Audio(lines[i].audioUrl);
+  audio.play().catch(err => console.log("Audio playback context delayed:", err));
 };
 
 const talk = (actor) => {
   const tl = gsap.timeline();
-  for (let i = 0; i < 12; i++) {
-    tl.to(actor.mouth.scale, { y: Math.random() * 2.5 + 0.3, duration: 0.06 });
+  for (let i = 0; i < 14; i++) {
+    tl.to(actor.mouth.scale, { y: Math.random() * 2.4 + 0.2, duration: 0.06 });
   }
   tl.to(actor.mouth.scale, { y: 1, duration: 0.1 });
 };
 
 const play = async () => {
-  // Collapse sheet to view layout execution animation
-  document.getElementById('ui-panel').classList.remove('open');
+  if(lines.length === 0) return alert("Please parse a valid script first.");
   
-  for (const l of lines) {
-    karaoke(l.text, 2500);
+  // Slide sheet down cleanly to let the user view the canvas scene
+  document.getElementById('ui-panel').classList.remove('open');
+  document.getElementById('ui-toggle').textContent = '⚙️ STUDIO UI';
+
+  for (let i = 0; i < lines.length; i++) {
+    const l = lines[i];
     
-    const thought = await AGI.cortex.think(l.text);
-    document.getElementById("agi").innerHTML = `<b>RUNTIME REACTION</b> :: TYPE: ${thought.type} | VALUE: ${thought.value}`;
+    // Subtitle Management
+    const subtitle = document.getElementById("subtitle");
+    subtitle.innerHTML = "";
+    l.text.split(" ").forEach(w => {
+      const span = document.createElement("span");
+      span.className = "word"; span.textContent = w;
+      subtitle.appendChild(span);
+    });
+    
+    const spans = document.querySelectorAll(".word");
+    spans.forEach((s, idx) => {
+      setTimeout(() => s.classList.add("active"), (2400 / spans.length) * idx);
+    });
+
+    document.getElementById("agi").innerHTML = `🤖 Acting [Line ${i+1}/${lines.length}] :: ${l.speaker} speaking...`;
 
     const actor = (l.speaker.toUpperCase() === "ARI") ? ari : ghost;
     talk(actor);
-
     gsap.fromTo(actor.scale, { x: 1.1, y: 0.9 }, { x: 1, y: 1, duration: 0.4, ease: "back.out(2)" });
 
-    if (l.audio) {
-      new Howl({ src: [l.audio] }).play();
+    if (l.audioUrl) {
+      wavesurfer.load(l.audioUrl);
+      const audio = new Audio(l.audioUrl);
+      audio.play();
     }
+    
     await new Promise(r => setTimeout(r, 2600));
   }
+  
+  document.getElementById("agi").innerHTML = `✅ Scene Playback Complete.`;
 };
 
-// Music & Audio Context Handling (Safe on Mobile Webkit)
-let music = null;
+////////////////////////////////////////////////////////////
+// SYSTEM MUSIC DRIVER
+////////////////////////////////////////////////////////////
 document.getElementById("music").addEventListener("change", e => {
-  const f = e.target.files[0];
-  if (!f) return;
-  if (music) music.stop();
-  music = new Howl({ src: [URL.createObjectURL(f)], loop: true, volume: 0.25 });
-  music.play();
+  const file = e.target.files[0];
+  if (!file) return;
+
+  if (bgMusic) { bgMusic.pause(); bgMusic = null; }
+
+  const url = URL.createObjectURL(file);
+  bgMusic = new Audio(url);
+  bgMusic.loop = true;
+  bgMusic.volume = 0.3;
+  
+  // Native Play execution hook
+  bgMusic.play().then(() => {
+    document.getElementById("music-status").innerHTML = `🎵 Active Track: <b>${file.name}</b> (Looping)`;
+  }).catch(err => {
+    document.getElementById("music-status").innerHTML = `⚠️ Music loaded. Tap 'PLAY SCENE' to clear browser blocks.`;
+  });
 });
 
-// Structural WebM Camera Stream Export
 const exportVideo = async () => {
-  if(!window.MediaRecorder) return alert("Your browser doesn't support direct video capture.");
+  if(!window.MediaRecorder) return alert("Your device browser lacks active video stream modules.");
   const stream = app.view.captureStream(30);
   const recorder = new MediaRecorder(stream, { mimeType: "video/webm" });
   const chunks = [];
   
-  recorder.ondataavailable = e => chunks.push(e.data);
+  recorder.ondataavailable = e => { if(e.data.size > 0) chunks.push(e.data); };
   recorder.onstop = () => {
     const a = document.createElement("a");
     a.href = URL.createObjectURL(new Blob(chunks, { type: "video/webm" }));
-    a.download = "mobile_studio_capture.webm";
+    a.download = "studio_render.webm";
     a.click();
   };
   
@@ -536,12 +371,15 @@ const exportVideo = async () => {
   recorder.stop();
 };
 
-// Hook Events
 document.getElementById("parse").onclick = parse;
-document.getElementById("play").onclick = play;
+document.getElementById("play").onclick = () => {
+  // Clear safari mobile engine blockers if any background music was waiting
+  if (bgMusic && bgMusic.paused) bgMusic.play();
+  play();
+};
 document.getElementById("export").onclick = exportVideo;
 
-// Initialization
+// Auto boot parse run sequence
 parse();
 </script>
 </body>
