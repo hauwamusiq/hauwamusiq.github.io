@@ -1,9 +1,640 @@
-<html>
-<head></head>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no"/>
+<title>Solo Animation Studio OS</title>
+
+<!-- PIXI -->
+<script src="https://cdn.jsdelivr.net/npm/pixi.js@7.x/dist/pixi.min.js"></script>
+
+<!-- GSAP -->
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+
+<!-- WAVESURFER -->
+<script src="https://unpkg.com/wavesurfer.js"></script>
+
+<!-- HOWLER -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.4/howler.min.js"></script>
+
+<style>
+html,body{
+    margin:0;
+    padding:0;
+    overflow:hidden;
+    background:#0d0d12;
+    color:white;
+    font-family:Arial,Helvetica,sans-serif;
+    height:100%;
+}
+
+#app{
+    display:flex;
+    flex-direction:column;
+    height:100vh;
+    width:100vw;
+}
+
+#topbar{
+    height:50px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:10px;
+    background:#181822;
+    border-bottom:1px solid #333;
+    flex-shrink:0;
+}
+
+button{
+    background:#2a2a3d;
+    color:white;
+    border:none;
+    border-radius:8px;
+    padding:10px 14px;
+    cursor:pointer;
+    font-weight:bold;
+}
+
+button:hover{
+    background:#3b3b56;
+}
+
+#main{
+    flex:1;
+    display:flex;
+    overflow:hidden;
+}
+
+#leftPanel{
+    width:340px;
+    background:#111118;
+    border-right:1px solid #333;
+    display:flex;
+    flex-direction:column;
+    overflow:auto;
+}
+
+#scriptInput{
+    width:100%;
+    height:180px;
+    resize:none;
+    background:#0d0d12;
+    color:white;
+    border:none;
+    padding:10px;
+    font-size:14px;
+    box-sizing:border-box;
+}
+
+#recordQueue{
+    padding:10px;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+}
+
+.lineItem{
+    background:#1b1b29;
+    padding:10px;
+    border-radius:10px;
+}
+
+.lineSpeaker{
+    font-weight:bold;
+    color:#ffd54a;
+}
+
+.lineText{
+    margin-top:4px;
+    opacity:.9;
+}
+
+.lineControls{
+    margin-top:8px;
+    display:flex;
+    gap:8px;
+}
+
+canvas{
+    display:block;
+}
+
+#stage{
+    flex:1;
+    position:relative;
+    overflow:hidden;
+}
+
+#subtitleBar{
+    position:absolute;
+    bottom:20px;
+    width:100%;
+    text-align:center;
+    font-size:36px;
+    font-weight:bold;
+    text-shadow:0 0 8px black;
+    pointer-events:none;
+}
+
+.word{
+    color:white;
+    transition:color .1s linear;
+}
+
+.word.active{
+    color:yellow;
+}
+
+#waveform{
+    height:100px;
+    width:100%;
+    background:#000;
+}
+
+#status{
+    padding:8px;
+    font-size:12px;
+    opacity:.7;
+}
+
+</style>
+</head>
 <body>
-  Hellow World
-  <script>
-    
-  </script>
+
+<div id="app">
+
+    <div id="topbar">
+        <button id="parseBtn">PARSE SCRIPT</button>
+        <button id="playBtn">PLAY SCENE</button>
+        <button id="exportBtn">EXPORT WEBM</button>
+        <input type="file" id="musicInput" accept="audio/*"/>
+    </div>
+
+    <div id="main">
+
+        <div id="leftPanel">
+
+<textarea id="scriptInput">
+ARI: I summoned the ghost wrong again.
+GHOST: You opened the microwave dimension.
+ARI: That explains the screaming.
+</textarea>
+
+            <div id="waveform"></div>
+
+            <div id="recordQueue"></div>
+
+            <div id="status">
+                SOLO ANIMATION STUDIO OS v0.1
+            </div>
+
+        </div>
+
+        <div id="stage">
+
+            <div id="subtitleBar"></div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+
+////////////////////////////////////////////////////////////
+// PIXI STAGE
+////////////////////////////////////////////////////////////
+
+const stageDiv = document.getElementById("stage");
+
+const app = new PIXI.Application({
+    resizeTo: stageDiv,
+    background: "#202030",
+    antialias:true
+});
+
+stageDiv.appendChild(app.view);
+
+////////////////////////////////////////////////////////////
+// BACKGROUND
+////////////////////////////////////////////////////////////
+
+const bg = new PIXI.Graphics();
+bg.beginFill(0x202030);
+bg.drawRect(0,0,1920,1080);
+bg.endFill();
+app.stage.addChild(bg);
+
+////////////////////////////////////////////////////////////
+// CHARACTER FACTORY
+////////////////////////////////////////////////////////////
+
+function createCharacter(color=0xffcc00){
+
+    const container = new PIXI.Container();
+
+    // body
+    const body = new PIXI.Graphics();
+    body.beginFill(color);
+    body.drawRoundedRect(-40,-100,80,140,20);
+    body.endFill();
+
+    // head
+    const head = new PIXI.Graphics();
+    head.beginFill(0xffe0bd);
+    head.drawCircle(0,-140,50);
+    head.endFill();
+
+    // eyes
+    const leftEye = new PIXI.Graphics();
+    leftEye.beginFill(0x000000);
+    leftEye.drawCircle(-15,-150,5);
+    leftEye.endFill();
+
+    const rightEye = new PIXI.Graphics();
+    rightEye.beginFill(0x000000);
+    rightEye.drawCircle(15,-150,5);
+    rightEye.endFill();
+
+    // mouth
+    const mouth = new PIXI.Graphics();
+    mouth.beginFill(0x000000);
+    mouth.drawRoundedRect(-15,-120,30,8,4);
+    mouth.endFill();
+
+    container.addChild(body);
+    container.addChild(head);
+    container.addChild(leftEye);
+    container.addChild(rightEye);
+    container.addChild(mouth);
+
+    container.mouth = mouth;
+
+    return container;
+}
+
+////////////////////////////////////////////////////////////
+// CHARACTERS
+////////////////////////////////////////////////////////////
+
+const ari = createCharacter(0xff66aa);
+ari.x = 400;
+ari.y = 600;
+
+const ghost = createCharacter(0x66ffff);
+ghost.x = 900;
+ghost.y = 600;
+ghost.alpha = .8;
+
+app.stage.addChild(ari);
+app.stage.addChild(ghost);
+
+////////////////////////////////////////////////////////////
+// IDLE ANIMATION
+////////////////////////////////////////////////////////////
+
+gsap.to(ari,{
+    y:610,
+    duration:1.2,
+    repeat:-1,
+    yoyo:true,
+    ease:"sine.inOut"
+});
+
+gsap.to(ghost,{
+    y:590,
+    duration:2,
+    repeat:-1,
+    yoyo:true,
+    ease:"sine.inOut"
+});
+
+////////////////////////////////////////////////////////////
+// WAVESURFER
+////////////////////////////////////////////////////////////
+
+const wavesurfer = WaveSurfer.create({
+    container:"#waveform",
+    waveColor:"#666",
+    progressColor:"#ffd54a",
+    height:80
+});
+
+////////////////////////////////////////////////////////////
+// SCRIPT PARSING
+////////////////////////////////////////////////////////////
+
+const queueDiv = document.getElementById("recordQueue");
+
+let parsedLines = [];
+let recordings = [];
+
+function parseScript(){
+
+    queueDiv.innerHTML = "";
+
+    parsedLines = [];
+
+    const raw = document
+        .getElementById("scriptInput")
+        .value
+        .split("\n");
+
+    raw.forEach((line,index)=>{
+
+        if(!line.includes(":")) return;
+
+        const split = line.split(":");
+
+        const speaker = split[0].trim();
+        const text = split.slice(1).join(":").trim();
+
+        parsedLines.push({
+            speaker,
+            text,
+            audio:null
+        });
+
+        createQueueItem(index,speaker,text);
+
+    });
+
+}
+
+////////////////////////////////////////////////////////////
+// QUEUE ITEMS
+////////////////////////////////////////////////////////////
+
+function createQueueItem(index,speaker,text){
+
+    const div = document.createElement("div");
+    div.className = "lineItem";
+
+    div.innerHTML = `
+        <div class="lineSpeaker">${speaker}</div>
+        <div class="lineText">${text}</div>
+        <div class="lineControls">
+            <button onclick="recordLine(${index})">RECORD</button>
+            <button onclick="playLine(${index})">PLAY</button>
+        </div>
+    `;
+
+    queueDiv.appendChild(div);
+
+}
+
+////////////////////////////////////////////////////////////
+// RECORDING
+////////////////////////////////////////////////////////////
+
+let mediaRecorder;
+let chunks = [];
+
+async function recordLine(index){
+
+    const stream = await navigator.mediaDevices.getUserMedia({
+        audio:true
+    });
+
+    chunks = [];
+
+    mediaRecorder = new MediaRecorder(stream);
+
+    mediaRecorder.ondataavailable = e=>{
+        chunks.push(e.data);
+    };
+
+    mediaRecorder.onstop = ()=>{
+
+        const blob = new Blob(chunks,{
+            type:"audio/webm"
+        });
+
+        const url = URL.createObjectURL(blob);
+
+        parsedLines[index].audio = url;
+
+        wavesurfer.load(url);
+
+    };
+
+    mediaRecorder.start();
+
+    alert("Recording started. Press OK to stop.");
+
+    mediaRecorder.stop();
+
+}
+
+////////////////////////////////////////////////////////////
+// PLAY INDIVIDUAL LINE
+////////////////////////////////////////////////////////////
+
+function playLine(index){
+
+    const line = parsedLines[index];
+
+    if(!line.audio) return;
+
+    const sound = new Howl({
+        src:[line.audio]
+    });
+
+    sound.play();
+
+}
+
+////////////////////////////////////////////////////////////
+// KARAOKE SUBTITLES
+////////////////////////////////////////////////////////////
+
+const subtitleBar = document.getElementById("subtitleBar");
+
+function showSubtitle(text,duration=3000){
+
+    subtitleBar.innerHTML = "";
+
+    const words = text.split(" ");
+
+    words.forEach(word=>{
+
+        const span = document.createElement("span");
+
+        span.className = "word";
+        span.textContent = word + " ";
+
+        subtitleBar.appendChild(span);
+
+    });
+
+    const spans = [...document.querySelectorAll(".word")];
+
+    spans.forEach((span,index)=>{
+
+        setTimeout(()=>{
+
+            span.classList.add("active");
+
+        },(duration/words.length)*index);
+
+    });
+
+}
+
+////////////////////////////////////////////////////////////
+// TALK ANIMATION
+////////////////////////////////////////////////////////////
+
+function animateTalking(character,duration=2000){
+
+    const tl = gsap.timeline();
+
+    for(let i=0;i<10;i++){
+
+        tl.to(character.mouth.scale,{
+            y:Math.random()*2+.5,
+            duration:.08
+        });
+
+    }
+
+    tl.to(character.mouth.scale,{
+        y:1,
+        duration:.1
+    });
+
+}
+
+////////////////////////////////////////////////////////////
+// PLAY SCENE
+////////////////////////////////////////////////////////////
+
+async function playScene(){
+
+    for(const line of parsedLines){
+
+        showSubtitle(line.text,2500);
+
+        const actor =
+            line.speaker === "ARI"
+            ? ari
+            : ghost;
+
+        animateTalking(actor);
+
+        if(line.audio){
+
+            const sound = new Howl({
+                src:[line.audio]
+            });
+
+            sound.play();
+
+            await new Promise(r=>setTimeout(r,2500));
+
+        }else{
+
+            await new Promise(r=>setTimeout(r,2500));
+
+        }
+
+    }
+
+}
+
+////////////////////////////////////////////////////////////
+// MUSIC IMPORT
+////////////////////////////////////////////////////////////
+
+let bgMusic = null;
+
+document
+.getElementById("musicInput")
+.addEventListener("change",e=>{
+
+    const file = e.target.files[0];
+
+    if(!file) return;
+
+    const url = URL.createObjectURL(file);
+
+    bgMusic = new Howl({
+        src:[url],
+        loop:true,
+        volume:.4
+    });
+
+    bgMusic.play();
+
+});
+
+////////////////////////////////////////////////////////////
+// EXPORT WEBM
+////////////////////////////////////////////////////////////
+
+async function exportVideo(){
+
+    const stream = app.view.captureStream(30);
+
+    const recorder = new MediaRecorder(stream,{
+        mimeType:"video/webm"
+    });
+
+    const chunks = [];
+
+    recorder.ondataavailable = e=>{
+        chunks.push(e.data);
+    };
+
+    recorder.onstop = ()=>{
+
+        const blob = new Blob(chunks,{
+            type:"video/webm"
+        });
+
+        const url = URL.createObjectURL(blob);
+
+        const a = document.createElement("a");
+
+        a.href = url;
+        a.download = "animation.webm";
+        a.click();
+
+    };
+
+    recorder.start();
+
+    await playScene();
+
+    recorder.stop();
+
+}
+
+////////////////////////////////////////////////////////////
+// BUTTONS
+////////////////////////////////////////////////////////////
+
+document
+.getElementById("parseBtn")
+.onclick = parseScript;
+
+document
+.getElementById("playBtn")
+.onclick = playScene;
+
+document
+.getElementById("exportBtn")
+.onclick = exportVideo;
+
+////////////////////////////////////////////////////////////
+// INITIALIZE
+////////////////////////////////////////////////////////////
+
+parseScript();
+
+</script>
+
 </body>
 </html>
