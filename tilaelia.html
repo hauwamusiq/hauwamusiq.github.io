@@ -8,10 +8,11 @@
         /* Base Reset & Styling */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: 'Courier New', Courier, monospace; /* Fits the "if you dare" vibe */
+            font-family: 'Courier New', Courier, monospace;
             background-color: #0b0b0b;
             color: #ffffff;
             overflow-x: hidden;
+            -webkit-tap-highlight-color: transparent; /* Smooth mobile tapping */
         }
 
         /* --- 1. INTRO SPLASH PAGE --- */
@@ -33,14 +34,14 @@
         }
 
         #intro-page h1 {
-            font-size: 3rem;
+            font-size: calc(1.8rem + 1.5vw); /* Responsive text scaling */
             margin-bottom: 10px;
             letter-spacing: 3px;
-            text-transform: lowercase; /* matches "tilaelia's portfolio" */
+            text-transform: lowercase;
         }
 
         #intro-page p {
-            font-size: 1.5rem;
+            font-size: calc(1rem + 0.5vw);
             color: #888;
             margin-bottom: 40px;
         }
@@ -55,9 +56,10 @@
             cursor: pointer;
             transition: all 0.3s ease;
             text-transform: uppercase;
+            outline: none;
         }
 
-        /* Hover effect requested */
+        /* Hover effect */
         .enter-btn:hover {
             background-color: #ffffff;
             color: #050505;
@@ -65,7 +67,11 @@
             transform: scale(1.05);
         }
 
-        /* When clicked, we fade it out */
+        /* Active click effect for mobile screens */
+        .enter-btn:active {
+            transform: scale(0.98);
+        }
+
         #intro-page.hidden {
             opacity: 0;
             visibility: hidden;
@@ -85,22 +91,22 @@
             opacity: 1;
         }
 
-        /* Header / Logo */
         .site-header {
             text-align: center;
-            margin-bottom: 60px;
+            margin-bottom: 40px;
         }
+        
         .site-header h2 {
             font-size: 2rem;
             letter-spacing: 2px;
         }
 
-        /* Category Menu / Navigation Cards */
+        /* Responsive Category Grid */
         .portfolio-menu {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 30px;
-            margin-top: 40px;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
         }
 
         .menu-card {
@@ -110,12 +116,16 @@
             text-align: center;
             border-radius: 4px;
             cursor: pointer;
-            transition: transform 0.3s ease, border-color 0.3s ease;
+            transition: transform 0.3s ease, border-color 0.3s ease, background-color 0.2s;
         }
 
         .menu-card:hover {
             transform: translateY(-5px);
             border-color: #555;
+        }
+
+        .menu-card:active {
+            background-color: #1a1a1a;
         }
 
         .menu-card h3 {
@@ -126,6 +136,20 @@
         .menu-card p {
             color: #aaa;
             font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        /* Mobile specific spacing tweaks */
+        @media (max-width: 600px) {
+            #main-site {
+                padding: 20px 15px;
+            }
+            .site-header {
+                margin-bottom: 30px;
+            }
+            .menu-card {
+                padding: 30px 15px;
+            }
         }
     </style>
 </head>
@@ -145,17 +169,17 @@
         <main>
             <div class="portfolio-menu">
                 
-                <div class="menu-card" onclick="alert('Vinyl Music Player section goes here!')">
+                <div class="menu-card" onclick="alert('Music section coming soon!')">
                     <h3>music</h3>
-                    <p>Step inside the crate. Listen to custom tracks and custom vinyl animations.</p>
+                    <p>Step inside the crate. Listen to custom tracks and watch custom vinyl animations.</p>
                 </div>
 
-                <div class="menu-card" onclick="alert('Paintings gallery section goes here!')">
+                <div class="menu-card" onclick="alert('Paintings gallery coming soon!')">
                     <h3>paintings</h3>
                     <p>A visual gallery of canvas works, sketches, and fine art collections.</p>
                 </div>
 
-                <div class="menu-card" onclick="alert('Other projects go here!')">
+                <div class="menu-card" onclick="alert('Other projects coming soon!')">
                     <h3>etc.</h3>
                     <p>Miscellaneous digital creations, design experiments, and logs.</p>
                 </div>
@@ -165,17 +189,13 @@
     </div>
 
     <script>
-        // Function to smoothly transition from intro page to home page
         function enterWebsite() {
             const intro = document.getElementById('intro-page');
             const main = document.getElementById('main-site');
 
-            intro.classList.add('hidden'); // Fade out the intro
-            main.classList.add('visible');  // Fade in the main home page
+            intro.classList.add('hidden');
+            main.classList.add('visible');
         }
-
-        // NOTE: Your vinyl state management logic from earlier can live down here,
-        // and we can link the "music" card directly to open it up!
     </script>
 </body>
 </html>
