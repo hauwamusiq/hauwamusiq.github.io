@@ -10,6 +10,8 @@
             --text-color: #1a1a1a;
             --accent-color: #6b705c;
             --light-gray: #e9ecef;
+            --serif-font: 'Georgia', serif;
+            --sans-font: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         }
 
         * {
@@ -18,12 +20,25 @@
             padding: 0;
         }
 
+        html {
+            scroll-behavior: smooth;
+        }
+
         body {
-            font-family: 'Georgia', serif;
+            font-family: var(--serif-font);
             background-color: var(--bg-color);
             color: var(--text-color);
             line-height: 1.6;
             overflow-x: hidden;
+            -webkit-text-size-adjust: 100%;
+        }
+
+        /* Accessibility Focus States */
+        a:focus-visible, 
+        button:focus-visible, 
+        audio:focus-visible {
+            outline: 2px solid var(--accent-color);
+            outline-offset: 4px;
         }
 
         /* --- SPLASH SCREEN --- */
@@ -32,31 +47,35 @@
             top: 0;
             left: 0;
             width: 100vw;
-            height: 100vh;
+            height: 100dvh;
             background-color: var(--bg-color);
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             z-index: 9999;
-            transition: opacity 0.8s ease, visibility 0.8s;
+            transition: opacity 1s cubic-bezier(0.25, 1, 0.5, 1), visibility 1s;
         }
 
         #splash-screen.fade-out {
             opacity: 0;
             visibility: hidden;
+            pointer-events: none;
         }
 
         #splash-screen h2 {
             font-size: 2.5rem;
             font-weight: 300;
             margin-bottom: 2rem;
-            letter-spacing: 2px;
+            letter-spacing: 3px;
             text-transform: uppercase;
+            opacity: 0;
+            transform: translateY(10px);
+            animation: pullUp 1.2s forwards 0.2s;
         }
 
         .enter-btn {
-            font-family: sans-serif;
+            font-family: var(--sans-font);
             font-size: 1rem;
             text-transform: uppercase;
             letter-spacing: 2px;
@@ -65,24 +84,40 @@
             background: transparent;
             color: var(--text-color);
             cursor: pointer;
-            transition: all 0.4s ease;
+            transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+            opacity: 0;
+            animation: fadeIn 1.5s forwards 0.6s;
+            -webkit-tap-highlight-color: transparent;
         }
 
-        .enter-btn:hover {
-            background-color: var(--text-color);
-            color: var(--bg-color);
+        /* --- FLUID SCROLL REVEAL MECHANISM --- */
+        .reveal {
+            opacity: 0;
+            transform: translateY(40px) scale(0.98);
+            transition: opacity 1.2s cubic-bezier(0.215, 0.610, 0.355, 1), 
+                        transform 1.2s cubic-bezier(0.215, 0.610, 0.355, 1);
+            will-change: transform, opacity;
         }
 
-        /* --- MAIN PORTFOLIO CONTENT --- */
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+
+        /* --- MAIN PORTFOLIO LAYOUT --- */
         .portfolio-content {
             padding: 0 2rem;
             opacity: 0;
-            transform: translateY(20px);
-            transition: opacity 1s ease 0.4s, transform 1s ease 0.4s;
+            visibility: hidden;
+            transform: translateY(30px);
+            transition: opacity 1.5s cubic-bezier(0.25, 1, 0.5, 1) 0.3s, 
+                        transform 1.5s cubic-bezier(0.25, 1, 0.5, 1) 0.3s, 
+                        visibility 1.5s ease 0.3s;
         }
 
         body.active .portfolio-content {
             opacity: 1;
+            visibility: visible;
             transform: translateY(0);
         }
 
@@ -107,14 +142,11 @@
             text-decoration: none;
             margin-left: 1.5rem;
             font-size: 0.9rem;
-            font-family: sans-serif;
+            font-family: var(--sans-font);
             text-transform: uppercase;
             letter-spacing: 1px;
-            transition: color 0.3s;
-        }
-
-        nav a:hover {
-            color: var(--accent-color);
+            transition: color 0.3s, letter-spacing 0.3s;
+            -webkit-tap-highlight-color: transparent;
         }
 
         main {
@@ -123,36 +155,38 @@
         }
 
         section {
-            padding: 5rem 0;
+            padding: 6rem 0;
             border-bottom: 1px solid var(--light-gray);
         }
 
         .hero {
-            padding: 8rem 0;
+            padding: 10rem 0;
             text-align: center;
         }
 
         .hero h2 {
-            font-size: 3rem;
+            font-size: 3.5rem;
             font-weight: 300;
-            margin-bottom: 1rem;
+            margin-bottom: 1.5rem;
+            letter-spacing: -0.5px;
         }
 
         .hero p {
             font-style: italic;
             color: #666;
-            font-size: 1.2rem;
+            font-size: 1.3rem;
         }
 
         section h3 {
-            font-size: 2rem;
+            font-size: 2.2rem;
             font-weight: 300;
-            margin-bottom: 2.5rem;
+            margin-bottom: 3rem;
             text-transform: uppercase;
-            letter-spacing: 2px;
+            letter-spacing: 3px;
+            position: relative;
         }
 
-        /* Music Section Grid */
+        /* Music Section */
         .music-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -161,20 +195,22 @@
 
         .track-card {
             background: white;
-            padding: 1.5rem;
+            padding: 2rem;
             border: 1px solid var(--light-gray);
             border-radius: 4px;
         }
 
         .track-card h4 {
             margin-bottom: 0.5rem;
+            font-weight: 400;
+            font-size: 1.3rem;
         }
 
         .track-card .meta {
             font-size: 0.85rem;
             color: #777;
-            font-family: sans-serif;
-            margin-bottom: 1rem;
+            font-family: var(--sans-font);
+            margin-bottom: 1.5rem;
         }
 
         audio {
@@ -184,28 +220,38 @@
         /* Visual Arts Section */
         .art-subheading {
             font-size: 1.3rem;
-            margin: 2rem 0 1rem 0;
-            font-family: sans-serif;
+            margin: 3rem 0 1.5rem 0;
+            font-family: var(--sans-font);
             color: var(--accent-color);
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 2px;
+            font-weight: 400;
         }
 
         .gallery-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 1.5rem;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 2rem;
         }
 
         .art-card {
             background: #fff;
             border: 1px solid var(--light-gray);
             overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .art-card img {
+            width: 100%;
+            height: 280px;
+            object-fit: cover;
+            display: block;
         }
 
         .art-placeholder {
             width: 100%;
-            height: 250px;
+            height: 280px;
             background-color: #eee;
             display: flex;
             align-items: center;
@@ -215,12 +261,20 @@
         }
 
         .art-info {
-            padding: 1rem;
+            padding: 1.5rem;
+            background: #fff;
+            border-top: 1px solid var(--light-gray);
+        }
+
+        .art-info h5 {
+            font-size: 1.2rem;
+            font-weight: 400;
+            margin-bottom: 0.25rem;
         }
 
         /* Writings Section */
         .writing-category {
-            margin-bottom: 3rem;
+            margin-bottom: 4rem;
         }
 
         .writing-list {
@@ -228,31 +282,167 @@
         }
 
         .writing-item {
-            margin-bottom: 1.5rem;
-            padding-bottom: 1.5rem;
+            margin-bottom: 2rem;
+            padding-bottom: 2rem;
             border-bottom: 1px dashed var(--light-gray);
         }
 
-        .writing-item h4 {
-            font-size: 1.2rem;
-            font-weight: 600;
+        .writing-item h5 {
+            font-size: 1.3rem;
+            font-weight: 400;
+            margin-bottom: 0.25rem;
         }
 
         .writing-item .meta {
             font-size: 0.85rem;
             color: #777;
-            font-family: sans-serif;
-            margin-bottom: 0.5rem;
+            font-family: var(--sans-font);
+            margin-bottom: 0.75rem;
         }
 
         footer {
             text-align: center;
-            padding: 3rem 0;
+            padding: 4rem 0;
             font-size: 0.9rem;
             color: #777;
-            font-family: sans-serif;
+            font-family: var(--sans-font);
+        }
+
+        /* Keyframe Animations */
+        @keyframes pullUp {
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+
+        /* --- DESKTOP HOVER QUERY --- */
+        @media (hover: hover) {
+            .enter-btn:hover {
+                background-color: var(--text-color);
+                color: var(--bg-color);
+                letter-spacing: 4px;
+            }
+            nav a:hover {
+                color: var(--accent-color);
+                letter-spacing: 2px;
+            }
+            .track-card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+                transition: transform 0.4s ease, box-shadow 0.4s ease;
+            }
+            .art-card {
+                transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.5s ease;
+            }
+            .art-card img {
+                transition: transform 0.7s ease;
+            }
+            .art-card:hover {
+                transform: translateY(-8px) scale(1.01);
+                box-shadow: 0 15px 40px rgba(0,0,0,0.04);
+            }
+            .art-card:hover img {
+                transform: scale(1.03);
+            }
+            .writing-item {
+                transition: padding-left 0.4s ease;
+            }
+            .writing-item:hover {
+                padding-left: 10px;
+                border-bottom-style: solid;
+                border-bottom-color: var(--accent-color);
+            }
+        }
+
+        /* --- ACCESSIBILITY: PREFERS REDUCED MOTION --- */
+        @media (prefers-reduced-motion: reduce) {
+            html { scroll-behavior: auto; }
+            #splash-screen h2, .enter-btn, .portfolio-content { animation: none !important; transform: none !important; }
+            .reveal { transition: opacity 0.5s ease !important; transform: none !important; }
+            .art-card, .art-card img, .track-card, .writing-item { transition: none !important; transform: none !important; }
+            .art-card:hover img { transform: none !important; }
+        }
+
+        /* --- RESPONSIVE MEDIA QUERIES --- */
+        @media (max-width: 900px) {
+            .portfolio-content {
+                padding: 0 4rem;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .portfolio-content {
+                padding: 0 1.25rem;
+            }
+
+            header {
+                flex-direction: column;
+                gap: 1.25rem;
+                text-align: center;
+                padding: 2.5rem 0;
+            }
+
+            nav a {
+                margin: 0 0.5rem;
+                font-size: 0.85rem;
+            }
+
+            #splash-screen h2 {
+                font-size: 1.8rem;
+                padding: 0 1.5rem;
+                text-align: center;
+                letter-spacing: 2px;
+            }
+
+            .hero {
+                padding: 6rem 0;
+            }
+
+            .hero h2 {
+                font-size: 2.2rem;
+                line-height: 1.3;
+            }
+
+            .hero p {
+                font-size: 1.1rem;
+            }
+            
+            section {
+                padding: 4.5rem 0;
+            }
+
+            section h3 {
+                font-size: 1.7rem;
+                margin-bottom: 2rem;
+                letter-spacing: 2px;
+            }
+
+            .music-grid, .gallery-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .track-card {
+                padding: 1.25rem;
+            }
+
+            .art-card img, .art-placeholder {
+                height: 230px;
+            }
+
+            .writing-category {
+                margin-bottom: 2.5rem;
+            }
         }
     </style>
+    <noscript>
+        <style>
+            #splash-screen { display: none !important; }
+            .portfolio-content { opacity: 1 !important; visibility: visible !important; transform: none !important; }
+            .reveal { opacity: 1 !important; transform: none !important; }
+        </style>
+    </noscript>
 </head>
 <body>
 
@@ -264,7 +454,7 @@
     <div class="portfolio-content">
         <header>
             <h1>YOUR NAME</h1>
-            <nav>
+            <nav id="main-nav">
                 <a href="#music">Music</a>
                 <a href="#art">Visual Arts</a>
                 <a href="#writings">Writings</a>
@@ -277,7 +467,7 @@
                 <p>A curated anthology of sound, canvas, and written word.</p>
             </section>
 
-            <section id="music">
+            <section id="music" class="reveal">
                 <h3>Music</h3>
                 <div class="music-grid">
                     <div class="track-card">
@@ -294,61 +484,65 @@
             </section>
 
             <section id="art">
-                <h3>Visual Arts</h3>
+                <h3 class="reveal">Visual Arts</h3>
                 
-                <div class="art-subheading">Paintings</div>
-                <div class="gallery-grid">
-                    <div class="art-card">
-                        <div class="art-placeholder">[ Painting Image Here ]</div>
-                        <div class="art-info">
-                            <h4>Serenade in Oil</h4>
-                            <p class="meta">Oil on Canvas, 2025</p>
+                <div class="reveal">
+                    <h4 class="art-subheading">Paintings</h4>
+                    <div class="gallery-grid">
+                        <div class="art-card">
+                            <div class="art-placeholder">[ Painting Image Here ]</div>
+                            <div class="art-info">
+                                <h5>Serenade in Oil</h5>
+                                <p class="meta">Oil on Canvas, 2025</p>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="art-subheading">Drawings & Sketches</div>
-                <div class="gallery-grid">
-                    <div class="art-card">
-                        <div class="art-placeholder">[ Sketch Image Here ]</div>
-                        <div class="art-info">
-                            <h4>Study of Light</h4>
-                            <p class="meta">Charcoal on Paper, 2026</p>
+                <div class="reveal">
+                    <h4 class="art-subheading">Drawings & Sketches</h4>
+                    <div class="gallery-grid">
+                        <div class="art-card">
+                            <div class="art-placeholder">[ Sketch Image Here ]</div>
+                            <div class="art-info">
+                                <h5>Study of Light</h5>
+                                <p class="meta">Charcoal on Paper, 2026</p>
+                            </div>
                         </div>
                     </div>
                 </div>
             </section>
 
             <section id="writings">
-                <h3>Writings</h3>
+                <h3 class="reveal">Writings</h3>
 
-                <div class="writing-category">
-                    <div class="art-subheading">Poetry</div>
+                <div class="writing-category reveal">
+                    <h4 class="art-subheading">Poetry</h4>
                     <ul class="writing-list">
                         <li class="writing-item">
-                            <h4>Echoes of the Solstice</h4>
+                            <h5>Echoes of the Solstice</h5>
                             <p class="meta">Published in Lit Journal, 2024</p>
                             <p>A brief excerpt or the full poem can go here to capture the reader's attention...</p>
                         </li>
                     </ul>
                 </div>
 
-                <div class="writing-category">
-                    <div class="art-subheading">Essays & Literature</div>
+                <div class="writing-category reveal">
+                    <h4 class="art-subheading">Essays & Literature</h4>
                     <ul class="writing-list">
                         <li class="writing-item">
-                            <h4>The Modern Canvas: A Narrative Study</h4>
+                            <h5>The Modern Canvas: A Narrative Study</h5>
                             <p class="meta">Creative Non-Fiction</p>
                             <p>An introductory paragraph or abstract detailing your literary essay work.</p>
                         </li>
                     </ul>
                 </div>
 
-                <div class="writing-category">
-                    <div class="art-subheading">Academic Research</div>
+                <div class="writing-category reveal">
+                    <h4 class="art-subheading">Academic Research</h4>
                     <ul class="writing-list">
                         <li class="writing-item">
-                            <h4>Socio-Aesthetic Shifts in 21st Century Composition</h4>
+                            <h5>Socio-Aesthetic Shifts in 21st Century Composition</h5>
                             <p class="meta">Peer-Reviewed Journal / Methodology</p>
                             <p>Abstract: This paper explores the intersection of digital evolution and acoustic traditions...</p>
                         </li>
@@ -363,12 +557,62 @@
     </div>
 
     <script>
+        const revealElements = document.querySelectorAll('.reveal');
+
+        // Handle splash screen entry
         document.getElementById('enter-experience-btn').addEventListener('click', function() {
-            // Fade out splash overlay
             document.getElementById('splash-screen').classList.add('fade-out');
-            
-            // Trigger layout slide/fade animation for portfolio content
             document.body.classList.add('active');
+            // Immediate safe-check for layout frame reveals upon initialization
+            setTimeout(checkReveals, 400); 
+        });
+
+        // Smart Audio Management
+        const allAudioPlayers = document.querySelectorAll('audio');
+        allAudioPlayers.forEach(player => {
+            player.addEventListener('play', () => {
+                allAudioPlayers.forEach(otherPlayer => {
+                    if (otherPlayer !== player) {
+                        otherPlayer.pause();
+                    }
+                });
+            });
+        });
+
+        // Immersive Scroll Reveal System (High Performance Optimization)
+        const revealObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                    revealObserver.unobserve(entry.target);
+                }
+            });
+        }, {
+            root: null,
+            threshold: 0.02,
+            rootMargin: "0px 0px -10px 0px"
+        });
+
+        revealElements.forEach(element => revealObserver.observe(element));
+        
+        // Targeted optimization: Instantly forces animation visibility when user uses navigation links
+        function checkReveals() {
+            revealElements.forEach(element => {
+                const elementTop = element.getBoundingClientRect().top;
+                if (elementTop < window.innerHeight - 10) {
+                    element.classList.add('active');
+                }
+            });
+        }
+
+        // Attach click triggers to nav links rather than expensive window scroll event-listeners
+        document.querySelectorAll('#main-nav a').forEach(link => {
+            link.addEventListener('click', () => {
+                // Check multiple points during the smooth navigation glide to guarantee visibility triggers
+                setTimeout(checkReveals, 200);
+                setTimeout(checkReveals, 500);
+                setTimeout(checkReveals, 800);
+            });
         });
     </script>
 
