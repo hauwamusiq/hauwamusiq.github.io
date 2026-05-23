@@ -193,6 +193,7 @@
             padding: 25px;
             text-align: center;
             box-shadow: 0 30px 60px rgba(0,0,0,0.4);
+            margin-top: auto; /* Force control overlay down to give 3D elements premium placement */
         }
 
         .timeline-matrix { display: flex; align-items: center; gap: 15px; margin: 20px 0; }
@@ -561,7 +562,7 @@
                 const saturnGeo = new THREE.SphereGeometry(3.5, 32, 32);
                 const saturnMat = new THREE.MeshStandardMaterial({ color: 0x1a1a1a, roughness: 0.8, metalness: 0.2 });
                 this.saturn = new THREE.Mesh(saturnGeo, saturnMat);
-                this.saturn.position.set(0, 2, -25);
+                this.saturn.position.set(0, 2, -45); // Pushed further back to clear space for the music module
                 this.scene.add(this.saturn);
 
                 const count = 1000;
@@ -595,34 +596,41 @@
             },
 
             buildPhysicalTurntableSystem() {
+                this.musicViewStage = new THREE.Group();
+                // Positioned right in front of the camera when view switches to slide 1
+                this.musicViewStage.position.set(0, -1, 0); 
+                this.scene.add(this.musicViewStage);
+
                 this.turntableGroup = new THREE.Group();
                 this.recordCrateGroup = new THREE.Group();
-                this.turntableGroup.position.set(-6, -5, 8);
-                this.recordCrateGroup.position.set(6, -5, 8);
-                this.scene.add(this.turntableGroup, this.recordCrateGroup);
+                
+                // Fine-tuned placement within the local viewport stage space
+                this.turntableGroup.position.set(-4.5, -1.5, 0);
+                this.recordCrateGroup.position.set(4.5, -1.5, 0);
+                this.musicViewStage.add(this.turntableGroup, this.recordCrateGroup);
 
-                const deck = new THREE.Mesh(new THREE.BoxGeometry(9, 0.6, 7), new THREE.MeshStandardMaterial({ color: 0x0f0f0f, roughness: 0.6 }));
+                const deck = new THREE.Mesh(new THREE.BoxGeometry(7.5, 0.6, 6), new THREE.MeshStandardMaterial({ color: 0x0f0f0f, roughness: 0.6 }));
                 this.turntableGroup.add(deck);
 
-                this.platter = new THREE.Mesh(new THREE.CylinderGeometry(3.2, 3.2, 0.15, 32), new THREE.MeshStandardMaterial({ color: 0x252525, metalness: 0.7 }));
-                this.platter.position.set(-0.5, 0.35, 0);
+                this.platter = new THREE.Mesh(new THREE.CylinderGeometry(2.6, 2.6, 0.15, 32), new THREE.MeshStandardMaterial({ color: 0x252525, metalness: 0.7 }));
+                this.platter.position.set(-0.3, 0.35, 0);
                 this.turntableGroup.add(this.platter);
 
                 this.tonearmAnchor = new THREE.Group();
-                this.tonearmAnchor.position.set(3.4, 0.4, -2.2);
+                this.tonearmAnchor.position.set(2.8, 0.4, -1.8);
                 this.tonearmAnchor.rotation.y = -Math.PI / 4;
                 this.turntableGroup.add(this.tonearmAnchor);
 
-                const armRod = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 4, 8), new THREE.MeshStandardMaterial({ color: 0x999999, metalness: 0.9 }));
-                armRod.rotation.x = Math.PI / 2; armRod.position.set(0, 0, 1.6);
+                const armRod = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 3.2, 8), new THREE.MeshStandardMaterial({ color: 0x999999, metalness: 0.9 }));
+                armRod.rotation.x = Math.PI / 2; armRod.position.set(0, 0, 1.3);
                 this.tonearmAnchor.add(armRod);
 
                 tracks.forEach((track, i) => {
                     const pivot = new THREE.Group();
-                    pivot.position.set(0, 1.8, -1.2 + (i * 1.2));
+                    pivot.position.set(0, 1.2, -1.0 + (i * 1.0));
                     this.recordCrateGroup.add(pivot);
 
-                    const sleeve = new THREE.Mesh(new THREE.BoxGeometry(4.6, 3.8, 0.1), new THREE.MeshStandardMaterial({ color: track.hex3d, roughness: 0.5 }));
+                    const sleeve = new THREE.Mesh(new THREE.BoxGeometry(3.8, 3.2, 0.1), new THREE.MeshStandardMaterial({ color: track.hex3d, roughness: 0.5 }));
                     sleeve.userData = { isSleeve: true, trackIndex: i };
                     pivot.add(sleeve);
                     this.sleeves.push(pivot);
@@ -630,7 +638,7 @@
                     const disc = new THREE.Group();
                     disc.visible = false;
                     pivot.add(disc);
-                    disc.add(new THREE.Mesh(new THREE.CylinderGeometry(2, 2, 0.03, 32), new THREE.MeshStandardMaterial({ color: 0x050505, roughness: 0.4 })));
+                    disc.add(new THREE.Mesh(new THREE.CylinderGeometry(1.6, 1.6, 0.03, 32), new THREE.MeshStandardMaterial({ color: 0x050505, roughness: 0.4 })));
                     this.vinylDiscs.push(disc);
                 });
             },
@@ -677,7 +685,7 @@
 
             buildImmersive3DGallery() {
                 this.galleryGroup = new THREE.Group();
-                this.galleryGroup.position.set(-25, 0, -8);
+                this.galleryGroup.position.set(-35, 0, -8);
                 this.scene.add(this.galleryGroup);
 
                 const wallGeo = new THREE.BoxGeometry(0.5, 12, 16);
@@ -711,15 +719,13 @@
                 });
             },
 
-            /* --- RELATIVISTIC LENSING GRAVITATIONAL SINGLE ENGINE --- */
             buildRelativisticBlackhole() {
                 this.bhGroup = new THREE.Group();
-                this.bhGroup.position.set(30, 0, -5); // Configured inside the Metrics Quadrant coordinate track
+                this.bhGroup.position.set(35, 0, -5); 
                 this.scene.add(this.bhGroup);
 
-                this.bhRs = (2 * this.bhG * this.bhM) / (this.bhC * this.bhC); // Rs calculation yields value of 100
+                this.bhRs = (2 * this.bhG * this.bhM) / (this.bhC * this.bhC); 
 
-                // Doppler-Shifted Gravitational Accretion Disk Shader Matrix
                 const diskGeometry = new THREE.PlaneGeometry(this.bhRs * 0.25, this.bhRs * 0.25, 64, 64);
                 this.bhDiskMat = new THREE.ShaderMaterial({
                     transparent: true,
@@ -728,7 +734,7 @@
                         void main() {
                             vUv = uv;
                             vec4 wp = modelMatrix * vec4(position, 1.0);
-                            vDist = length(position.xy); // Normalized localized tracking metric
+                            vDist = length(position.xy); 
                             gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
                         }`,
                     fragmentShader: `
@@ -754,7 +760,6 @@
                 diskMesh.rotation.x = Math.PI / 2.8;
                 this.bhGroup.add(diskMesh);
 
-                // Event Horizon Structural Shell Mesh
                 const hGeo = new THREE.IcosahedronGeometry(this.bhRs * 0.04, 4);
                 this.bhHMat = new THREE.ShaderMaterial({
                     vertexShader: `
@@ -774,7 +779,6 @@
                 });
                 this.bhGroup.add(new THREE.Mesh(hGeo, this.bhHMat));
 
-                // Accelerated Singularity Orbiting Particle Setup
                 this.bhN = isMobile ? 1500 : 6000;
                 this.bhPts = new Float32Array(this.bhN * 3);
                 this.bhVel = new Float32Array(this.bhN * 3);
@@ -807,13 +811,14 @@
 
             transitionCameraView(viewId) {
                 if (viewId === 'music-view') {
-                    this.targetCamPos.set(0, 5, 18); this.targetCamLook.set(0, -2, 6);
+                    // Snaps directly down overlooking the platform deck layout
+                    this.targetCamPos.set(0, 6.5, 9); this.targetCamLook.set(0, -1.2, 0);
                 } else if (viewId === 'paintings-view') {
-                    this.targetCamPos.set(-14, 5, -8); this.targetCamLook.set(-25, 3, -8);
+                    this.targetCamPos.set(-22, 5, -8); this.targetCamLook.set(-35, 3, -8);
                 } else if (viewId === 'etc-view') {
-                    // Positions viewpoint cleanly perpendicular to the relativistic blackhole matrix
-                    this.targetCamPos.set(30, 4, 14); this.targetCamLook.set(30, 0, -5);
+                    this.targetCamPos.set(35, 4, 14); this.targetCamLook.set(35, 0, -5);
                 } else {
+                    // Stage 0: Main Home Menu Overview
                     this.targetCamPos.set(0, 15, 35); this.targetCamLook.set(0, 0, 0);
                 }
             },
@@ -822,7 +827,6 @@
                 requestAnimationFrame(() => this.renderLoop());
                 this.globalTime += 0.01;
 
-                // Sync terminal string UI metrics updates
                 const metricDrift = document.getElementById('metric-drift');
                 const metricVectors = document.getElementById('metric-vectors');
                 const metricParticles = document.getElementById('metric-particles');
@@ -831,7 +835,6 @@
                 if(metricVectors) metricVectors.innerText = (this.bhRs + Math.sin(this.globalTime * 2) * 0.02).toFixed(4);
                 if(metricParticles) metricParticles.innerText = this.bhN + " / ACTIVE";
 
-                // Base Ambient Starfield Loops
                 if (this.pointCloud && portfolioState.particleDistributionMode !== 'singularity') {
                     const attr = this.pointCloud.geometry.attributes.position;
                     for(let i=0; i<1000; i++) {
@@ -843,7 +846,7 @@
                         let curZ = pt.z;
 
                         if (portfolioState.particleDistributionMode === 'disk') {
-                            curY = THREE.MathUtils.lerp(pt.y, Math.sin(pt.angle * 2) * 5, 0.05);
+                            curY = THREE.MathUtils.lerp(pt.y, Math.sin(pt.angle * 2) * 3, 0.05);
                         } else if (portfolioState.particleDistributionMode === 'wild') {
                             curX += Math.cos(pt.angle * 10) * 0.2;
                             curY += Math.sin(pt.angle * 10) * 0.2;
@@ -862,7 +865,6 @@
                     attr.needsUpdate = true;
                 }
 
-                // Relativistic Blackhole Processing Iteration Loops
                 if(this.bhDiskMat && this.bhHMat && this.bhPointsGeo) {
                     this.bhHMat.uniforms.time.value = this.globalTime;
                     this.bhDiskMat.uniforms.time.value = this.globalTime;
@@ -883,7 +885,6 @@
                             continue;
                         }
 
-                        // Relativistic acceleration vector modifications
                         const pullAcceleration = (this.bhG * this.bhM * 0.008) / (r * r);
                         const headingAngle = Math.atan2(z, x);
                         const frictionDrag = Math.max(0, (captureBoundary - r) / captureBoundary) * 0.015;
@@ -898,24 +899,21 @@
                     this.bhPointsGeo.attributes.position.needsUpdate = true;
                 }
 
-                // Smooth camera view interpolation glides
                 if(portfolioState.activeView === 'etc-view') {
-                    // Inject a light cinematic orbital drift while viewing the metrics terminal node
                     const driftRadius = 14;
                     const pathTime = this.globalTime * 0.15;
                     this.camera.position.set(
-                        30 + driftRadius * Math.cos(pathTime),
+                        35 + driftRadius * Math.cos(pathTime),
                         4 + Math.sin(pathTime * 1.5) * 2,
                         -5 + driftRadius * Math.sin(pathTime)
                     );
-                    this.camera.lookAt(30, 0, -5);
+                    this.camera.lookAt(35, 0, -5);
                 } else {
                     this.camera.position.lerp(this.targetCamPos, 0.04);
                     this.currentCamLook.lerp(this.targetCamLook, 0.04);
                     this.camera.lookAt(this.currentCamLook);
                 }
 
-                // Turntable system rotational acceleration loops
                 let targetPlatterSpeed = portfolioState.isPlaying ? 2.0 : 0;
                 this.rotationSpeed += (targetPlatterSpeed - this.rotationSpeed) * 0.05;
                 if (this.rotationSpeed > 0.01) {
@@ -929,7 +927,7 @@
 
         window.addEventListener('DOMContentLoaded', () => SpaceEngine.init());
 
-        /* --- RECORD EXTRACTION LIFE CYCLES --- */
+        /* --- ADVANCED RECORD EXTRACTION LIFE CYCLES --- */
         function trigger3DRecordExtractionPipeline(trackIdx) {
             if (portfolioState.isAnimating) return;
             portfolioState.isAnimating = true;
@@ -958,21 +956,22 @@
                 let elapsed = now - startT;
 
                 if (elapsed < 400) {
-                    pivot.position.y = 1.8 + (elapsed / 400) * 1.5;
+                    pivot.position.y = 1.2 + (elapsed / 400) * 1.2;
                     requestAnimationFrame(runExtraction);
                 } else if (elapsed < 900) {
                     disc.visible = true;
-                    disc.position.x = ((elapsed - 400) / 500) * 3.5;
+                    disc.position.x = ((elapsed - 400) / 500) * 2.5;
                     requestAnimationFrame(runExtraction);
                 } else {
-                    disc.visible = false; disc.position.set(0,0,0); pivot.position.y = 1.8;
+                    disc.visible = false; disc.position.set(0,0,0); pivot.position.y = 1.2;
                     
-                    const flyingDisc = new THREE.Mesh(new THREE.CylinderGeometry(2,2,0.04,32), new THREE.MeshStandardMaterial({ color: 0x111111, metalness:0.8 }));
-                    SpaceEngine.scene.add(flyingDisc);
+                    const flyingDisc = new THREE.Mesh(new THREE.CylinderGeometry(1.6,1.6,0.04,32), new THREE.MeshStandardMaterial({ color: 0x111111, metalness:0.8 }));
+                    // Add directly to localized stage relative to table positions
+                    SpaceEngine.musicViewStage.add(flyingDisc);
                     
                     let fStart = null;
-                    let sourcePos = new THREE.Vector3(6, -1.7, 8 + (trackIdx * 1.2));
-                    let targetPos = new THREE.Vector3(-6.5, -4.5, 8);
+                    let sourcePos = new THREE.Vector3(4.5, 1.2, -1.0 + (trackIdx * 1.0));
+                    let targetPos = new THREE.Vector3(-4.8, 0.4, 0);
 
                     function flyToPlatter(fNow) {
                         if(!fStart) fStart = fNow;
@@ -980,17 +979,17 @@
                         let pct = Math.min(fElapsed / 800, 1);
 
                         flyingDisc.position.lerpVectors(sourcePos, targetPos, pct);
-                        flyingDisc.position.y += Math.sin(pct * Math.PI) * 3;
+                        flyingDisc.position.y += Math.sin(pct * Math.PI) * 2.5;
 
                         if (pct < 1) {
                             requestAnimationFrame(flyToPlatter);
                         } else {
-                            SpaceEngine.scene.remove(flyingDisc);
+                            SpaceEngine.musicViewStage.remove(flyingDisc);
                             
-                            SpaceEngine.activeVinylMesh = new THREE.Mesh(new THREE.CylinderGeometry(2,2,0.04,32), new THREE.MeshStandardMaterial({ color: 0x0a0a0a, roughness:0.3 }));
-                            SpaceEngine.activeVinylMesh.position.set(-0.5, 0.44, 0);
+                            SpaceEngine.activeVinylMesh = new THREE.Mesh(new THREE.CylinderGeometry(1.6,1.6,0.04,32), new THREE.MeshStandardMaterial({ color: 0x0a0a0a, roughness:0.3 }));
+                            SpaceEngine.activeVinylMesh.position.set(-0.3, 0.44, 0);
                             
-                            const innerLabel = new THREE.Mesh(new THREE.CylinderGeometry(0.6,0.6,0.05,16), new THREE.MeshStandardMaterial({ color: targetTrack.hex3d }));
+                            const innerLabel = new THREE.Mesh(new THREE.CylinderGeometry(0.5,0.5,0.05,16), new THREE.MeshStandardMaterial({ color: targetTrack.hex3d }));
                             innerLabel.position.y = 0.01;
                             SpaceEngine.activeVinylMesh.add(innerLabel);
 
