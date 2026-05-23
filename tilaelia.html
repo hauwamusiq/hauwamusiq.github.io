@@ -5,24 +5,36 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>tilaelia's portfolio</title>
     <style>
-        /* Base Reset & Styling */
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Courier New', Courier, monospace;
-            background-color: #0b0b0b;
-            color: #ffffff;
-            overflow-x: hidden;
-            -webkit-tap-highlight-color: transparent; /* Smooth mobile tapping */
+        /* --- SYSTEM VARIABLE ENGINE & RESETS --- */
+        :root {
+            --bg-primary: #0b0b0b;
+            --bg-secondary: #050505;
+            --bg-card: #141414;
+            --accent-green: #1db954;
+            --text-main: #ffffff;
+            --text-muted: #888888;
+            --text-dim: #555555;
+            --font-mono: 'Courier New', Courier, monospace;
         }
 
-        /* --- 1. INTRO SPLASH PAGE --- */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: var(--font-mono);
+            background-color: var(--bg-primary);
+            color: var(--text-main);
+            overflow-x: hidden;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* --- 1. INTRO SPLASH VIEW --- */
         #intro-page {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100vh;
-            background-color: #050505;
+            background-color: var(--bg-secondary);
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -34,7 +46,7 @@
         }
 
         #intro-page h1 {
-            font-size: calc(1.8rem + 1.5vw); /* Responsive text scaling */
+            font-size: calc(1.8rem + 1.5vw);
             margin-bottom: 10px;
             letter-spacing: 3px;
             text-transform: lowercase;
@@ -42,14 +54,14 @@
 
         #intro-page p {
             font-size: calc(1rem + 0.5vw);
-            color: #888;
+            color: var(--text-muted);
             margin-bottom: 40px;
         }
 
         .enter-btn {
             background: none;
-            border: 2px solid #ffffff;
-            color: #ffffff;
+            border: 2px solid var(--text-main);
+            color: var(--text-main);
             padding: 12px 30px;
             font-size: 1.2rem;
             font-family: inherit;
@@ -59,18 +71,14 @@
             outline: none;
         }
 
-        /* Hover effect */
         .enter-btn:hover {
-            background-color: #ffffff;
-            color: #050505;
+            background-color: var(--text-main);
+            color: var(--bg-secondary);
             box-shadow: 0 0 15px rgba(255, 255, 255, 0.6);
             transform: scale(1.05);
         }
 
-        /* Active click effect for mobile screens */
-        .enter-btn:active {
-            transform: scale(0.98);
-        }
+        .enter-btn:active { transform: scale(0.98); }
 
         #intro-page.hidden {
             opacity: 0;
@@ -78,7 +86,7 @@
             pointer-events: none;
         }
 
-        /* --- 2. MAIN WEBSITE CONTENT --- */
+        /* --- 2. GLOBAL STRUCTURE & ROUTING ANIMATIONS --- */
         #main-site {
             opacity: 0;
             transition: opacity 1s ease 0.5s;
@@ -87,9 +95,7 @@
             margin: 0 auto;
         }
 
-        #main-site.visible {
-            opacity: 1;
-        }
+        #main-site.visible { opacity: 1; }
 
         .site-header {
             text-align: center;
@@ -99,9 +105,37 @@
         .site-header h2 {
             font-size: 2rem;
             letter-spacing: 2px;
+            cursor: pointer;
+            display: inline-block;
         }
 
-        /* Responsive Category Grid */
+        /* Core Application Section Views */
+        .portfolio-view {
+            display: none;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 0.4s ease, transform 0.4s ease;
+        }
+
+        .portfolio-view.view-active {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Back Navigation Array Component */
+        .back-nav {
+            margin-bottom: 30px;
+            cursor: pointer;
+            color: var(--text-muted);
+            display: inline-flex;
+            align-items: center;
+            transition: color 0.2s;
+            font-size: 0.9rem;
+        }
+        .back-nav:hover { color: var(--text-main); }
+
+        /* --- 3. VIEW PORTFOLIO MENU (HOME) --- */
         .portfolio-menu {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -110,92 +144,38 @@
         }
 
         .menu-card {
-            background: #141414;
+            background: var(--bg-card);
             border: 1px solid #222;
             padding: 40px 20px;
             text-align: center;
             border-radius: 4px;
             cursor: pointer;
-            transition: transform 0.3s ease, border-color 0.3s ease, background-color 0.2s;
+            transition: transform 0.3s ease, border-color 0.3s ease;
         }
 
         .menu-card:hover {
             transform: translateY(-5px);
-            border-color: #555;
+            border-color: var(--text-dim);
         }
 
-        .menu-card:active {
-            background-color: #1a1a1a;
+        .menu-card:active { background-color: #1a1a1a; }
+        .menu-card h3 { font-size: 1.8rem; margin-bottom: 15px; }
+        .menu-card p { color: var(--text-muted); font-size: 0.9rem; line-height: 1.4; }
+
+        /* --- 4. MUSIC WORKSPACE MODULE --- */
+        .music-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            align-items: start;
         }
 
-        .menu-card h3 {
-            font-size: 1.8rem;
-            margin-bottom: 15px;
-        }
+        .crate-container h3 { margin-bottom: 15px; font-size: 1.3rem; color: var(--text-muted); }
 
-        .menu-card p {
-            color: #aaa;
-            font-size: 0.9rem;
-            line-height: 1.4;
-        }
-
-        /* Mobile specific spacing tweaks */
-        @media (max-width: 600px) {
-            #main-site {
-                padding: 20px 15px;
-            }
-            .site-header {
-                margin-bottom: 30px;
-            }
-            .menu-card {
-                padding: 30px 15px;
-            }
-        }
-    </style>
-</head>
-<body>
-
-    <div id="intro-page">
-        <h1>tilaelia's portfolio</h1>
-        <p>enter if you dare &gt;:)</p>
-        <button class="enter-btn" onclick="enterWebsite()">click here</button>
-    </div>
-
-    <div id="main-site">
-        <header class="site-header">
-            <h2>tilaelia</h2>
-        </header>
-
-        <main>
-            <div class="portfolio-menu">
-                
-                <div class="menu-card" onclick="alert('Music section coming soon!')">
-                    <h3>music</h3>
-                    <p>Step inside the crate. Listen to custom tracks and watch custom vinyl animations.</p>
-                </div>
-
-                <div class="menu-card" onclick="alert('Paintings gallery coming soon!')">
-                    <h3>paintings</h3>
-                    <p>A visual gallery of canvas works, sketches, and fine art collections.</p>
-                </div>
-
-                <div class="menu-card" onclick="alert('Other projects coming soon!')">
-                    <h3>etc.</h3>
-                    <p>Miscellaneous digital creations, design experiments, and logs.</p>
-                </div>
-
-            </div>
-        </main>
-    </div>
-
-    <script>
-        function enterWebsite() {
-            const intro = document.getElementById('intro-page');
-            const main = document.getElementById('main-site');
-
-            intro.classList.add('hidden');
-            main.classList.add('visible');
-        }
-    </script>
-</body>
-</html>
+        .vinyl-crate-item {
+            background: var(--bg-card);
+            border: 1px solid #222;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            cursor: pointer;
