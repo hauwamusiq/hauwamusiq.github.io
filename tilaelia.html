@@ -3,14 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Your Name | Portfolio</title>
+    <title>Your Name | Playful Portfolio</title>
     <style>
         :root {
-            --bg-color: #fcfbf9;
+            /* Upgraded to vibrant, fluid, soft-tonal color variables */
+            --bg-color: #f7f4ef;
             --text-color: #1a1a1a;
-            --accent-color: #6b705c;
-            --light-gray: #e9ecef;
-            --serif-font: 'Georgia', serif;
+            --accent-color: #e76f51; /* Playful coral */
+            --secondary-accent: #2a9d8f; /* Mint teal */
+            --light-gray: #e5e0d8;
             --sans-font: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         }
 
@@ -25,7 +26,7 @@
         }
 
         body {
-            font-family: var(--serif-font);
+            font-family: var(--sans-font);
             background-color: var(--bg-color);
             color: var(--text-color);
             line-height: 1.6;
@@ -36,11 +37,11 @@
         a:focus-visible, 
         button:focus-visible, 
         audio:focus-visible {
-            outline: 2px solid var(--accent-color);
+            outline: 3px dashed var(--accent-color);
             outline-offset: 4px;
         }
 
-        /* --- SPLASH SCREEN --- */
+        /* --- PLAYFUL LIQUID SPLASH SCREEN --- */
         #splash-screen {
             position: fixed;
             top: 0;
@@ -53,99 +54,119 @@
             justify-content: center;
             align-items: center;
             z-index: 9999;
-            transition: opacity 1s cubic-bezier(0.25, 1, 0.5, 1), visibility 1s;
+            transition: transform 1.2s cubic-bezier(0.85, 0, 0.15, 1), opacity 1s ease;
         }
 
         #splash-screen.fade-out {
+            transform: translateY(-100%) scale(0.95); /* Slides upward like a fluid curtain */
             opacity: 0;
-            visibility: hidden;
             pointer-events: none;
         }
 
         #splash-screen h2 {
-            font-size: 2.5rem;
-            font-weight: 300;
+            font-size: 3rem;
+            font-weight: 800;
             margin-bottom: 2rem;
-            letter-spacing: 3px;
-            text-transform: uppercase;
+            letter-spacing: -1px;
+            color: var(--text-color);
             opacity: 0;
-            transform: translateY(10px);
-            animation: pullUp 1.2s forwards 0.2s;
+            transform: scale(0.8) rotate(-3deg);
+            animation: popIn 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards 0.2s;
         }
 
         .enter-btn {
-            font-family: var(--sans-font);
-            font-size: 1rem;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            padding: 1rem 2.5rem;
-            border: 1px solid var(--text-color);
+            font-size: 1.1rem;
+            font-weight: 700;
+            padding: 1.2rem 3rem;
+            border: 3px solid var(--text-color);
+            border-radius: 50px; /* Pillow shape */
             background: transparent;
             color: var(--text-color);
             cursor: pointer;
-            transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+            box-shadow: 0 8px 0 var(--text-color);
+            transition: all 0.2s ease;
             opacity: 0;
-            animation: fadeIn 1.5s forwards 0.6s;
+            transform: translateY(20px);
+            animation: slideUpPop 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards 0.5s;
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* --- FLUID SCROLL REVEAL MECHANISM --- */
+        .enter-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 4px 0 var(--text-color);
+        }
+
+        /* --- SPRING SCROLL REVEAL MECHANISM --- */
         .reveal {
             opacity: 0;
-            transform: translateY(40px) scale(0.98);
-            transition: opacity 1.2s cubic-bezier(0.215, 0.610, 0.355, 1), 
-                        transform 1.2s cubic-bezier(0.215, 0.610, 0.355, 1);
+            transform: translateY(60px) scale(0.93) rotate(1deg);
+            transition: opacity 1s cubic-bezier(0.34, 1.56, 0.64, 1), 
+                        transform 1.2s cubic-bezier(0.34, 1.56, 0.64, 1);
             will-change: transform, opacity;
         }
 
         .reveal.active {
             opacity: 1;
-            transform: translateY(0) scale(1);
+            transform: translateY(0) scale(1) rotate(0deg);
         }
 
         /* --- MAIN PORTFOLIO LAYOUT --- */
         .portfolio-content {
             padding: 0 2rem;
             opacity: 0;
-            visibility: hidden;
-            transform: translateY(30px);
-            transition: opacity 1.5s cubic-bezier(0.25, 1, 0.5, 1) 0.3s, 
-                        transform 1.5s cubic-bezier(0.25, 1, 0.5, 1) 0.3s, 
-                        visibility 1.5s ease 0.3s;
+            transform: translateY(40px);
+            transition: opacity 1.2s cubic-bezier(0.25, 1, 0.5, 1) 0.4s, 
+                        transform 1.2s cubic-bezier(0.25, 1, 0.5, 1) 0.4s;
         }
 
         body.active .portfolio-content {
             opacity: 1;
-            visibility: visible;
             transform: translateY(0);
         }
 
         header {
             max-width: 1100px;
             margin: 0 auto;
-            padding: 3rem 0;
+            padding: 4rem 0;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid var(--light-gray);
         }
 
         header h1 {
-            font-size: 1.8rem;
-            font-weight: 400;
-            letter-spacing: 1px;
+            font-size: 1.5rem;
+            font-weight: 900;
+            letter-spacing: -0.5px;
+            background: linear-gradient(45deg, var(--accent-color), var(--secondary-accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
         nav a {
             color: var(--text-color);
             text-decoration: none;
-            margin-left: 1.5rem;
-            font-size: 0.9rem;
-            font-family: var(--sans-font);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            transition: color 0.3s, letter-spacing 0.3s;
+            margin-left: 2rem;
+            font-size: 1rem;
+            font-weight: 700;
+            position: relative;
+            display: inline-block;
+            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
             -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Playful fluid underline indicator */
+        nav a::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            transform: scaleX(0);
+            height: 4px;
+            bottom: -6px;
+            left: 0;
+            background-color: var(--secondary-accent);
+            transform-origin: bottom right;
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            border-radius: 2px;
         }
 
         main {
@@ -154,79 +175,103 @@
         }
 
         section {
-            padding: 6rem 0;
-            border-bottom: 1px solid var(--light-gray);
+            padding: 8rem 0;
         }
 
         .hero {
-            padding: 10rem 0;
+            padding: 12rem 0;
             text-align: center;
         }
 
         .hero h2 {
-            font-size: 3.5rem;
-            font-weight: 300;
+            font-size: 4.5rem;
+            font-weight: 900;
             margin-bottom: 1.5rem;
-            letter-spacing: -0.5px;
+            letter-spacing: -2px;
+            line-height: 1.1;
         }
 
         .hero p {
-            font-style: italic;
-            color: #666;
-            font-size: 1.3rem;
+            color: #555;
+            font-size: 1.5rem;
+            font-weight: 500;
         }
 
         section h3 {
-            font-size: 2.2rem;
-            font-weight: 300;
+            font-size: 2.5rem;
+            font-weight: 900;
             margin-bottom: 3rem;
-            text-transform: uppercase;
-            letter-spacing: 3px;
+            letter-spacing: -1px;
+            position: relative;
+            display: inline-block;
         }
 
-        /* Dynamic Grid Layouts */
+        /* Decorative fluid indicator spot */
+        section h3::before {
+            content: '';
+            position: absolute;
+            z-index: -1;
+            bottom: 2px;
+            left: -5px;
+            width: 105%;
+            height: 12px;
+            background-color: var(--light-gray);
+            border-radius: 20px;
+        }
+
+        /* Dynamic Playful Grid Layouts */
         .project-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 2rem;
+            gap: 3rem;
         }
 
         .work-card {
             background: white;
-            border: 1px solid var(--light-gray);
-            border-radius: 4px;
+            border: 3px solid var(--text-color);
+            border-radius: 24px;
             overflow: hidden;
             display: flex;
             flex-direction: column;
+            box-shadow: 0 12px 0 var(--text-color);
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        /* Reactive Organic Asset Masking Shape */
+        .image-container {
+            padding: 1.25rem;
+            overflow: hidden;
         }
 
         .work-card img {
             width: 100%;
-            height: 280px;
-            aspect-ratio: 16 / 9; /* Fixes layout shifting and reserves card shape pre-load */
+            height: 260px;
+            aspect-ratio: 16 / 10;
             object-fit: cover; 
             display: block;
-            background-color: #eee;
-            color: #777; /* Styles layout parameters for missing image fallbacks gracefully */
-            font-size: 0.85rem;
-            font-family: var(--sans-font);
-            padding: 1rem;
+            border-radius: 18px;
+            background-color: var(--light-gray);
+            /* Bouncy organic border shape mask */
+            border-radius: 60% 40% 60% 40% / 40% 60% 40% 60%;
+            transition: border-radius 0.6s ease, transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
 
         .card-body {
             padding: 1.5rem;
+            padding-top: 0;
         }
 
         .card-body h4 {
-            font-size: 1.25rem;
-            font-weight: 400;
+            font-size: 1.4rem;
+            font-weight: 800;
             margin-bottom: 0.25rem;
+            letter-spacing: -0.3px;
         }
 
         .card-body .meta {
             font-size: 0.85rem;
-            color: #777;
-            font-family: var(--sans-font);
+            color: var(--accent-color);
+            font-weight: 700;
             margin-bottom: 1rem;
             text-transform: uppercase;
             letter-spacing: 1px;
@@ -234,71 +279,109 @@
 
         audio {
             width: 100%;
-            margin-top: 0.5rem;
+            margin-top: 0.75rem;
+            border-radius: 30px;
         }
 
-        /* Text Works Styling */
+        /* Text Works Playful List Elements */
         .text-list {
             list-style: none;
         }
 
         .text-item {
-            margin-bottom: 2rem;
-            padding-bottom: 2rem;
-            border-bottom: 1px dashed var(--light-gray);
+            margin-bottom: 2.5rem;
+            padding: 2rem;
+            background: white;
+            border: 3px solid var(--text-color);
+            border-radius: 20px;
+            box-shadow: 0 8px 0 var(--text-color);
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
 
         .text-item h4 {
-            font-size: 1.3rem;
-            font-weight: 400;
+            font-size: 1.4rem;
+            font-weight: 800;
             margin-bottom: 0.25rem;
         }
 
         .text-item .meta {
             font-size: 0.85rem;
-            color: #777;
-            font-family: var(--sans-font);
+            color: var(--secondary-accent);
+            font-weight: 700;
             margin-bottom: 0.75rem;
         }
 
         footer {
             text-align: center;
-            padding: 4rem 0;
-            font-size: 0.9rem;
-            color: #777;
-            font-family: var(--sans-font);
+            padding: 6rem 0;
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-color);
         }
 
-        @keyframes pullUp { to { opacity: 1; transform: translateY(0); } }
-        @keyframes fadeIn { to { opacity: 1; } }
+        /* Spring Animations Keyframes */
+        @keyframes popIn {
+            to { opacity: 1; transform: scale(1) rotate(0deg); }
+        }
+        @keyframes slideUpPop {
+            to { opacity: 1; transform: translateY(0); }
+        }
 
-        /* --- DESKTOP HOVER INTERACTIONS --- */
+        /* --- DESKTOP PLAYFUL HOVER PHYSICS --- */
         @media (hover: hover) {
-            .enter-btn:hover { background-color: var(--text-color); color: var(--bg-color); letter-spacing: 4px; }
-            nav a:hover { color: var(--accent-color); letter-spacing: 2px; }
-            .work-card { transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.5s ease; }
-            .work-card img { transition: transform 0.7s ease; }
-            .work-card:hover { transform: translateY(-8px); box-shadow: 0 15px 40px rgba(0,0,0,0.04); }
-            .work-card:hover img { transform: scale(1.02); }
-            .text-item { transition: padding-left 0.4s ease; }
-            .text-item:hover { padding-left: 10px; border-bottom-style: solid; border-bottom-color: var(--accent-color); }
+            .enter-btn:hover {
+                transform: translateY(-4px);
+                box-shadow: 0 12px 0 var(--text-color);
+                background-color: var(--accent-color);
+                color: white;
+            }
+            nav a:hover {
+                transform: scale(1.1) rotate(-2deg);
+                color: var(--accent-color);
+            }
+            nav a:hover::after {
+                transform: scaleX(1);
+                transform-origin: bottom left;
+            }
+            .work-card:hover {
+                transform: translateY(-10px) scale(1.02) rotate(1deg);
+                box-shadow: 0 20px 0 var(--text-color);
+            }
+            /* Swaps shape fluidly to an alternate organic morphing cycle on hover */
+            .work-card:hover img {
+                border-radius: 40% 60% 40% 60% / 60% 40% 60% 40%;
+                transform: scale(1.03);
+            }
+            .text-item:hover {
+                transform: translateY(-6px) rotate(-0.5deg);
+                box-shadow: 0 14px 0 var(--text-color);
+                border-color: var(--secondary-accent);
+            }
         }
 
-        /* --- RESPONSIVE MEDIA QUERIES --- */
+        /* --- ACCESSIBILITY SAFE GUARD --- */
+        @media (prefers-reduced-motion: reduce) {
+            html { scroll-behavior: auto; }
+            #splash-screen { transform: none !important; transition: none !important; }
+            .reveal { transition: none !important; transform: none !important; opacity: 1 !important; }
+            .work-card, .work-card img, .text-item { transform: none !important; transition: none !important; box-shadow: none !important; }
+        }
+
+        /* --- RESPONSIVE MEDIA MAPS --- */
         @media (max-width: 900px) {
             .portfolio-content { padding: 0 4rem; }
         }
 
         @media (max-width: 600px) {
             .portfolio-content { padding: 0 1.25rem; }
-            header { flex-direction: column; gap: 1.25rem; text-align: center; padding: 2.5rem 0; }
-            nav a { margin: 0 0.5rem; font-size: 0.85rem; }
-            #splash-screen h2 { font-size: 1.8rem; padding: 0 1.5rem; text-align: center; }
-            .hero { padding: 6rem 0; }
-            .hero h2 { font-size: 2.2rem; line-height: 1.3; }
-            section { padding: 4.5rem 0; }
-            section h3 { font-size: 1.7rem; margin-bottom: 2rem; }
-            .project-grid { grid-template-columns: 1fr; gap: 1.5rem; }
+            header { flex-direction: column; gap: 1.5rem; text-align: center; padding: 2.5rem 0; }
+            nav a { margin: 0 0.75rem; font-size: 0.95rem; }
+            #splash-screen h2 { font-size: 2.2rem; }
+            .hero { padding: 8rem 0; }
+            .hero h2 { font-size: 2.8rem; letter-spacing: -1px; }
+            section { padding: 5rem 0; }
+            section h3 { font-size: 2rem; }
+            .project-grid { grid-template-columns: 1fr; gap: 2.5rem; }
             .work-card img { height: 230px; }
         }
     </style>
@@ -306,13 +389,13 @@
 <body>
 
     <div id="splash-screen">
-        <h2>Welcome to the Portfolio</h2>
-        <button class="enter-btn" id="enter-experience-btn">Enter Experience</button>
+        <h2>Hello There!</h2>
+        <button class="enter-btn" id="enter-experience-btn">Explore Workspace</button>
     </div>
 
     <div class="portfolio-content">
         <header>
-            <h1>YOUR NAME</h1>
+            <h1>CREATIVE.SPACE</h1>
             <nav id="main-nav">
                 <a href="#audio-works">Audio</a>
                 <a href="#visual-works">Visuals</a>
@@ -322,28 +405,34 @@
 
         <main>
             <section class="hero">
-                <h2>Creative Portfolio</h2>
-                <p>A curated showcase of dynamic projects, media, and conceptual works.</p>
+                <h2>Making things with noise, pixels, and ink.</h2>
+                <p>Welcome! Drop inside to view recent creative project builds.</p>
             </section>
 
             <section id="audio-works" class="reveal">
-                <h3>Audio Projects</h3>
+                <h3>Audio Sandbox</h3>
                 <div class="project-grid">
                     
                     <div class="work-card">
+                        <div class="image-container">
+                            <div style="width:100%; height:12px; background:var(--accent-color); border-radius:10px; margin-bottom:10px;"></div>
+                        </div>
                         <div class="card-body">
-                            <h4>Project Title One</h4>
-                            <p class="meta">Category / Format</p>
-                            <p>Add a brief description detailing the creation process or concept behind this audio work.</p>
+                            <h4>Sonic Environment 01</h4>
+                            <p class="meta">Soundscape / Design</p>
+                            <p>An elastic, reactive experiment using algorithmic structural audio patterns and field recordings.</p>
                             <audio controls src="your-file-1.mp3"></audio> 
                         </div>
                     </div>
 
                     <div class="work-card">
+                        <div class="image-container">
+                            <div style="width:100%; height:12px; background:var(--secondary-accent); border-radius:10px; margin-bottom:10px;"></div>
+                        </div>
                         <div class="card-body">
-                            <h4>Project Title Two</h4>
-                            <p class="meta">Category / Format</p>
-                            <p>Add a brief description detailing the creation process or concept behind this audio work.</p>
+                            <h4>Rhythmic Engine Suite</h4>
+                            <p class="meta">Electronic / Modular</p>
+                            <p>A fast-paced structural test analyzing real-time synthesizer patching mechanics.</p>
                             <audio controls src="your-file-2.mp3"></audio>
                         </div>
                     </div>
@@ -352,22 +441,26 @@
             </section>
 
             <section id="visual-works">
-                <h3 class="reveal">Visual Works</h3>
+                <h3 class="reveal">Visual Gallery</h3>
                 <div class="project-grid reveal">
                     
                     <div class="work-card">
-                        <img src="image-path-1.jpg" alt="Descriptive title of your first artwork">
+                        <div class="image-container">
+                            <img src="image-path-1.jpg" alt="Dynamic playful visual canvas layout">
+                        </div>
                         <div class="card-body">
-                            <h4>Visual Work Title</h4>
-                            <p class="meta">Medium / Dimensions, Year</p>
+                            <h4>Color Mutation Studies</h4>
+                            <p class="meta">Digital Asset / Vector, 2026</p>
                         </div>
                     </div>
 
                     <div class="work-card">
-                        <img src="image-path-2.jpg" alt="Descriptive title of your second artwork">
+                        <div class="image-container">
+                            <img src="image-path-2.jpg" alt="Dynamic playful visual canvas layout">
+                        </div>
                         <div class="card-body">
-                            <h4>Visual Work Title</h4>
-                            <p class="meta">Medium / Dimensions, Year</p>
+                            <h4>Fluid Topology Vector</h4>
+                            <p class="meta">Mixed Media, 2026</p>
                         </div>
                     </div>
 
@@ -375,20 +468,20 @@
             </section>
 
             <section id="text-works">
-                <h3 class="reveal">Written & Text Works</h3>
+                <h3 class="reveal">Written Logs</h3>
                 <div class="reveal">
                     <ul class="text-list">
                         
                         <li class="text-item">
-                            <h4>Written Piece Title One</h4>
-                            <p class="meta">Publication / Context, Year</p>
-                            <p>Your full text body context, essay extract, narrative summary, or poetry paragraphs go directly right here...</p>
+                            <h4>The Architecture of Interactive Friction</h4>
+                            <p class="meta">Essay Log // Column 04</p>
+                            <p>An exploratory narrative diving deep into why adding physical weight, responsive recoil, and fluid animation dynamics can alter a human user's digital focus...</p>
                         </li>
 
                         <li class="text-item">
-                            <h4>Written Piece Title Two</h4>
-                            <p class="meta">Publication / Context, Year</p>
-                            <p>Your full text body context, essay extract, narrative summary, or poetry paragraphs go directly right here...</p>
+                            <h4>Reflections on Digital Geometry</h4>
+                            <p class="meta">Poetry Piece // System Core</p>
+                            <p>Shattering the box, curving the edge. The screen breathes when the grid begins to bend away from historical alignment rules...</p>
                         </li>
 
                     </ul>
@@ -397,21 +490,21 @@
         </main>
 
         <footer>
-            <p>&copy; 2026 Your Name. All Rights Reserved.</p>
+            <p>&copy; 2026 Handcrafted with Playful Energy.</p>
         </footer>
     </div>
 
     <script>
         const revealElements = document.querySelectorAll('.reveal');
 
-        // Splash screen reveal trigger
+        // Initial fluid view trigger
         document.getElementById('enter-experience-btn').addEventListener('click', function() {
             document.getElementById('splash-screen').classList.add('fade-out');
             document.body.classList.add('active');
             setTimeout(checkReveals, 400); 
         });
 
-        // Mutually exclusive audio controller (stops tracks from overlapping)
+        // Mutual exclusion audio deck tracking logic
         const allAudioPlayers = document.querySelectorAll('audio');
         allAudioPlayers.forEach(player => {
             player.addEventListener('play', () => {
@@ -423,7 +516,7 @@
             });
         });
 
-        // High-Performance Scroll Observer
+        // High-performance Spring Reveal Intersection setup
         const revealObserver = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
@@ -431,11 +524,10 @@
                     revealObserver.unobserve(entry.target);
                 }
             });
-        }, { root: null, threshold: 0.02, rootMargin: "0px 0px -10px 0px" });
+        }, { root: null, threshold: 0.02, rootMargin: "0px 0px -20px 0px" });
 
         revealElements.forEach(element => revealObserver.observe(element));
         
-        // Manual sync positioning calculation helper for internal link jumping
         function checkReveals() {
             revealElements.forEach(element => {
                 const elementTop = element.getBoundingClientRect().top;
@@ -447,8 +539,8 @@
 
         document.querySelectorAll('#main-nav a').forEach(link => {
             link.addEventListener('click', () => {
-                setTimeout(checkReveals, 200);
-                setTimeout(checkReveals, 500);
+                setTimeout(checkReveals, 300);
+                setTimeout(checkReveals, 600);
             });
         });
     </script>
