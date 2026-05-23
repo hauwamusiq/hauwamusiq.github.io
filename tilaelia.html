@@ -3,16 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Your Name | Curated Portfolio</title>
+    <title>Studio Archive | Creative Core</title>
     <style>
         :root {
-            --bg-color: #fdfbf7;       /* Gallery Editorial Cream */
-            --text-color: #1e1e24;     /* Midnight Charcoal */
-            --accent-color: #d96a51;   /* Warm Terracotta Clay */
-            --secondary-accent: #588157; /* Curated Sage Green */
-            --light-gray: #f0ede6;     /* Soft Cast Shadow Gray */
-            --card-bg: #ffffff;
-            --sans-font: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            --bg-color: #faf9f5;       /* Premium Editorial Alabaster */
+            --text-color: #0d0d0f;     /* Deep True Charcoal Black */
+            --accent-color: #9e2a2b;   /* High-Fashion Oxidized Brick Red */
+            --line-color: #e5e2da;     /* Subtle Architectural Line */
+            --serif-font: 'Playfair Display', 'Georgia', serif;
+            --sans-font: 'Helvetica Neue', Helvetica, Arial, sans-serif;
         }
 
         * {
@@ -29,20 +28,21 @@
             font-family: var(--sans-font);
             background-color: var(--bg-color);
             color: var(--text-color);
-            line-height: 1.6;
+            line-height: 1.65;
             overflow-x: hidden;
             -webkit-text-size-adjust: 100%;
+            letter-spacing: -0.01em;
         }
 
-        /* Interactive Focus Rings */
+        /* Sharp Technical Focus States */
         a:focus-visible, 
         button:focus-visible, 
         audio:focus-visible {
-            outline: 3px solid var(--accent-color);
+            outline: 1px solid var(--text-color);
             outline-offset: 4px;
         }
 
-        /* --- IMMERSIVE SPLASH CURTAIN --- */
+        /* --- THE CURTAIN INITIALIZATION --- */
         #splash-screen {
             position: fixed;
             top: 0;
@@ -55,100 +55,95 @@
             justify-content: center;
             align-items: center;
             z-index: 9999;
-            transition: transform 1.3s cubic-bezier(0.86, 0, 0.07, 1), opacity 1s ease;
+            transition: opacity 1.2s cubic-bezier(0.25, 1, 0.5, 1), visibility 1.2s;
         }
 
         #splash-screen.fade-out {
-            transform: scale(1.05) translateY(-100%);
             opacity: 0;
+            visibility: hidden;
             pointer-events: none;
         }
 
         #splash-screen h2 {
+            font-family: var(--serif-font);
             font-size: 3.5rem;
-            font-weight: 300;
-            letter-spacing: -2px;
+            font-weight: 700;
+            letter-spacing: -0.04em;
             margin-bottom: 2.5rem;
-            text-transform: lowercase;
             opacity: 0;
             transform: translateY(20px);
-            animation: elegantPop 1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards 0.2s;
+            animation: elegantFade Up 1s cubic-bezier(0.16, 1, 0.3, 1) forwards 0.2s;
         }
 
         .enter-btn {
             font-family: var(--sans-font);
-            font-size: 0.95rem;
+            font-size: 0.75rem;
             font-weight: 600;
             text-transform: uppercase;
-            letter-spacing: 2px;
-            padding: 12rem 3.5rem;
-            border: 2px solid var(--text-color);
-            border-radius: 100px;
+            letter-spacing: 0.3em;
+            padding: 1.2rem 3.5rem;
+            border: 1px solid var(--text-color);
             background: transparent;
             color: var(--text-color);
             cursor: pointer;
-            position: relative;
-            transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
             opacity: 0;
             transform: translateY(20px);
-            animation: elegantPop 1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards 0.4s;
+            animation: elegantFadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) forwards 0.4s;
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* --- THE RESPONSIVE SCROLL SMOOTHING REVEAL --- */
+        /* --- HIGH-PERFORMANCE INTRO REVEALS --- */
         .reveal {
             opacity: 0;
-            transform: translateY(50px) scale(0.97);
-            transition: opacity 1.2s cubic-bezier(0.215, 0.610, 0.355, 1), 
-                        transform 1.2s cubic-bezier(0.215, 0.610, 0.355, 1);
+            transform: translateY(40px);
+            transition: opacity 1.4s cubic-bezier(0.16, 1, 0.3, 1), 
+                        transform 1.4s cubic-bezier(0.16, 1, 0.3, 1);
             will-change: transform, opacity;
         }
 
         .reveal.active {
             opacity: 1;
-            transform: translateY(0) scale(1);
+            transform: translateY(0);
         }
 
-        /* --- MAIN EDITORIAL PORTFOLIO GRID --- */
+        /* --- STUDIO SYSTEM FRAMEWORK --- */
         .portfolio-content {
-            padding: 0 3rem;
+            padding: 0 5rem;
             opacity: 0;
-            transform: translateY(30px);
-            transition: opacity 1.5s cubic-bezier(0.25, 1, 0.5, 1) 0.3s, 
-                        transform 1.5s cubic-bezier(0.25, 1, 0.5, 1) 0.3s;
+            transition: opacity 1.5s cubic-bezier(0.16, 1, 0.3, 1) 0.1s;
         }
 
         body.active .portfolio-content {
             opacity: 1;
-            transform: translateY(0);
         }
 
         header {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 5rem 0;
+            padding: 6rem 0;
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            border-bottom: 2px solid var(--light-gray);
+            align-items: baseline;
         }
 
         header h1 {
-            font-size: 1.4rem;
-            font-weight: 800;
-            letter-spacing: -0.5px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 0.4em;
             text-transform: uppercase;
         }
 
         nav a {
             color: var(--text-color);
             text-decoration: none;
-            margin-left: 2.5rem;
-            font-size: 0.95rem;
+            margin-left: 3.5rem;
+            font-size: 0.75rem;
             font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
             position: relative;
-            padding: 0.5rem 0;
-            display: inline-block;
+            transition: color 0.3s ease;
             -webkit-tap-highlight-color: transparent;
         }
 
@@ -156,13 +151,13 @@
             content: '';
             position: absolute;
             width: 100%;
-            height: 2px;
-            bottom: 0;
+            height: 1px;
+            bottom: -4px;
             left: 0;
-            background-color: var(--accent-color);
+            background-color: var(--text-color);
             transform: scaleX(0);
             transform-origin: bottom right;
-            transition: transform 0.35s cubic-bezier(0.25, 1, 0.5, 1);
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         main {
@@ -172,154 +167,165 @@
 
         section {
             padding: 10rem 0;
-            border-bottom: 2px solid var(--light-gray);
+            border-top: 1px solid var(--line-color);
         }
 
         .hero {
             padding: 14rem 0;
-            text-align: center;
-            max-width: 800px;
-            margin: 0 auto;
+            max-width: 950px;
         }
 
         .hero h2 {
-            font-size: 4.5rem;
-            font-weight: 800;
-            letter-spacing: -2px;
+            font-family: var(--serif-font);
+            font-size: 5rem;
+            font-weight: 700;
+            letter-spacing: -0.04em;
             line-height: 1.05;
-            margin-bottom: 2rem;
+            margin-bottom: 3rem;
         }
 
         .hero p {
-            color: #6b6b75;
-            font-size: 1.4rem;
+            color: #55555d;
+            font-size: 1.25rem;
             font-weight: 400;
+            line-height: 1.8;
+            max-width: 600px;
         }
 
         section h3 {
-            font-size: 2.2rem;
-            font-weight: 800;
-            letter-spacing: -1px;
-            margin-bottom: 4rem;
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 0.35em;
             text-transform: uppercase;
+            margin-bottom: 6rem;
+            color: var(--accent-color);
         }
 
-        /* Curated Project Grid Blueprint */
+        /* Sharp Portrait Exhibition Grid */
         .project-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 3.5rem;
+            grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+            gap: 7rem 4.5rem;
         }
 
         .work-card {
-            background: var(--card-bg);
-            border: 2px solid var(--text-color);
-            border-radius: 24px 4px 24px 24px; /* Asymmetric Curated Geometry */
+            background: transparent;
             display: flex;
             flex-direction: column;
-            box-shadow: 6px 6px 0px var(--text-color);
-            transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), 
-                        box-shadow 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+            transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .image-wrapper {
-            padding: 1.5rem;
-            padding-bottom: 0;
-            display: block;
+            overflow: hidden;
+            background-color: #edece6;
+            margin-bottom: 2rem;
             width: 100%;
         }
 
         .work-card img {
             width: 100%;
-            max-width: 100%; /* Prevents layout shifting and horizontal bleed */
-            height: 260px;
-            aspect-ratio: 16 / 10;
+            height: auto;
+            aspect-ratio: 3 / 4; /* Editorial High-Fashion Portrait Ratio */
             object-fit: cover;
             display: block;
-            border: 2px solid var(--text-color);
-            border-radius: 16px 2px 16px 16px;
-            background-color: var(--light-gray);
-            transition: transform 0.5s ease;
-        }
-
-        .card-body {
-            padding: 2rem;
+            transition: transform 1.5s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .card-body h4 {
-            font-size: 1.35rem;
+            font-family: var(--serif-font);
+            font-size: 1.8rem;
             font-weight: 700;
-            margin-bottom: 0.35rem;
-            letter-spacing: -0.5px;
+            letter-spacing: -0.02em;
+            margin-bottom: 0.5rem;
+            line-height: 1.2;
         }
 
         .card-body .meta {
-            font-size: 0.85rem;
+            font-size: 0.75rem;
             font-weight: 700;
-            color: var(--accent-color);
+            color: #77777d;
             text-transform: uppercase;
-            letter-spacing: 1.5px;
-            margin-bottom: 1.25rem;
+            letter-spacing: 0.15em;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-body p {
+            font-size: 0.95rem;
+            color: #44444a;
+            font-weight: 400;
+            line-height: 1.7;
         }
 
         audio {
             width: 100%;
-            margin-top: 1rem;
+            margin-top: 2rem;
             display: block;
         }
 
-        /* Editorial Text Article Configurations */
+        /* Clean High-Contrast Writing Architecture */
         .text-list {
             list-style: none;
         }
 
         .text-item {
-            margin-bottom: 3rem;
-            padding: 2.5rem;
-            background: var(--card-bg);
-            border: 2px solid var(--text-color);
-            border-radius: 20px 4px 20px 20px;
-            box-shadow: 6px 6px 0px var(--text-color);
-            transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+            margin-bottom: 5rem;
+            padding-bottom: 5rem;
+            border-bottom: 1px solid var(--line-color);
+            max-width: 800px;
+        }
+
+        .text-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
         }
 
         .text-item h4 {
-            font-size: 1.5rem;
+            font-family: var(--serif-font);
+            font-size: 2.2rem;
             font-weight: 700;
-            margin-bottom: 0.35rem;
-            letter-spacing: -0.5px;
+            letter-spacing: -0.03em;
+            margin-bottom: 0.75rem;
+            line-height: 1.2;
         }
 
         .text-item .meta {
-            font-size: 0.85rem;
+            font-size: 0.75rem;
             font-weight: 700;
-            color: var(--secondary-accent);
+            color: #77777d;
             text-transform: uppercase;
-            letter-spacing: 1.5px;
-            margin-bottom: 1rem;
+            letter-spacing: 0.15em;
+            margin-bottom: 2rem;
+        }
+
+        .text-item p {
+            font-size: 1.05rem;
+            color: #333339;
+            font-weight: 400;
+            line-height: 1.8;
         }
 
         footer {
-            text-align: center;
-            padding: 8rem 0;
-            font-size: 0.95rem;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-            color: #8a8a93;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 10rem 0 6rem 0;
+            border-top: 1px solid var(--line-color);
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.25em;
+            color: #88888e;
             text-transform: uppercase;
         }
 
-        /* Dynamic Entry Physics Keyframes */
-        @keyframes elegantPop {
+        @keyframes elegantFadeUp {
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* --- THE PLATFORM HOVER INTERACTIONS --- */
+        /* --- HOVER EXECUTION MECHANICS --- */
         @media (hover: hover) {
             .enter-btn:hover {
                 background-color: var(--text-color);
                 color: var(--bg-color);
-                transform: translateY(-2px);
             }
             nav a:hover {
                 color: var(--accent-color);
@@ -328,97 +334,95 @@
                 transform: scaleX(1);
                 transform-origin: bottom left;
             }
-            .work-card:hover {
-                transform: translate(-4px, -4px);
-                box-shadow: 12px 12px 0px var(--text-color);
-            }
             .work-card:hover img {
-                transform: scale(1.015);
+                transform: scale(1.03);
             }
-            .text-item:hover {
-                transform: translate(-4px, -4px);
-                box-shadow: 12px 12px 0px var(--text-color);
-                border-color: var(--secondary-accent);
+            /* Sophisticated structural focal fade */
+            .project-grid:hover .work-card:not(:hover) {
+                opacity: 0.4;
             }
         }
 
-        /* --- ACCESSIBILITY LAYER --- */
+        /* --- ACCESSIBILITY SPEC --- */
         @media (prefers-reduced-motion: reduce) {
             html { scroll-behavior: auto; }
             #splash-screen { transform: none !important; transition: none !important; opacity: 1; }
             #splash-screen.fade-out { opacity: 0 !important; display: none !important; }
             .reveal { transition: none !important; transform: none !important; opacity: 1 !important; }
-            .work-card, .work-card img, .text-item { transform: none !important; transition: none !important; box-shadow: none !important; }
+            .work-card img { transform: none !important; }
+            .project-grid:hover .work-card:not(:hover) { opacity: 1 !important; }
         }
 
-        /* --- RESPONSIVE LAYOUT BREAKPOINTS --- */
-        @media (max-width: 900px) {
+        /* --- SCALED RESPONSIVE GRAPH ENGINE --- */
+        @media (max-width: 1000px) {
             .portfolio-content { padding: 0 4rem; }
-            .hero h2 { font-size: 3.5rem; }
+            .hero h2 { font-size: 4rem; }
         }
 
         @media (max-width: 600px) {
             .portfolio-content { padding: 0 1.5rem; }
-            header { flex-direction: column; gap: 2rem; text-align: center; padding: 3.5rem 0; }
-            nav a { margin: 0 1rem; font-size: 0.9rem; }
-            #splash-screen h2 { font-size: 2.5rem; text-align: center; }
+            header { flex-direction: column; gap: 2.5rem; text-align: left; align-items: flex-start; padding: 5rem 0; }
+            nav a { margin-left: 0; margin-right: 2rem; font-size: 0.75rem; }
+            #splash-screen h2 { font-size: 2.4rem; text-align: center; }
             .hero { padding: 10rem 0; }
-            .hero h2 { font-size: 2.8rem; letter-spacing: -1px; }
+            .hero h2 { font-size: 3rem; }
             section { padding: 6rem 0; }
-            section h3 { font-size: 1.8rem; margin-bottom: 2.5rem; }
-            .project-grid { grid-template-columns: 1fr; gap: 3rem; }
-            .work-card img { height: 230px; }
-            .text-item { padding: 1.75rem; }
+            section h3 { margin-bottom: 4rem; }
+            .project-grid { grid-template-columns: 1fr; gap: 5rem; }
+            .text-item h4 { font-size: 1.8rem; }
         }
     </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
 </head>
 <body>
 
     <div id="splash-screen">
-        <h2>portfolio framework</h2>
-        <button class="enter-btn" id="enter-experience-btn">view workspace</button>
+        <h2>creative archive.</h2>
+        <button class="enter-btn" id="enter-experience-btn">enter studio</button>
     </div>
 
     <div class="portfolio-content">
         <header>
-            <h1>ARCHIVE_CORE</h1>
+            <h1>CORE_INDEX // 2026</h1>
             <nav id="main-nav">
-                <a href="#audio-works">Audio</a>
+                <a href="#audio-works">Acoustics</a>
                 <a href="#visual-works">Visuals</a>
-                <a href="#text-works">Writings</a>
+                <a href="#text-works">Prose</a>
             </nav>
         </header>
 
         <main>
-            <section class="hero">
-                <h2>A curated index of creative research.</h2>
-                <p>Exploring the intersections of structural audio frequencies, digital geometry layouts, and creative prose.</p>
+            <section class="hero" style="border-top: none; padding-top: 2rem;">
+                <h2>An uncompromising exhibition of sound layout, visual arrays, and critical narrative logs.</h2>
+                <p>Architectural sound parameters, raw geometric frames, and stripped-down prose exploring modern design mechanics.</p>
             </section>
 
             <section id="audio-works" class="reveal">
-                <h3>Acoustic Architecture</h3>
+                <h3>01 / Acoustic Parameters</h3>
                 <div class="project-grid">
                     
                     <div class="work-card">
                         <div class="image-wrapper">
-                            <div style="width:100%; height:8px; background:var(--accent-color); border-radius:100px;"></div>
+                            <div style="width:100%; aspect-ratio: 3 / 4; background:#eae7df;"></div>
                         </div>
                         <div class="card-body">
-                            <h4>Acoustic Environment Structure</h4>
-                            <p class="meta">Spatial Audio / Field Track</p>
-                            <p>An intricate structural design experiment analyzing physical spatial positioning and real-world audio resonance environments.</p>
+                            <h4>Spatial Reverberation Profiles</h4>
+                            <p class="meta">Acoustics / Waveform Log</p>
+                            <p>An intricate exploration charting structural space reflection limits, physical audio cancellation, and extreme minimal composition models.</p>
                             <audio controls src="your-file-1.mp3"></audio> 
                         </div>
                     </div>
 
                     <div class="work-card">
                         <div class="image-wrapper">
-                            <div style="width:100%; height:8px; background:var(--secondary-accent); border-radius:100px;"></div>
+                            <div style="width:100%; aspect-ratio: 3 / 4; background:#e2dfd7;"></div>
                         </div>
                         <div class="card-body">
-                            <h4>Rhythmic Synthesis Log 02</h4>
-                            <p class="meta">Electronic / Modular Study</p>
-                            <p>A rigorous algorithmic audio test utilizing precise hardware signal processing routing methods.</p>
+                            <h4>Algorithmic Signal Array 09</h4>
+                            <p class="meta">Electronic // Signal Processing</p>
+                            <p>An uncompromising frequency performance test generated entirely through physical custom patch routing layouts.</p>
                             <audio controls src="your-file-2.mp3"></audio>
                         </div>
                     </div>
@@ -427,26 +431,26 @@
             </section>
 
             <section id="visual-works">
-                <h3 class="reveal">Visual Manifestations</h3>
+                <h3 class="reveal">02 / Geometric Frameworks</h3>
                 <div class="project-grid reveal">
                     
                     <div class="work-card">
                         <div class="image-wrapper">
-                            <img src="image-path-1.jpg" alt="A clean showcase layout frame detailing visual geometric structure">
+                            <img src="image-path-1.jpg" alt="Stark high contrast creative portfolio layout framework">
                         </div>
                         <div class="card-body">
-                            <h4>Chromatic Asymmetry Layout</h4>
-                            <p class="meta">Vector Graphics / Form Study, 2026</p>
+                            <h4>Asymmetric Dynamic Intervals</h4>
+                            <p class="meta">Vector Graphics / Form Matrix</p>
                         </div>
                     </div>
 
                     <div class="work-card">
                         <div class="image-wrapper">
-                            <img src="image-path-2.jpg" alt="A clean showcase layout frame detailing visual geometric structure">
+                            <img src="image-path-2.jpg" alt="Stark high contrast creative portfolio layout framework">
                         </div>
                         <div class="card-body">
-                            <h4>Fluid Structural Grid Matrix</h4>
-                            <p class="meta">Mixed Medium Format, 2026</p>
+                            <h4>Monochromatic High-Velocity Frame</h4>
+                            <p class="meta">Structural Canvas / Medium</p>
                         </div>
                     </div>
 
@@ -454,20 +458,20 @@
             </section>
 
             <section id="text-works">
-                <h3 class="reveal">Written Materials</h3>
+                <h3 class="reveal">03 / Critical Documents</h3>
                 <div class="reveal">
                     <ul class="text-list">
                         
                         <li class="text-item">
-                            <h4>The Friction of Digital Surface Dynamics</h4>
-                            <p class="meta">Critical Essay // Index 08</p>
-                            <p>An in-depth critical inquiry investigating the deep physiological human connection to physical feedback, mechanical user controls, and structural animation geometry on digital touch surfaces...</p>
+                            <h4>The Acceleration of Calculated Frictional Design</h4>
+                            <p class="meta">Critical Document // File 404</p>
+                            <p>An essential analysis concerning the deliberate use of structural interface weight. Pushing users away from effortless consumption and back into deep, critical spatial processing loops within compute screens...</p>
                         </li>
 
                         <li class="text-item">
-                            <h4>Systematic Alignment Fallacies</h4>
-                            <p class="meta">Poetic Prose // Core Stack</p>
-                            <p>Bending the absolute axis point away from the mathematical default. Allowing design structures to curve organically creates room for human fallibility within perfect compute code matrices...</p>
+                            <h4>Structural Subtractions & Spatial Absences</h4>
+                            <p class="meta">Narrative Log // System Stack</p>
+                            <p>The mastery of deletion. Allowing whitespace to challenge visual noise. A serious design asset is never realized by how much detail you compile, but how confidently you extract content...</p>
                         </li>
 
                     </ul>
@@ -476,21 +480,21 @@
         </main>
 
         <footer>
-            <p>&copy; 2026 All Assets Indexed Globally.</p>
+            <p>&copy; 2026 Core Index Studio. All Assets Registered Internationally.</p>
         </footer>
     </div>
 
     <script>
         const revealElements = document.querySelectorAll('.reveal');
 
-        // Elegant curtain entry sequence
+        // Cinematic view trigger
         document.getElementById('enter-experience-btn').addEventListener('click', function() {
             document.getElementById('splash-screen').classList.add('fade-out');
             document.body.classList.add('active');
             setTimeout(checkReveals, 400); 
         });
 
-        // Mutually exclusive audio execution loop + active blur management
+        // Mutual exclusion audio execution loop + blur focus control
         const allAudioPlayers = document.querySelectorAll('audio');
         allAudioPlayers.forEach(player => {
             player.addEventListener('play', () => {
@@ -500,12 +504,11 @@
                     }
                 });
             });
-            // Prevents spacebar execution collision when scrolling after click interactions
-            player.addEventListener('up', () => { player.blur(); });
+            player.addEventListener('ended', () => { player.blur(); });
             player.addEventListener('pause', () => { player.blur(); });
         });
 
-        // High-performance lazy intersection viewport compiler
+        // High-performance intersection observer logic
         const revealObserver = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
