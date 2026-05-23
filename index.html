@@ -1,259 +1,768 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>HAUWAMUSIQ :: SYSTEM 10x ANIME CREATOR OS</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Art & Music Portfolio</title>
+    <style>
+        /* --- Global & Space Background Styles --- */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
 
-<script src="https://cdn.jsdelivr.net/npm/pixi.js@7.x/dist/pixi.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
-<script src="https://unpkg.com/wavesurfer.js"></script>
+        body {
+            background: radial-gradient(circle at center, #2e1065, #110426, #050110);
+            color: #f3e8ff;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
 
-<style>
-:root {
-  --bg-dark: #050508;
-  --panel-bg: rgba(13, 13, 23, 0.94);
-  --accent: #ffd54a;
-  --btn-bg: #22223b;
-  --btn-hover: #3e3e66;
-  --safe-bottom: env(safe-area-inset-bottom, 0px);
-}
+        /* Subtle star effect */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-image: 
+                radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 40px),
+                radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 30px),
+                radial-gradient(white, rgba(255,255,255,.1) 2px, transparent 40px);
+            background-size: 550px 550px, 350px 350px, 250px 250px;
+            background-position: 0 0, 40px 60px, 130px 270px;
+            opacity: 0.4;
+            z-index: 0;
+            pointer-events: none;
+        }
 
-html, body {
-  margin: 0; padding: 0; overflow: hidden;
-  background: var(--bg-dark); color: #fff;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  height: 100%; width: 100%; position: fixed;
-}
+        /* --- Header & Navigation --- */
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(17, 4, 38, 0.8);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            border-bottom: 1px solid rgba(168, 85, 247, 0.3);
+        }
 
-* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        nav {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1.5rem 2rem;
+        }
 
-#app { display: flex; flex-direction: column; height: 100vh; width: 100vw; position: relative; }
-#stage { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 2.5rem;
+        }
 
-#subtitle {
-  position: absolute; bottom: 38%; width: 100%; text-align: center;
-  font-size: 28px; font-weight: 900; text-shadow: 0 0 12px rgba(0,0,0,1), 0 2px 4px rgba(0,0,0,1);
-  pointer-events: none; padding: 0 24px; z-index: 2; font-style: italic; letter-spacing: 0.5px;
-}
+        .nav-links li {
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #c084fc;
+            transition: all 0.3s ease;
+            position: relative;
+        }
 
-.word { color: #fff; transition: color 0.05s ease; display: inline-block; margin-right: 8px; }
-.word.active { color: var(--accent); transform: scale(1.05); }
+        .nav-links li:hover, .nav-links li.active {
+            color: #fff;
+            text-shadow: 0 0 10px #a855f7, 0 0 20px #a855f7;
+        }
 
-#telemetry {
-  position: absolute; top: 16px; left: 16px; right: 16px;
-  background: rgba(0, 0, 0, 0.75); padding: 14px; border-radius: 14px;
-  font-size: 11px; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255,255,255,0.12); z-index: 2; pointer-events: none;
-  font-family: monospace; line-height: 1.4;
-}
+        .nav-links li::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: #a855f7;
+            transition: width 0.3s ease;
+        }
 
-#ui-toggle {
-  position: absolute; bottom: calc(16px + var(--safe-bottom)); right: 16px; z-index: 10;
-  background: var(--accent); color: #000; border: none; padding: 14px 28px;
-  border-radius: 30px; font-weight: 900; box-shadow: 0 6px 20px rgba(0,0,0,0.5);
-  font-size: 13px; letter-spacing: 0.5px;
-}
+        .nav-links li:hover::after, .nav-links li.active::after {
+            width: 100%;
+        }
 
-#ui-panel {
-  position: absolute; bottom: 0; left: 0; width: 100%; height: 65vh;
-  background: var(--panel-bg); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
-  border-top: 1px solid rgba(255,255,255,0.18); border-radius: 28px 28px 0 0;
-  z-index: 5; display: flex; flex-direction: column;
-  transform: translateY(100%); transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  padding-bottom: var(--safe-bottom);
-}
-#ui-panel.open { transform: translateY(0); }
+        /* --- Main Content Sections --- */
+        main {
+            max-width: 1200px;
+            margin: 100px auto 150px auto;
+            padding: 2rem;
+            position: relative;
+            z-index: 1;
+        }
 
-.drag-handle { width: 50px; height: 5px; background: rgba(255,255,255,0.25); border-radius: 3px; margin: 12px auto; cursor: pointer; }
-#panel-content { flex: 1; overflow-y: auto; padding: 0 18px 18px 18px; }
+        .portfolio-section {
+            display: none;
+            animation: fadeIn 0.6s ease forwards;
+        }
 
-#controls { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 14px; }
+        .portfolio-section.active {
+            display: block;
+        }
 
-button, .file-label, select {
-  background: var(--btn-bg); color: white; border: none; padding: 14px;
-  border-radius: 14px; font-weight: bold; font-size: 13px; text-align: center; cursor: pointer;
-  display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%;
-  font-family: inherit;
-}
-button:active, .file-label:active, select:active { background: var(--btn-hover); }
-.file-label input { display: none; }
-select { appearance: none; -webkit-appearance: none; text-align-last: center; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
 
-#music-status { grid-column: span 2; font-size: 11px; text-align: center; color: #8a8ab0; margin-top: -4px; font-family: monospace; }
+        h2 {
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+            text-align: center;
+            color: #f3e8ff;
+            text-shadow: 0 0 15px rgba(168, 85, 247, 0.6);
+        }
 
-textarea {
-  width: 100%; height: 110px; background: rgba(0,0,0,0.5); color: white;
-  border: 1px solid rgba(255,255,255,0.12); border-radius: 14px; padding: 14px;
-  resize: none; font-size: 13px; margin-bottom: 14px; font-family: monospace; line-height: 1.5;
-}
+        /* --- Visual Arts Gallery (Paintings & Drawings) --- */
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 2rem;
+        }
 
-#wave { height: 55px; background: rgba(0,0,0,0.35); border-radius: 14px; margin-bottom: 14px; overflow: hidden; }
-#queue { display: flex; flex-direction: column; gap: 12px; }
+        .gallery-item {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(168, 85, 247, 0.2);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s ease, border-color 0.3s ease;
+        }
 
-.card { 
-  background: rgba(255,255,255,0.04); padding: 16px; border-radius: 18px; 
-  border: 1px solid rgba(255,255,255,0.06); box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-}
-.meta-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-.name { font-weight: 900; color: var(--accent); font-size: 14px; letter-spacing: 0.5px; }
-.mood-tag { font-size: 11px; background: rgba(255,255,255,0.1); padding: 2px 8px; border-radius: 20px; color: #ccc; text-transform: uppercase; }
-.text { font-size: 13px; opacity: 0.95; margin-bottom: 14px; line-height: 1.45; }
-.card-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.btn-recording { background: #ff3b30 !important; animation: recPulse 1s infinite alternate; }
+        .gallery-item:hover {
+            transform: translateY(-5px);
+            border-color: rgba(168, 85, 247, 0.6);
+            box-shadow: 0 12px 40px rgba(168, 85, 247, 0.2);
+        }
 
-@keyframes recPulse { from { opacity: 1; } to { opacity: 0.5; } }
-</style>
+        .gallery-img-placeholder {
+            width: 100%;
+            height: 300px;
+            background: linear-gradient(45deg, #1e1b4b, #3b0764);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #c084fc;
+            font-weight: bold;
+            position: relative;
+        }
+
+        /* Glowing mock borders to resemble art frame */
+        .gallery-img-placeholder::before {
+            content: '';
+            position: absolute;
+            inset: 15px;
+            border: 1px solid rgba(168, 85, 247, 0.3);
+        }
+
+        .gallery-info {
+            padding: 1.5rem;
+        }
+
+        .gallery-info h3 {
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+            color: #fff;
+        }
+
+        .gallery-info p {
+            font-size: 0.9rem;
+            color: #cbd5e1;
+        }
+
+        /* --- Music Section Architecture --- */
+        .music-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+            margin-top: 2rem;
+        }
+
+        @media (max-width: 900px) {
+            .music-container {
+                grid-template-columns: 1fr;
+                gap: 3rem;
+            }
+        }
+
+        /* Vinyl Stack/Shelf */
+        .vinyl-shelf {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .vinyl-crate-item {
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(168, 85, 247, 0.15);
+            padding: 1rem;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .vinyl-crate-item:hover {
+            background: rgba(168, 85, 247, 0.1);
+            border-color: rgba(168, 85, 247, 0.5);
+            transform: translateX(10px);
+        }
+
+        .vinyl-crate-item.selected {
+            background: rgba(168, 85, 247, 0.2);
+            border-color: #c084fc;
+        }
+
+        .crate-cover {
+            width: 70px;
+            height: 70px;
+            background: #a855f7;
+            border-radius: 4px;
+            margin-right: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            z-index: 2;
+        }
+
+        .crate-info {
+            z-index: 2;
+        }
+
+        .crate-info h4 {
+            color: #fff;
+            margin-bottom: 0.25rem;
+        }
+
+        .crate-info p {
+            font-size: 0.85rem;
+            color: #cbd5e1;
+        }
+
+        /* Interactive Record Player */
+        .record-player-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .turntable {
+            width: 320px;
+            height: 320px;
+            background: #1e1b4b;
+            border: 8px solid #3b0764;
+            border-radius: 24px;
+            position: relative;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5), inset 0 0 20px rgba(0,0,0,0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* The moving components */
+        .platter {
+            width: 260px;
+            height: 260px;
+            background: #0f172a;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .vinyl-disc {
+            width: 250px;
+            height: 250px;
+            background: radial-gradient(circle, #222 30%, #111 31%, #333 40%, #111 50%, #222 60%, #000 70%);
+            border-radius: 50%;
+            position: absolute;
+            box-shadow: 0 0 15px rgba(0,0,0,0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            
+            /* Hidden initially or positioned in the "stack" state via JS animation triggers */
+            opacity: 0;
+            transform: scale(0.3) rotate(-180deg);
+            transition: all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        /* CSS Animation classes triggered via JS */
+        .vinyl-disc.is-playing {
+            opacity: 1;
+            transform: scale(1) rotate(0deg);
+        }
+
+        .vinyl-disc.spinning {
+            animation: spin 3s linear infinite;
+        }
+
+        @keyframes spin {
+            100% { transform: rotate(360deg); }
+        }
+
+        .vinyl-label {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            font-size: 0.65rem;
+            font-weight: bold;
+            color: #000;
+            padding: 5px;
+        }
+
+        .center-spindle {
+            width: 12px;
+            height: 12px;
+            background: #94a3b8;
+            border-radius: 50%;
+            position: absolute;
+            z-index: 5;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+        }
+
+        .tonearm {
+            width: 30px;
+            height: 140px;
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            transform-origin: top center;
+            transform: rotate(-30deg);
+            transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .tonearm-base {
+            width: 35px;
+            height: 35px;
+            background: #64748b;
+            border-radius: 50%;
+            border: 4px solid #475569;
+        }
+
+        .tonearm-arm {
+            width: 6px;
+            height: 110px;
+            background: #cbd5e1;
+            margin-left: 14px;
+            position: relative;
+        }
+
+        .tonearm-head {
+            width: 14px;
+            height: 24px;
+            background: #475569;
+            position: absolute;
+            bottom: -10px;
+            left: -4px;
+            border-radius: 2px;
+            transform: rotate(15deg);
+        }
+
+        .tonearm.placed {
+            transform: rotate(12deg);
+        }
+
+        /* --- Persistent Bottom Music Bar --- */
+        .music-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(15, 5, 30, 0.9);
+            border-top: 1px solid rgba(168, 85, 247, 0.4);
+            backdrop-filter: blur(15px);
+            padding: 1.2rem 2rem;
+            display: grid;
+            grid-template-columns: 1fr 2fr 1fr;
+            align-items: center;
+            z-index: 100;
+        }
+
+        @media (max-width: 768px) {
+            .music-bar {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+                text-align: center;
+                padding: 1rem;
+            }
+            .music-bar-controls { justify-content: center; }
+        }
+
+        .music-bar-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .mini-cover {
+            width: 50px;
+            height: 50px;
+            background: #3b0764;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: bold;
+            border: 1px solid rgba(168, 85, 247, 0.3);
+        }
+
+        .track-details h5 {
+            color: #fff;
+            font-size: 1rem;
+            margin-bottom: 0.2rem;
+        }
+
+        .track-details p {
+            color: #94a3b8;
+            font-size: 0.85rem;
+        }
+
+        .music-bar-controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .playback-buttons {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .control-btn {
+            background: none;
+            border: none;
+            color: #c084fc;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .control-btn:hover {
+            color: #fff;
+        }
+
+        .play-pause-btn {
+            width: 40px;
+            height: 40px;
+            background: #a855f7;
+            border-radius: 50%;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+        }
+
+        .play-pause-btn:hover {
+            background: #c084fc;
+            transform: scale(1.05);
+        }
+
+        .progress-container {
+            width: 100%;
+            max-width: 500px;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 0.8rem;
+            color: #94a3b8;
+        }
+
+        .progress-bar {
+            flex: 1;
+            height: 6px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 3px;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .progress-filled {
+            width: 35%; /* Hardcoded mock state */
+            height: 100%;
+            background: linear-gradient(90deg, #a855f7, #f472b6);
+            border-radius: 3px;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .music-bar-extra {
+            display: flex;
+            justify-content: flex-end;
+            color: #94a3b8;
+            font-size: 0.9rem;
+        }
+    </style>
 </head>
 <body>
 
-<div id="app">
-  <div id="stage"></div>
-  <div id="subtitle"></div>
-  
-  <div id="telemetry">SYSTEM OS // Initialization success. Parse script to map nodes.</div>
+    <header>
+        <nav>
+            <ul class="nav-links">
+                <li class="active" onclick="switchTab('music')">Music</li>
+                <li onclick="switchTab('paintings')">Paintings</li>
+                <li onclick="switchTab('drawings')">Drawings</li>
+            </ul>
+        </nav>
+    </header>
 
-  <button id="ui-toggle" onclick="togglePanel()">⚙️ CREATOR UI</button>
+    <main>
 
-  <div id="ui-panel">
-    <div class="drag-handle" onclick="togglePanel()"></div>
-    <div id="panel-content">
-      <div id="controls">
-        <button id="parse">🔄 PARSE ANIME SCRIPT</button>
-        <button id="play">🎬 RUN CINEMATICS</button>
-        <select id="bg-selector" onchange="changeBackground(this.value)">
-          <option value="cyberpunk">🌆 SCENE: CYBERPUNK CITY</option>
-          <option value="dojo">🏮 SCENE: ANCIENT DOJO</option>
-          <option value="space">🚀 SCENE: DEEP SPACE</option>
-          <option value="forest">🌲 SCENE: FANTASY FOREST</option>
-        </select>
-        <label class="file-label">
-          🎵 SOUNDTRACK
-          <input type="file" id="music" accept="audio/*">
-        </label>
-        <div id="music-status">No backing audio stream configured</div>
-      </div>
+        <section id="music" class="portfolio-section active">
+            <h2>Vibe Vault</h2>
+            <div class="music-container">
+                
+                <div class="vinyl-shelf">
+                    <div class="vinyl-crate-item" onclick="selectTrack(1, 'Cosmic Reverie', 'Nebula Beats', '#ec4899')">
+                        <div class="crate-cover" style="background: linear-gradient(135deg, #ec4899, #8b5cf6);">CR</div>
+                        <div class="crate-info">
+                            <h4>Cosmic Reverie</h4>
+                            <p>Nebula Beats • 2026</p>
+                        </div>
+                    </div>
 
-      <textarea id="script">
-BACKGROUND: cyberpunk
-ARI [expression=shocked]: Look! The microwave dimension has breached the sky!
-GHOST [expression=normal]: Relax. Your cooking has just warped space-time.
-ARI [expression=normal]: Honestly... that makes complete sense.
-BACKGROUND: space
-GHOST [expression=shocked]: Wait, where did the ground go?!
-      </textarea>
+                    <div class="vinyl-crate-item" onclick="selectTrack(2, 'Stardust Groove', 'The Pulsars', '#06b6d4')">
+                        <div class="crate-cover" style="background: linear-gradient(135deg, #06b6d4, #3b82f6);">SG</div>
+                        <div class="crate-info">
+                            <h4>Stardust Groove</h4>
+                            <p>The Pulsars • 2025</p>
+                        </div>
+                    </div>
 
-      <div id="wave"></div>
-      <div id="queue"></div>
+                    <div class="vinyl-crate-item" onclick="selectTrack(3, 'Violet Horizon', 'Solar Flare', '#f59e0b')">
+                        <div class="crate-cover" style="background: linear-gradient(135deg, #f59e0b, #e11d48);">VH</div>
+                        <div class="crate-info">
+                            <h4>Violet Horizon</h4>
+                            <p>Solar Flare • 2026</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="record-player-container">
+                    <div class="turntable">
+                        <div class="platter">
+                            <div class="center-spindle"></div>
+                            <div id="vinylDisc" class="vinyl-disc">
+                                <div id="vinylLabel" class="vinyl-label">
+                                    </div>
+                            </div>
+                        </div>
+                        <div id="tonearm" class="tonearm">
+                            <div class="tonearm-base"></div>
+                            <div class="tonearm-arm">
+                                <div class="tonearm-head"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <section id="paintings" class="portfolio-section">
+            <h2>Oil & Acrylic Collection</h2>
+            <div class="gallery-grid">
+                <div class="gallery-item">
+                    <div class="gallery-img-placeholder">Supernova Canvas</div>
+                    <div class="gallery-info">
+                        <h3>Supernova Explosion</h3>
+                        <p>Acrylic on Canvas, 2025</p>
+                    </div>
+                </div>
+                <div class="gallery-item">
+                    <div class="gallery-img-placeholder">Deep Space Canvas</div>
+                    <div class="gallery-info">
+                        <h3>The Great Abyss</h3>
+                        <p>Oil on Wood, 2026</p>
+                    </div>
+                </div>
+                <div class="gallery-item">
+                    <div class="gallery-img-placeholder">Interstellar Canvas</div>
+                    <div class="gallery-info">
+                        <h3>Wormhole Dynamics</h3>
+                        <p>Mixed Media, 2024</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="drawings" class="portfolio-section">
+            <h2>Sketches & Graphite</h2>
+            <div class="gallery-grid">
+                <div class="gallery-item">
+                    <div class="gallery-img-placeholder">Constellation Sketch</div>
+                    <div class="gallery-info">
+                        <h3>Orion Studies</h3>
+                        <p>Graphite on Paper, 2026</p>
+                    </div>
+                </div>
+                <div class="gallery-item">
+                    <div class="gallery-img-placeholder">Astronaut Charcoal</div>
+                    <div class="gallery-info">
+                        <h3>Lost Transmission</h3>
+                        <p>Charcoal, 2025</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <div class="music-bar">
+        <div class="music-bar-info">
+            <div id="barCover" class="mini-cover">🎵</div>
+            <div class="track-details">
+                <h5 id="barTitle">No Track Selected</h5>
+                <p id="barArtist">Select a vinyl from the collection</p>
+            </div>
+        </div>
+
+        <div class="music-bar-controls">
+            <div class="playback-buttons">
+                <button class="control-btn">⏮</button>
+                <button class="control-btn play-pause-btn" onclick="togglePlayback()">▶</button>
+                <button class="control-btn">⏭</button>
+            </div>
+            <div class="progress-container">
+                <span>1:24</span>
+                <div class="progress-bar">
+                    <div class="progress-filled"></div>
+                </div>
+                <span>3:45</span>
+            </div>
+        </div>
+
+        <div class="music-bar-extra">
+            <span>🔊 80%</span>
+        </div>
     </div>
-  </div>
-</div>
 
-<script>
-let lines = [];
-let bgMusic = null;
-let activeRecorder = null;
-let recordingStream = null;
+    <script>
+        // Tab switching logic
+        function switchTab(tabId) {
+            // Remove active classes from navigation links
+            document.querySelectorAll('.nav-links li').forEach(li => {
+                li.classList.remove('active');
+            });
+            // Target specific link using event/text match or context
+            event.currentTarget.classList.add('active');
 
-function togglePanel() {
-  const panel = document.getElementById('ui-panel');
-  const toggleBtn = document.getElementById('ui-toggle');
-  panel.classList.toggle('open');
-  toggleBtn.textContent = panel.classList.contains('open') ? '❌ CLOSE CANVAS' : '⚙️ CREATOR UI';
-}
+            // Toggle target content section
+            document.querySelectorAll('.portfolio-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            document.getElementById(tabId).classList.add('active');
+        }
 
-////////////////////////////////////////////////////////////
-// PIXI HIGH-PERFORMANCE 2D ANIME ENGINE
-////////////////////////////////////////////////////////////
-const stageDiv = document.getElementById("stage");
-const app = new PIXI.Application({
-  resizeTo: stageDiv, antialias: true,
-  resolution: window.devicePixelRatio || 1, autoDensity: true
-});
-stageDiv.appendChild(app.view);
+        // Vinyl System State
+        let isPlaying = false;
+        let activeTrack = null;
 
-// Multi-tier Parallax Layer Architecture Mapping
-const skyLayer = new PIXI.Container();
-const midgroundLayer = new PIXI.Container();
-const actorLayer = new PIXI.Container();
-app.stage.addChild(skyLayer, midgroundLayer, actorLayer);
+        function selectTrack(trackId, title, artist, color) {
+            const vinylDisc = document.getElementById('vinylDisc');
+            const vinylLabel = document.getElementById('vinylLabel');
+            const tonearm = document.getElementById('tonearm');
+            
+            // Highlight selected element item inside the crate
+            document.querySelectorAll('.vinyl-crate-item').forEach((item, index) => {
+                if(index + 1 === trackId) {
+                    item.classList.add('selected');
+                } else {
+                    item.classList.remove('selected');
+                }
+            });
 
-const skyGfx = new PIXI.Graphics();
-const midGfx = new PIXI.Graphics();
-skyLayer.addChild(skyGfx);
-midgroundLayer.addChild(midGfx);
+            // If a different track is selected, trigger removal animation first
+            vinylDisc.classList.remove('is-playing', 'spinning');
+            tonearm.classList.remove('placed');
 
-// Env Palette Configurations
-const environments = {
-  cyberpunk: { sky: 0x070714, ambient: 0xff00aa, stars: 0x39ff14, mid: 0x141428, drawMid: (g)=> {
-    g.clear().beginFill(0x111122);
-    for(let i=0; i<15; i++) g.drawRect(i*120, window.innerHeight - 350 - (i%3)*40, 90, 400);
-    g.endFill();
-  }},
-  dojo: { sky: 0x2b1108, ambient: 0xffaa44, stars: 0xffddaa, mid: 0x4a2211, drawMid: (g)=> {
-    g.clear().beginFill(0x3a1a0e).drawRect(0, window.innerHeight-180, 5000, 200).endFill();
-    g.beginFill(0x1a0a05); for(let i=0;i<8;i++) g.drawRect(i*250 + 40, window.innerHeight-380, 20, 200); g.endFill();
-  }},
-  space: { sky: 0x020205, ambient: 0x00ffff, stars: 0xffffff, mid: 0x0a0d1a, drawMid: (g)=> {
-    g.clear().beginFill(0x0a0a15, 0.5).drawCircle(window.innerWidth*0.5, window.innerHeight+400, 600).endFill();
-  }},
-  forest: { sky: 0x051a10, ambient: 0x44ffaa, stars: 0xaaffdd, mid: 0x0c2e1b, drawMid: (g)=> {
-    g.clear().beginFill(0x082214);
-    for(let i=0; i<20; i++) g.drawCircle(i*100, window.innerHeight-100 - (i%2)*30, 80);
-    g.endFill();
-  }}
-};
+            // Brief timeout simulates selecting and placing the record down
+            setTimeout(() => {
+                // Update UI text components
+                document.getElementById('barTitle').innerText = title;
+                document.getElementById('barArtist').innerText = artist;
+                document.getElementById('barCover').innerText = title.substring(0,2).toUpperCase();
+                document.getElementById('barCover').style.background = color;
+                
+                // Customize Vinyl Core Label Accent Color
+                vinylLabel.style.backgroundColor = color;
+                vinylLabel.innerText = title;
 
-function changeBackground(type) {
-  const env = environments[type] || environments.cyberpunk;
-  
-  // Repaint sky layer canvas
-  skyGfx.clear().beginFill(env.sky).drawRect(0, 0, 5000, 5000).endFill();
-  
-  // Clear and reconstruct background particle elements
-  while(skyLayer.children.length > 1) skyLayer.removeChildAt(1);
-  for(let i=0; i<70; i++){
-    const s = new PIXI.Graphics().beginFill(env.stars, Math.random()).drawCircle(0, 0, Math.random() * 2 + 0.5).endFill();
-    s.x = Math.random() * window.innerWidth; s.y = Math.random() * window.innerHeight;
-    skyLayer.addChild(s);
-  }
-  
-  env.drawMid(midGfx);
-  document.getElementById("bg-selector").value = type;
-}
+                // Animate vinyl spinning up onto platter
+                vinylDisc.classList.add('is-playing');
+                
+                // Swing the arm in place after the disc drops down
+                setTimeout(() => {
+                    tonearm.classList.add('placed');
+                    
+                    // Spin the vinyl disc smoothly once tonearm rests
+                    setTimeout(() => {
+                        vinylDisc.classList.add('spinning');
+                        document.querySelector('.play-pause-btn').innerText = "⏸";
+                        isPlaying = true;
+                    }, 600);
 
-////////////////////////////////////////////////////////////
-// ADVANCED VECTOR ANIME SPRITE RIGGING
-////////////////////////////////////////////////////////////
-const makeAnimeCharacter = (accentColor) => {
-  const container = new PIXI.Container();
+                }, 400);
 
-  const body = new PIXI.Graphics().beginFill(accentColor).drawRoundedRect(-28, -65, 56, 100, 16).endFill();
-  const faceContainer = new PIXI.Container();
-  const head = new PIXI.Graphics().beginFill(0xffddc1).drawCircle(0, -90, 32).endFill();
-  
-  // Eye configurations
-  const leftEye = new PIXI.Graphics();
-  const rightEye = new PIXI.Graphics();
-  const mouth = new PIXI.Graphics();
-  
-  faceContainer.addChild(head, leftEye, rightEye, mouth);
-  container.addChild(body, faceContainer);
-  
-  container.mouth = mouth;
-  container.leftEye = leftEye;
-  container.rightEye = rightEye;
-  container.face = faceContainer;
+            }, 400);
+        }
 
-  // Real-time morphological mood expression matrix mapping
-  container.setExpression = (mood) => {
-    leftEye.clear(); rightEye.clear(); mouth.clear();
-    
-    if (mood === "shocked") {
-      leftEye.beginFill(0x000000).drawCircle(-9, -96, 6).beginFill(0xffffff).drawCircle(-9, -96, 2).endFill();
-      rightEye.beginFill(0x000000).drawCircle(9, -96, 6).beginFill(0xffffff).drawCircle(9, -96, 2).endFill();
-      mouth.beginFill(0x000000).drawCircle(0, -74, 9).endFill();
-    } else { // Standard/Normal layout
-      leftEye.beginFill(0x000000).drawCircle(-9, -96, 4).beginFill(0xffffff).drawCircle(-10, -98, 1.5).endFill();
-      rightEye.beginFill(0x000000).drawCircle(9, -96, 4).beginFill(0xffffff).drawCircle(8, -98, 1.5).endFill();
-      mouth.beginFill(0x000000).drawRoundedRect(-10,
+        function togglePlayback() {
+            const vinylDisc = document.getElementById('vinylDisc');
+            const tonearm = document.getElementById('tonearm');
+            const playPauseBtn = document.querySelector('.play-pause-btn');
+
+            if (!vinylDisc.classList.contains('is-playing')) return; // No track active
+
+            if (isPlaying) {
+                vinylDisc.classList.remove('spinning');
+                tonearm.classList.remove('placed');
+                playPauseBtn.innerText = "▶";
+                isPlaying = false;
+            } else {
+                tonearm.classList.add('placed');
+                setTimeout(() => {
+                    vinylDisc.classList.add('spinning');
+                    playPauseBtn.innerText = "⏸";
+                    isPlaying = true;
+                }, 600);
+            }
+        }
+    </script>
+</body>
+</html>
