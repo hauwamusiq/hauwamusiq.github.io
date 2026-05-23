@@ -1,1 +1,139 @@
-hello
+// Hardened State Management System
+let portfolioState = {
+    isPlaying: false,
+    isAnimating: false,
+    progressInterval: null,
+    currentTrack: null
+};
+
+function switchTab(e, tabId) {
+    if (!e || !e.currentTarget) return;
+    
+    document.querySelectorAll('.nav-links li').forEach(li => li.classList.remove('active'));
+    e.currentTarget.classList.add('active');
+
+    document.querySelectorAll('.portfolio-section').forEach(section => section.classList.remove('active'));
+    
+    const targetSection = document.getElementById(tabId);
+    if (targetSection) {
+        targetSection.classList.add('active');
+    }
+}
+
+function selectTrack(trackId, title, artist, color) {
+    // BUG FIX: Prevent rapid click race conditions
+    if (portfolioState.isAnimating) return;
+    portfolioState.isAnimating = true;
+
+    const vinylDisc = document.getElementById('vinylDisc');
+    const vinylLabel = document.getElementById('vinylLabel');
+    const tonearm = document.getElementById('tonearm');
+    const progressFilled = document.getElementById('progressFilled');
+    const playPauseBtn = document.querySelector('.play-pause-btn');
+    
+    // Reset timers cleanly to prevent memory leaks
+    if (portfolioState.progressInterval) {
+        clearInterval(portfolioState.progressInterval);
+        portfolioState.progressInterval = null;
+    }
+    
+    progressFilled.style.width = '0%';
+    document.getElementById('currentTime').innerText = "0:00";
+
+    // Update active row indicators safely
+    document.querySelectorAll('.vinyl-crate-item').forEach((item, idx) => {
+        item.classList.toggle('selected', idx + 1 === trackId);
+    });
+
+    // Reset visual assets to baseline
+    vinylDisc.className = 'vinyl-disc'; 
+    tonearm.classList.remove('placed');
+
+    // Multi-stage animation gate
+    setTimeout(() => {
+        document.getElementById('barTitle').innerText = title;
+        document.getElementById('barArtist').innerText = artist;
+        
+        const coverEl = document.getElementById('barCover');
+        coverEl.innerText = title.substring(0,2).toUpperCase();
+        coverEl.style.background = color;
+        
+        vinylLabel.style.backgroundColor = color;
+        vinylLabel.innerText = title;
+        vinylDisc.classList.add('is-playing');
+        
+        setTimeout(() => {
+            tonearm.classList.add('placed');
+            
+            setTimeout(() => {
+                vinylDisc.classList.add('spinning');
+                playPauseBtn.innerText = "⏸";
+                portfolioState.isPlaying = true;
+                portfolioState.isAnimating = false; // Unlock state machine
+                startMockProgress();
+            }, 600);
+        }, 400);
+    }, 200);
+}
+
+function togglePlayback() {
+    // BUG FIX: Block playback changes if state transitions are actively running
+    if (portfolioState.isAnimating) return;
+
+    const vinylDisc = document.getElementById('vinylDisc');
+    const tonearm = document.getElementById('tonearm');
+    const playPauseBtn = document.querySelector('.play-pause-btn');
+
+    if (!vinylDisc.classList.contains('is-playing')) return;
+
+    if (portfolioState.isPlaying) {
+        vinylDisc.classList.remove('spinning');
+        tonearm.classList.remove('placed');
+        playPauseBtn.innerText = "▶";
+        portfolioState.isPlaying = false;
+        
+        if (portfolioState.progressInterval) {
+            clearInterval(portfolioState.progressInterval);
+            portfolioState.progressInterval = null;
+        }
+    } else {
+        portfolioState.isAnimating = true;
+        tonearm.classList.add('placed');
+        
+        setTimeout(() => {
+            vinylDisc.classList.add('spinning');
+            playPauseBtn.innerText = "⏸";
+            portfolioState.isPlaying = true;
+            portfolioState.isAnimating = false;
+            startMockProgress();
+        }, 600);
+    }
+}
+
+function startMockProgress() {
+    if (portfolioState.progressInterval) clearInterval(portfolioState.progressInterval);
+    
+    const progressFilled = document.getElementById('progressFilled');
+    const currentTimeEl = document.getElementById('currentTime');
+    
+    portfolioState.progressInterval = setInterval(() => {
+        if (!portfolioState.isPlaying) return; // Guard clause against ghost tracking
+        
+        let timeParts = currentTimeEl.innerText.split(':');
+        let minutes = parseInt(timeParts[0]) || 0;
+        let seconds = parseInt(timeParts[1]) || 0;
+
+        seconds++;
+        if (seconds >= 60) { seconds = 0; minutes++; }
+        currentTimeEl.innerText = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+        
+        let totalSeconds = (minutes * 60) + seconds;
+        let percent = (totalSeconds / 220) * 100; 
+        progressFilled.style.width = `${Math.min(percent, 100)}%`;
+
+        if (percent >= 100) {
+            clearInterval(portfolioState.progressInterval);
+            portfolioState.progressInterval = null;
+        }
+    }, 1000); // Normalized back to standard real-time pacing clocks
+}
