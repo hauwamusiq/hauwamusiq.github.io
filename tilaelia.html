@@ -3,13 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Studio Archive | Creative Core</title>
+    <title>Studio Noir | Private Index</title>
     <style>
         :root {
-            --bg-color: #faf9f5;       /* Premium Editorial Alabaster */
-            --text-color: #0d0d0f;     /* Deep True Charcoal Black */
-            --accent-color: #9e2a2b;   /* High-Fashion Oxidized Brick Red */
-            --line-color: #e5e2da;     /* Subtle Architectural Line */
+            --bg-color: #09090b;       /* Dark Velvet Charcoal */
+            --card-bg: #121214;        /* Lifted Shadow Black */
+            --text-main: #e4e4e7;      /* Ghost White */
+            --text-muted: #71717a;     /* Ash Gray */
+            --accent-color: #00b4d8;   /* Cyber/Toxic Cyan */
+            --line-color: #1f1f23;     /* Low-Visibility Grid Line */
             --serif-font: 'Playfair Display', 'Georgia', serif;
             --sans-font: 'Helvetica Neue', Helvetica, Arial, sans-serif;
         }
@@ -27,22 +29,22 @@
         body {
             font-family: var(--sans-font);
             background-color: var(--bg-color);
-            color: var(--text-color);
+            color: var(--text-main);
             line-height: 1.65;
             overflow-x: hidden;
             -webkit-text-size-adjust: 100%;
             letter-spacing: -0.01em;
         }
 
-        /* Sharp Technical Focus States */
+        /* Sharp Technical Focus Rings for the Shadows */
         a:focus-visible, 
         button:focus-visible, 
         audio:focus-visible {
-            outline: 1px solid var(--text-color);
+            outline: 1px solid var(--accent-color);
             outline-offset: 4px;
         }
 
-        /* --- THE CURTAIN INITIALIZATION --- */
+        /* --- NOCTURNAL SPLASH INTERCEPTOR --- */
         #splash-screen {
             position: fixed;
             top: 0;
@@ -66,13 +68,27 @@
 
         #splash-screen h2 {
             font-family: var(--serif-font);
-            font-size: 3.5rem;
+            font-size: 4rem;
             font-weight: 700;
             letter-spacing: -0.04em;
-            margin-bottom: 2.5rem;
+            margin-bottom: 1rem;
+            color: var(--text-main);
             opacity: 0;
             transform: translateY(20px);
-            animation: elegantFade Up 1s cubic-bezier(0.16, 1, 0.3, 1) forwards 0.2s;
+            animation: elegantFadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) forwards 0.2s;
+            text-align: center;
+        }
+
+        #splash-screen .warning-subtext {
+            font-family: monospace;
+            font-size: 0.85rem;
+            letter-spacing: 0.15em;
+            color: var(--text-muted);
+            margin-bottom: 3.5rem;
+            text-transform: uppercase;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: elegantFadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) forwards 0.35s;
         }
 
         .enter-btn {
@@ -82,23 +98,23 @@
             text-transform: uppercase;
             letter-spacing: 0.3em;
             padding: 1.2rem 3.5rem;
-            border: 1px solid var(--text-color);
+            border: 1px solid var(--text-muted);
             background: transparent;
-            color: var(--text-color);
+            color: var(--text-main);
             cursor: pointer;
             transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
             opacity: 0;
             transform: translateY(20px);
-            animation: elegantFadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) forwards 0.4s;
+            animation: elegantFadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) forwards 0.5s;
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* --- HIGH-PERFORMANCE INTRO REVEALS --- */
+        /* --- FLUID VIEWPORT REVEALS --- */
         .reveal {
             opacity: 0;
-            transform: translateY(40px);
-            transition: opacity 1.4s cubic-bezier(0.16, 1, 0.3, 1), 
-                        transform 1.4s cubic-bezier(0.16, 1, 0.3, 1);
+            transform: translateY(30px);
+            transition: opacity 1.2s cubic-bezier(0.16, 1, 0.3, 1), 
+                        transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
             will-change: transform, opacity;
         }
 
@@ -107,7 +123,7 @@
             transform: translateY(0);
         }
 
-        /* --- STUDIO SYSTEM FRAMEWORK --- */
+        /* --- THE MASTER ARCHITECTURE FRAME --- */
         .portfolio-content {
             padding: 0 5rem;
             opacity: 0;
@@ -132,10 +148,11 @@
             font-weight: 700;
             letter-spacing: 0.4em;
             text-transform: uppercase;
+            color: var(--text-main);
         }
 
         nav a {
-            color: var(--text-color);
+            color: var(--text-muted);
             text-decoration: none;
             margin-left: 3.5rem;
             font-size: 0.75rem;
@@ -154,7 +171,7 @@
             height: 1px;
             bottom: -4px;
             left: 0;
-            background-color: var(--text-color);
+            background-color: var(--accent-color);
             transform: scaleX(0);
             transform-origin: bottom right;
             transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
@@ -170,38 +187,85 @@
             border-top: 1px solid var(--line-color);
         }
 
-        .hero {
-            padding: 14rem 0;
-            max-width: 950px;
+        /* --- THE HOME / ACTIVITY HYBRID SPLIT SECTION --- */
+        .home-dashboard {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6rem;
+            padding: 6rem 0 10rem 0;
+            border-top: none;
         }
 
-        .hero h2 {
+        .welcome-panel h2 {
             font-family: var(--serif-font);
-            font-size: 5rem;
+            font-size: 4rem;
             font-weight: 700;
             letter-spacing: -0.04em;
-            line-height: 1.05;
-            margin-bottom: 3rem;
+            line-height: 1.1;
+            margin-bottom: 2.5rem;
         }
 
-        .hero p {
-            color: #55555d;
-            font-size: 1.25rem;
-            font-weight: 400;
+        .welcome-panel p {
+            color: var(--text-muted);
+            font-size: 1.2rem;
             line-height: 1.8;
-            max-width: 600px;
+            max-width: 500px;
         }
 
-        section h3 {
+        /* Recent Activity Feed Framework */
+        .activity-feed-panel h3 {
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            margin-bottom: 3rem;
+            color: var(--accent-color);
+        }
+
+        .feed-stream {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .feed-node {
+            padding: 1.75rem;
+            background-color: var(--card-bg);
+            border-left: 2px solid var(--line-color);
+            transition: border-color 0.4s ease, background-color 0.4s ease;
+        }
+
+        .feed-node .timestamp {
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+        }
+
+        .feed-node h4 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .feed-node p {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        /* Separate Section Headers */
+        .section-headline {
             font-size: 0.8rem;
             font-weight: 700;
             letter-spacing: 0.35em;
             text-transform: uppercase;
             margin-bottom: 6rem;
-            color: var(--accent-color);
+            color: var(--text-muted);
         }
 
-        /* Sharp Portrait Exhibition Grid */
+        /* Isolated Showcase Layout Grid Systems */
         .project-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
@@ -217,7 +281,7 @@
 
         .image-wrapper {
             overflow: hidden;
-            background-color: #edece6;
+            background-color: #161619;
             margin-bottom: 2rem;
             width: 100%;
         }
@@ -225,10 +289,11 @@
         .work-card img {
             width: 100%;
             height: auto;
-            aspect-ratio: 3 / 4; /* Editorial High-Fashion Portrait Ratio */
+            aspect-ratio: 3 / 4; /* Editorial Portrait Format */
             object-fit: cover;
             display: block;
-            transition: transform 1.5s cubic-bezier(0.16, 1, 0.3, 1);
+            filter: grayscale(30%) brightness(85%);
+            transition: transform 1.5s cubic-bezier(0.16, 1, 0.3, 1), filter 1.5s ease;
         }
 
         .card-body h4 {
@@ -243,7 +308,7 @@
         .card-body .meta {
             font-size: 0.75rem;
             font-weight: 700;
-            color: #77777d;
+            color: var(--accent-color);
             text-transform: uppercase;
             letter-spacing: 0.15em;
             margin-bottom: 1.5rem;
@@ -251,8 +316,7 @@
 
         .card-body p {
             font-size: 0.95rem;
-            color: #44444a;
-            font-weight: 400;
+            color: var(--text-muted);
             line-height: 1.7;
         }
 
@@ -260,49 +324,7 @@
             width: 100%;
             margin-top: 2rem;
             display: block;
-        }
-
-        /* Clean High-Contrast Writing Architecture */
-        .text-list {
-            list-style: none;
-        }
-
-        .text-item {
-            margin-bottom: 5rem;
-            padding-bottom: 5rem;
-            border-bottom: 1px solid var(--line-color);
-            max-width: 800px;
-        }
-
-        .text-item:last-child {
-            border-bottom: none;
-            margin-bottom: 0;
-            padding-bottom: 0;
-        }
-
-        .text-item h4 {
-            font-family: var(--serif-font);
-            font-size: 2.2rem;
-            font-weight: 700;
-            letter-spacing: -0.03em;
-            margin-bottom: 0.75rem;
-            line-height: 1.2;
-        }
-
-        .text-item .meta {
-            font-size: 0.75rem;
-            font-weight: 700;
-            color: #77777d;
-            text-transform: uppercase;
-            letter-spacing: 0.15em;
-            margin-bottom: 2rem;
-        }
-
-        .text-item p {
-            font-size: 1.05rem;
-            color: #333339;
-            font-weight: 400;
-            line-height: 1.8;
+            filter: invert(0.9) hue-rotate(180deg); /* Dark-modes native browser audio panels safely */
         }
 
         footer {
@@ -313,63 +335,67 @@
             font-size: 0.75rem;
             font-weight: 700;
             letter-spacing: 0.25em;
-            color: #88888e;
+            color: #44444a;
             text-transform: uppercase;
         }
 
         @keyframes elegantFadeUp {
+            from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* --- HOVER EXECUTION MECHANICS --- */
+        /* --- THE DARK MECHANICAL HOVER ACTIONS --- */
         @media (hover: hover) {
             .enter-btn:hover {
-                background-color: var(--text-color);
+                background-color: var(--text-main);
                 color: var(--bg-color);
+                border-color: var(--text-main);
             }
             nav a:hover {
-                color: var(--accent-color);
+                color: var(--text-main);
             }
             nav a:hover::after {
                 transform: scaleX(1);
                 transform-origin: bottom left;
             }
-            .work-card:hover img {
-                transform: scale(1.03);
+            .feed-node:hover {
+                border-left-color: var(--accent-color);
+                background-color: rgba(255, 255, 255, 0.01);
             }
-            /* Sophisticated structural focal fade */
+            .work-card:hover img {
+                transform: scale(1.025);
+                filter: grayscale(0%) brightness(100%);
+            }
             .project-grid:hover .work-card:not(:hover) {
-                opacity: 0.4;
+                opacity: 0.35;
             }
         }
 
-        /* --- ACCESSIBILITY SPEC --- */
+        /* --- ACCESSIBILITY PROFILE --- */
         @media (prefers-reduced-motion: reduce) {
             html { scroll-behavior: auto; }
             #splash-screen { transform: none !important; transition: none !important; opacity: 1; }
             #splash-screen.fade-out { opacity: 0 !important; display: none !important; }
             .reveal { transition: none !important; transform: none !important; opacity: 1 !important; }
-            .work-card img { transform: none !important; }
+            .work-card img { transform: none !important; filter: none !important; }
             .project-grid:hover .work-card:not(:hover) { opacity: 1 !important; }
         }
 
-        /* --- SCALED RESPONSIVE GRAPH ENGINE --- */
+        /* --- DYNAMIC RESPONSIVE CELL COMPILING --- */
         @media (max-width: 1000px) {
             .portfolio-content { padding: 0 4rem; }
-            .hero h2 { font-size: 4rem; }
+            .home-dashboard { grid-template-columns: 1fr; gap: 5rem; }
+            .welcome-panel h2 { font-size: 3.5rem; }
         }
 
         @media (max-width: 600px) {
             .portfolio-content { padding: 0 1.5rem; }
             header { flex-direction: column; gap: 2.5rem; text-align: left; align-items: flex-start; padding: 5rem 0; }
             nav a { margin-left: 0; margin-right: 2rem; font-size: 0.75rem; }
-            #splash-screen h2 { font-size: 2.4rem; text-align: center; }
-            .hero { padding: 10rem 0; }
-            .hero h2 { font-size: 3rem; }
+            #splash-screen h2 { font-size: 2.5rem; text-align: center; }
+            .welcome-panel h2 { font-size: 2.6rem; }
             section { padding: 6rem 0; }
-            section h3 { margin-bottom: 4rem; }
             .project-grid { grid-template-columns: 1fr; gap: 5rem; }
-            .text-item h4 { font-size: 1.8rem; }
         }
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -379,50 +405,77 @@
 <body>
 
     <div id="splash-screen">
-        <h2>creative archive.</h2>
-        <button class="enter-btn" id="enter-experience-btn">enter studio</button>
+        <h2>Tilleli's Thread</h2>
+        <div class="warning-subtext">enter if you dare >:)</div>
+        <button class="enter-btn" id="enter-experience-btn">click here</button>
     </div>
 
     <div class="portfolio-content">
         <header>
-            <h1>CORE_INDEX // 2026</h1>
+            <h1>SHADOW_METRIC // 2026</h1>
             <nav id="main-nav">
                 <a href="#audio-works">Acoustics</a>
                 <a href="#visual-works">Visuals</a>
-                <a href="#text-works">Prose</a>
             </nav>
         </header>
 
         <main>
-            <section class="hero" style="border-top: none; padding-top: 2rem;">
-                <h2>An uncompromising exhibition of sound layout, visual arrays, and critical narrative logs.</h2>
-                <p>Architectural sound parameters, raw geometric frames, and stripped-down prose exploring modern design mechanics.</p>
+            <section class="home-dashboard">
+                <div class="welcome-panel">
+                    <h2>An uncompromising dark environment for research.</h2>
+                    <p>Welcome. This is a private staging baseline containing spatial audio experiments, unreleased field recordings, and raw high-contrast geometric frames.</p>
+                </div>
+                
+                <div class="activity-feed-panel">
+                    <h3>Recent Page Activity</h3>
+                    <div class="feed-stream">
+                        
+                        <div class="feed-node">
+                            <div class="timestamp">May 2026 // 02:14</div>
+                            <h4>Patched Algorithm 09 Array</h4>
+                            <p>Successfully integrated structural modular routing signals to the spatial deck core.</p>
+                        </div>
+
+                        <div class="feed-node">
+                            <div class="timestamp">April 2026 // 23:40</div>
+                            <h4>Exhibited Chromatic Geometric Frames</h4>
+                            <p>Published two highly classified portrait form matrices to the primary gallery.</p>
+                        </div>
+
+                        <div class="feed-node">
+                            <div class="timestamp">March 2026 // 11:05</div>
+                            <h4>Re-engineered Terminal Canvas</h4>
+                            <p>Stripped outer design elements down to structural dark charcoal line parameters.</p>
+                        </div>
+
+                    </div>
+                </div>
             </section>
 
             <section id="audio-works" class="reveal">
-                <h3>01 / Acoustic Parameters</h3>
+                <h3 class="section-headline">01 / Acoustic Architecture</h3>
                 <div class="project-grid">
                     
                     <div class="work-card">
                         <div class="image-wrapper">
-                            <div style="width:100%; aspect-ratio: 3 / 4; background:#eae7df;"></div>
+                            <div style="width:100%; aspect-ratio: 3 / 4; background:#18181b;"></div>
                         </div>
                         <div class="card-body">
-                            <h4>Spatial Reverberation Profiles</h4>
-                            <p class="meta">Acoustics / Waveform Log</p>
-                            <p>An intricate exploration charting structural space reflection limits, physical audio cancellation, and extreme minimal composition models.</p>
+                            <h4>Spatial Reverberation Profile</h4>
+                            <p class="meta">Acoustics / Phase Signal</p>
+                            <p>An intricate exploration charting phase reflection limits, physical sound cancellations, and extreme sub-bass minimalism.</p>
                             <audio controls src="your-file-1.mp3"></audio> 
                         </div>
                     </div>
 
                     <div class="work-card">
                         <div class="image-wrapper">
-                            <div style="width:100%; aspect-ratio: 3 / 4; background:#e2dfd7;"></div>
+                            <div style="width:100%; aspect-ratio: 3 / 4; background:#151518;"></div>
                         </div>
                         <div class="card-body">
-                            <h4>Algorithmic Signal Array 09</h4>
+                            <h4>Algorithmic Signal Matrix</h4>
                             <p class="meta">Electronic // Signal Processing</p>
-                            <p>An uncompromising frequency performance test generated entirely through physical custom patch routing layouts.</p>
+                            <p>An uncompromising high-velocity performance sequence generated through physical analog synthesizer components.</p>
                             <audio controls src="your-file-2.mp3"></audio>
                         </div>
                     </div>
@@ -431,70 +484,51 @@
             </section>
 
             <section id="visual-works">
-                <h3 class="reveal">02 / Geometric Frameworks</h3>
+                <h3 class="section-headline">02 / Geometric Frameworks</h3>
                 <div class="project-grid reveal">
                     
                     <div class="work-card">
                         <div class="image-wrapper">
-                            <img src="image-path-1.jpg" alt="Stark high contrast creative portfolio layout framework">
+                            <img src="image-path-1.jpg" alt="Dark charcoal portrait art exhibition asset frame">
                         </div>
                         <div class="card-body">
                             <h4>Asymmetric Dynamic Intervals</h4>
                             <p class="meta">Vector Graphics / Form Matrix</p>
+                            <p>A rigorous study mapping out empty visual regions and stark compositional balance lines.</p>
                         </div>
                     </div>
 
                     <div class="work-card">
                         <div class="image-wrapper">
-                            <img src="image-path-2.jpg" alt="Stark high contrast creative portfolio layout framework">
+                            <img src="image-path-2.jpg" alt="Dark charcoal portrait art exhibition asset frame">
                         </div>
                         <div class="card-body">
                             <h4>Monochromatic High-Velocity Frame</h4>
-                            <p class="meta">Structural Canvas / Medium</p>
+                            <p class="meta">Structural Canvas / Dark Medium</p>
+                            <p>Exploring high-contrast grid fallacies and deliberate vector fractures in dim environments.</p>
                         </div>
                     </div>
 
-                </div>
-            </section>
-
-            <section id="text-works">
-                <h3 class="reveal">03 / Critical Documents</h3>
-                <div class="reveal">
-                    <ul class="text-list">
-                        
-                        <li class="text-item">
-                            <h4>The Acceleration of Calculated Frictional Design</h4>
-                            <p class="meta">Critical Document // File 404</p>
-                            <p>An essential analysis concerning the deliberate use of structural interface weight. Pushing users away from effortless consumption and back into deep, critical spatial processing loops within compute screens...</p>
-                        </li>
-
-                        <li class="text-item">
-                            <h4>Structural Subtractions & Spatial Absences</h4>
-                            <p class="meta">Narrative Log // System Stack</p>
-                            <p>The mastery of deletion. Allowing whitespace to challenge visual noise. A serious design asset is never realized by how much detail you compile, but how confidently you extract content...</p>
-                        </li>
-
-                    </ul>
                 </div>
             </section>
         </main>
 
         <footer>
-            <p>&copy; 2026 Core Index Studio. All Assets Registered Internationally.</p>
+            <p>&copy; 2026 Core Shadow Archive. All Assets Encrypted Under Studio Specification.</p>
         </footer>
     </div>
 
     <script>
         const revealElements = document.querySelectorAll('.reveal');
 
-        // Cinematic view trigger
+        // Cinematic curtain entry
         document.getElementById('enter-experience-btn').addEventListener('click', function() {
             document.getElementById('splash-screen').classList.add('fade-out');
             document.body.classList.add('active');
             setTimeout(checkReveals, 400); 
         });
 
-        // Mutual exclusion audio execution loop + blur focus control
+        // Mutually exclusive audio execution loop
         const allAudioPlayers = document.querySelectorAll('audio');
         allAudioPlayers.forEach(player => {
             player.addEventListener('play', () => {
@@ -504,11 +538,12 @@
                     }
                 });
             });
+            player.addEventListener('keyup', (e) => { if(e.key === ' ') player.blur(); });
             player.addEventListener('ended', () => { player.blur(); });
             player.addEventListener('pause', () => { player.blur(); });
         });
 
-        // High-performance intersection observer logic
+        // High-performance lazy observer architecture
         const revealObserver = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
