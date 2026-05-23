@@ -1,139 +1,192 @@
-// Hardened State Management System
-let portfolioState = {
-    isPlaying: false,
-    isAnimating: false,
-    progressInterval: null,
-    currentTrack: null
-};
-
-function switchTab(e, tabId) {
-    if (!e || !e.currentTarget) return;
-    
-    document.querySelectorAll('.nav-links li').forEach(li => li.classList.remove('active'));
-    e.currentTarget.classList.add('active');
-
-    document.querySelectorAll('.portfolio-section').forEach(section => section.classList.remove('active'));
-    
-    const targetSection = document.getElementById(tabId);
-    if (targetSection) {
-        targetSection.classList.add('active');
-    }
-}
-
-function selectTrack(trackId, title, artist, color) {
-    // BUG FIX: Prevent rapid click race conditions
-    if (portfolioState.isAnimating) return;
-    portfolioState.isAnimating = true;
-
-    const vinylDisc = document.getElementById('vinylDisc');
-    const vinylLabel = document.getElementById('vinylLabel');
-    const tonearm = document.getElementById('tonearm');
-    const progressFilled = document.getElementById('progressFilled');
-    const playPauseBtn = document.querySelector('.play-pause-btn');
-    
-    // Reset timers cleanly to prevent memory leaks
-    if (portfolioState.progressInterval) {
-        clearInterval(portfolioState.progressInterval);
-        portfolioState.progressInterval = null;
-    }
-    
-    progressFilled.style.width = '0%';
-    document.getElementById('currentTime').innerText = "0:00";
-
-    // Update active row indicators safely
-    document.querySelectorAll('.vinyl-crate-item').forEach((item, idx) => {
-        item.classList.toggle('selected', idx + 1 === trackId);
-    });
-
-    // Reset visual assets to baseline
-    vinylDisc.className = 'vinyl-disc'; 
-    tonearm.classList.remove('placed');
-
-    // Multi-stage animation gate
-    setTimeout(() => {
-        document.getElementById('barTitle').innerText = title;
-        document.getElementById('barArtist').innerText = artist;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vinyl Portfolio Player</title>
+    <style>
+        /* Basic styling to make the elements visible */
+        body { font-family: sans-serif; background: #121212; color: #fff; padding: 200px; text-align: center; }
+        .portfolio-section { display: none; }
+        .portfolio-section.active { display: block; }
+        .nav-links li { display: inline; margin: 0 10px; cursor: pointer; color: gray; }
+        .nav-links li.active { color: white; font-weight: bold; }
         
-        const coverEl = document.getElementById('barCover');
-        coverEl.innerText = title.substring(0,2).toUpperCase();
-        coverEl.style.background = color;
+        /* Vinyl Player UI Elements */
+        .player-container { margin-top: 40px; background: #222; padding: 20px; border-radius: 8px; inline-size: 300px; margin: auto; }
+        .vinyl-disc { width: 150px; height: 150px; background: #000; border-radius: 50%; margin: 20px auto; transition: transform 0.5s; position: relative; }
+        .vinyl-disc.spinning { animation: spin 2s linear infinite; }
+        #vinylLabel { width: 50px; height: 50px; border-radius: 50%; background: gray; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 10px; display: flex; align-items: center; justify-content: center; color: black; }
+        #tonearm { width: 80px; height: 10px; background: silver; margin: 10px auto; transform-origin: top left; transition: transform 0.4s; }
+        #tonearm.placed { transform: rotate(15deg); }
+        .progress-bar { width: 100%; height: 5px; background: #444; margin: 10px 0; }
+        #progressFilled { width: 0%; height: 100%; background: lighthandblue; background: #1db954; }
+        .vinyl-crate-item { padding: 10px; cursor: pointer; background: #333; margin: 5px; border-radius: 4px; }
+        .vinyl-crate-item.selected { border: 2px solid #1db954; }
         
-        vinylLabel.style.backgroundColor = color;
-        vinylLabel.innerText = title;
-        vinylDisc.classList.add('is-playing');
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+    <ul class="nav-links">
+        <li class="active" onclick="switchTab(event, 'playerTab')">Music Player</li>
+        <li onclick="switchTab(event, 'aboutTab')">About</li>
+    </ul>
+
+    <div id="playerTab" class="portfolio-section active">
+        <h2>My Vinyl Collection</h2>
         
-        setTimeout(() => {
-            tonearm.classList.add('placed');
+        <div class="vinyl-crate-item" onclick="selectTrack(1, 'Lo-Fi Chill', 'DJ Code', '#ff5722')">Track 1: Lo-Fi Chill</div>
+        <div class="vinyl-crate-item" onclick="selectTrack(2, 'Synthwave Drive', 'Neon Knight', '#e91e63')">Track 2: Synthwave Drive</div>
+
+        <div class="player-container">
+            <div id="tonearm"></div>
+            <div id="vinylDisc" class="vinyl-disc">
+                <div id="vinylLabel">Empty</div>
+            </div>
             
+            <h3 id="barTitle">No Track Selected</h3>
+            <p id="barArtist">-</p>
+            <div id="barCover" style="display:none"></div>
+
+            <div class="progress-bar"><div id="progressFilled"></div></div>
+            <span id="currentTime">0:00</span>
+            <br><br>
+            <button class="play-pause-btn" onclick="togglePlayback()">▶</button>
+        </div>
+    </div>
+
+    <div id="aboutTab" class="portfolio-section">
+        <h2>About Me</h2>
+        <p>Welcome to my portfolio.</p>
+    </div>
+
+    <script>
+        // Paste your exact code right here inside these script tags
+        let portfolioState = {
+            isPlaying: false,
+            isAnimating: false,
+            progressInterval: null,
+            currentTrack: null
+        };
+
+        function switchTab(e, tabId) {
+            if (!e || !e.currentTarget) return;
+            document.querySelectorAll('.nav-links li').forEach(li => li.classList.remove('active'));
+            e.currentTarget.classList.add('active');
+            document.querySelectorAll('.portfolio-section').forEach(section => section.classList.remove('active'));
+            const targetSection = document.getElementById(tabId);
+            if (targetSection) targetSection.classList.add('active');
+        }
+
+        function selectTrack(trackId, title, artist, color) {
+            if (portfolioState.isAnimating) return;
+            portfolioState.isAnimating = true;
+
+            const vinylDisc = document.getElementById('vinylDisc');
+            const vinylLabel = document.getElementById('vinylLabel');
+            const tonearm = document.getElementById('tonearm');
+            const progressFilled = document.getElementById('progressFilled');
+            const playPauseBtn = document.querySelector('.play-pause-btn');
+            
+            if (portfolioState.progressInterval) {
+                clearInterval(portfolioState.progressInterval);
+                portfolioState.progressInterval = null;
+            }
+            
+            progressFilled.style.width = '0%';
+            document.getElementById('currentTime').innerText = "0:00";
+
+            document.querySelectorAll('.vinyl-crate-item').forEach((item, idx) => {
+                item.classList.toggle('selected', idx + 1 === trackId);
+            });
+
+            vinylDisc.className = 'vinyl-disc'; 
+            tonearm.classList.remove('placed');
+
             setTimeout(() => {
-                vinylDisc.classList.add('spinning');
-                playPauseBtn.innerText = "⏸";
-                portfolioState.isPlaying = true;
-                portfolioState.isAnimating = false; // Unlock state machine
-                startMockProgress();
-            }, 600);
-        }, 400);
-    }, 200);
-}
-
-function togglePlayback() {
-    // BUG FIX: Block playback changes if state transitions are actively running
-    if (portfolioState.isAnimating) return;
-
-    const vinylDisc = document.getElementById('vinylDisc');
-    const tonearm = document.getElementById('tonearm');
-    const playPauseBtn = document.querySelector('.play-pause-btn');
-
-    if (!vinylDisc.classList.contains('is-playing')) return;
-
-    if (portfolioState.isPlaying) {
-        vinylDisc.classList.remove('spinning');
-        tonearm.classList.remove('placed');
-        playPauseBtn.innerText = "▶";
-        portfolioState.isPlaying = false;
-        
-        if (portfolioState.progressInterval) {
-            clearInterval(portfolioState.progressInterval);
-            portfolioState.progressInterval = null;
+                document.getElementById('barTitle').innerText = title;
+                document.getElementById('barArtist').innerText = artist;
+                
+                const coverEl = document.getElementById('barCover');
+                coverEl.innerText = title.substring(0,2).toUpperCase();
+                coverEl.style.background = color;
+                
+                vinylLabel.style.backgroundColor = color;
+                vinylLabel.innerText = title;
+                vinylDisc.classList.add('is-playing');
+                
+                setTimeout(() => {
+                    tonearm.classList.add('placed');
+                    
+                    setTimeout(() => {
+                        vinylDisc.classList.add('spinning');
+                        playPauseBtn.innerText = "⏸";
+                        portfolioState.isPlaying = true;
+                        portfolioState.isAnimating = false;
+                        startMockProgress();
+                    }, 600);
+                }, 400);
+            }, 200);
         }
-    } else {
-        portfolioState.isAnimating = true;
-        tonearm.classList.add('placed');
-        
-        setTimeout(() => {
-            vinylDisc.classList.add('spinning');
-            playPauseBtn.innerText = "⏸";
-            portfolioState.isPlaying = true;
-            portfolioState.isAnimating = false;
-            startMockProgress();
-        }, 600);
-    }
-}
 
-function startMockProgress() {
-    if (portfolioState.progressInterval) clearInterval(portfolioState.progressInterval);
-    
-    const progressFilled = document.getElementById('progressFilled');
-    const currentTimeEl = document.getElementById('currentTime');
-    
-    portfolioState.progressInterval = setInterval(() => {
-        if (!portfolioState.isPlaying) return; // Guard clause against ghost tracking
-        
-        let timeParts = currentTimeEl.innerText.split(':');
-        let minutes = parseInt(timeParts[0]) || 0;
-        let seconds = parseInt(timeParts[1]) || 0;
+        function togglePlayback() {
+            if (portfolioState.isAnimating) return;
 
-        seconds++;
-        if (seconds >= 60) { seconds = 0; minutes++; }
-        currentTimeEl.innerText = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
-        
-        let totalSeconds = (minutes * 60) + seconds;
-        let percent = (totalSeconds / 220) * 100; 
-        progressFilled.style.width = `${Math.min(percent, 100)}%`;
+            const vinylDisc = document.getElementById('vinylDisc');
+            const tonearm = document.getElementById('tonearm');
+            const playPauseBtn = document.querySelector('.play-pause-btn');
 
-        if (percent >= 100) {
-            clearInterval(portfolioState.progressInterval);
-            portfolioState.progressInterval = null;
+            if (!vinylDisc.classList.contains('is-playing')) return;
+
+            if (portfolioState.isPlaying) {
+                vinylDisc.classList.remove('spinning');
+                tonearm.classList.remove('placed');
+                playPauseBtn.innerText = "▶";
+                portfolioState.isPlaying = false;
+                if (portfolioState.progressInterval) {
+                    clearInterval(portfolioState.progressInterval);
+                    portfolioState.progressInterval = null;
+                }
+            } else {
+                portfolioState.isAnimating = true;
+                tonearm.classList.add('placed');
+                setTimeout(() => {
+                    vinylDisc.classList.add('spinning');
+                    playPauseBtn.innerText = "⏸";
+                    portfolioState.isPlaying = true;
+                    portfolioState.isAnimating = false;
+                    startMockProgress();
+                }, 600);
+            }
         }
-    }, 1000); // Normalized back to standard real-time pacing clocks
-}
+
+        function startMockProgress() {
+            if (portfolioState.progressInterval) clearInterval(portfolioState.progressInterval);
+            const progressFilled = document.getElementById('progressFilled');
+            const currentTimeEl = document.getElementById('currentTime');
+            
+            portfolioState.progressInterval = setInterval(() => {
+                if (!portfolioState.isPlaying) return;
+                let timeParts = currentTimeEl.innerText.split(':');
+                let minutes = parseInt(timeParts[0]) || 0;
+                let seconds = parseInt(timeParts[1]) || 0;
+
+                seconds++;
+                if (seconds >= 60) { seconds = 0; minutes++; }
+                currentTimeEl.innerText = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+                
+                let totalSeconds = (minutes * 60) + seconds;
+                let percent = (totalSeconds / 220) * 100; 
+                progressFilled.style.width = `${Math.min(percent, 100)}%`;
+
+                if (percent >= 100) {
+                    clearInterval(portfolioState.progressInterval);
+                    portfolioState.progressInterval = null;
+                }
+            }, 1000);
+        }
+    </script>
+</body>
+</html>
