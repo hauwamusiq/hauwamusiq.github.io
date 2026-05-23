@@ -33,7 +33,6 @@
             -webkit-text-size-adjust: 100%;
         }
 
-        /* Accessibility Focus States */
         a:focus-visible, 
         button:focus-visible, 
         audio:focus-visible {
@@ -183,117 +182,79 @@
             margin-bottom: 3rem;
             text-transform: uppercase;
             letter-spacing: 3px;
-            position: relative;
         }
 
-        /* Music Section */
-        .music-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
-        }
-
-        .track-card {
-            background: white;
-            padding: 2rem;
-            border: 1px solid var(--light-gray);
-            border-radius: 4px;
-        }
-
-        .track-card h4 {
-            margin-bottom: 0.5rem;
-            font-weight: 400;
-            font-size: 1.3rem;
-        }
-
-        .track-card .meta {
-            font-size: 0.85rem;
-            color: #777;
-            font-family: var(--sans-font);
-            margin-bottom: 1.5rem;
-        }
-
-        audio {
-            width: 100%;
-        }
-
-        /* Visual Arts Section */
-        .art-subheading {
-            font-size: 1.3rem;
-            margin: 3rem 0 1.5rem 0;
-            font-family: var(--sans-font);
-            color: var(--accent-color);
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            font-weight: 400;
-        }
-
-        .gallery-grid {
+        /* Dynamic Grid Layouts */
+        .project-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
             gap: 2rem;
         }
 
-        .art-card {
-            background: #fff;
+        .work-card {
+            background: white;
             border: 1px solid var(--light-gray);
+            border-radius: 4px;
             overflow: hidden;
             display: flex;
             flex-direction: column;
         }
 
-        .art-card img {
+        .work-card img {
             width: 100%;
             height: 280px;
-            object-fit: cover;
+            aspect-ratio: 16 / 9; /* Fixes layout shifting and reserves card shape pre-load */
+            object-fit: cover; 
             display: block;
-        }
-
-        .art-placeholder {
-            width: 100%;
-            height: 280px;
             background-color: #eee;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #888;
-            font-style: italic;
+            color: #777; /* Styles layout parameters for missing image fallbacks gracefully */
+            font-size: 0.85rem;
+            font-family: var(--sans-font);
+            padding: 1rem;
         }
 
-        .art-info {
+        .card-body {
             padding: 1.5rem;
-            background: #fff;
-            border-top: 1px solid var(--light-gray);
         }
 
-        .art-info h5 {
-            font-size: 1.2rem;
+        .card-body h4 {
+            font-size: 1.25rem;
             font-weight: 400;
             margin-bottom: 0.25rem;
         }
 
-        /* Writings Section */
-        .writing-category {
-            margin-bottom: 4rem;
+        .card-body .meta {
+            font-size: 0.85rem;
+            color: #777;
+            font-family: var(--sans-font);
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
-        .writing-list {
+        audio {
+            width: 100%;
+            margin-top: 0.5rem;
+        }
+
+        /* Text Works Styling */
+        .text-list {
             list-style: none;
         }
 
-        .writing-item {
+        .text-item {
             margin-bottom: 2rem;
             padding-bottom: 2rem;
             border-bottom: 1px dashed var(--light-gray);
         }
 
-        .writing-item h5 {
+        .text-item h4 {
             font-size: 1.3rem;
             font-weight: 400;
             margin-bottom: 0.25rem;
         }
 
-        .writing-item .meta {
+        .text-item .meta {
             font-size: 0.85rem;
             color: #777;
             font-family: var(--sans-font);
@@ -308,146 +269,44 @@
             font-family: var(--sans-font);
         }
 
-        /* Keyframe Animations */
-        @keyframes pullUp {
-            to { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes fadeIn {
-            to { opacity: 1; }
-        }
+        @keyframes pullUp { to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { to { opacity: 1; } }
 
-        /* --- DESKTOP HOVER QUERY --- */
+        /* --- DESKTOP HOVER INTERACTIONS --- */
         @media (hover: hover) {
-            .enter-btn:hover {
-                background-color: var(--text-color);
-                color: var(--bg-color);
-                letter-spacing: 4px;
-            }
-            nav a:hover {
-                color: var(--accent-color);
-                letter-spacing: 2px;
-            }
-            .track-card:hover {
-                transform: translateY(-5px);
-                box-shadow: 0 10px 30px rgba(0,0,0,0.03);
-                transition: transform 0.4s ease, box-shadow 0.4s ease;
-            }
-            .art-card {
-                transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.5s ease;
-            }
-            .art-card img {
-                transition: transform 0.7s ease;
-            }
-            .art-card:hover {
-                transform: translateY(-8px) scale(1.01);
-                box-shadow: 0 15px 40px rgba(0,0,0,0.04);
-            }
-            .art-card:hover img {
-                transform: scale(1.03);
-            }
-            .writing-item {
-                transition: padding-left 0.4s ease;
-            }
-            .writing-item:hover {
-                padding-left: 10px;
-                border-bottom-style: solid;
-                border-bottom-color: var(--accent-color);
-            }
-        }
-
-        /* --- ACCESSIBILITY: PREFERS REDUCED MOTION --- */
-        @media (prefers-reduced-motion: reduce) {
-            html { scroll-behavior: auto; }
-            #splash-screen h2, .enter-btn, .portfolio-content { animation: none !important; transform: none !important; }
-            .reveal { transition: opacity 0.5s ease !important; transform: none !important; }
-            .art-card, .art-card img, .track-card, .writing-item { transition: none !important; transform: none !important; }
-            .art-card:hover img { transform: none !important; }
+            .enter-btn:hover { background-color: var(--text-color); color: var(--bg-color); letter-spacing: 4px; }
+            nav a:hover { color: var(--accent-color); letter-spacing: 2px; }
+            .work-card { transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.5s ease; }
+            .work-card img { transition: transform 0.7s ease; }
+            .work-card:hover { transform: translateY(-8px); box-shadow: 0 15px 40px rgba(0,0,0,0.04); }
+            .work-card:hover img { transform: scale(1.02); }
+            .text-item { transition: padding-left 0.4s ease; }
+            .text-item:hover { padding-left: 10px; border-bottom-style: solid; border-bottom-color: var(--accent-color); }
         }
 
         /* --- RESPONSIVE MEDIA QUERIES --- */
         @media (max-width: 900px) {
-            .portfolio-content {
-                padding: 0 4rem;
-            }
+            .portfolio-content { padding: 0 4rem; }
         }
 
         @media (max-width: 600px) {
-            .portfolio-content {
-                padding: 0 1.25rem;
-            }
-
-            header {
-                flex-direction: column;
-                gap: 1.25rem;
-                text-align: center;
-                padding: 2.5rem 0;
-            }
-
-            nav a {
-                margin: 0 0.5rem;
-                font-size: 0.85rem;
-            }
-
-            #splash-screen h2 {
-                font-size: 1.8rem;
-                padding: 0 1.5rem;
-                text-align: center;
-                letter-spacing: 2px;
-            }
-
-            .hero {
-                padding: 6rem 0;
-            }
-
-            .hero h2 {
-                font-size: 2.2rem;
-                line-height: 1.3;
-            }
-
-            .hero p {
-                font-size: 1.1rem;
-            }
-            
-            section {
-                padding: 4.5rem 0;
-            }
-
-            section h3 {
-                font-size: 1.7rem;
-                margin-bottom: 2rem;
-                letter-spacing: 2px;
-            }
-
-            .music-grid, .gallery-grid {
-                grid-template-columns: 1fr;
-                gap: 1.5rem;
-            }
-
-            .track-card {
-                padding: 1.25rem;
-            }
-
-            .art-card img, .art-placeholder {
-                height: 230px;
-            }
-
-            .writing-category {
-                margin-bottom: 2.5rem;
-            }
+            .portfolio-content { padding: 0 1.25rem; }
+            header { flex-direction: column; gap: 1.25rem; text-align: center; padding: 2.5rem 0; }
+            nav a { margin: 0 0.5rem; font-size: 0.85rem; }
+            #splash-screen h2 { font-size: 1.8rem; padding: 0 1.5rem; text-align: center; }
+            .hero { padding: 6rem 0; }
+            .hero h2 { font-size: 2.2rem; line-height: 1.3; }
+            section { padding: 4.5rem 0; }
+            section h3 { font-size: 1.7rem; margin-bottom: 2rem; }
+            .project-grid { grid-template-columns: 1fr; gap: 1.5rem; }
+            .work-card img { height: 230px; }
         }
     </style>
-    <noscript>
-        <style>
-            #splash-screen { display: none !important; }
-            .portfolio-content { opacity: 1 !important; visibility: visible !important; transform: none !important; }
-            .reveal { opacity: 1 !important; transform: none !important; }
-        </style>
-    </noscript>
 </head>
 <body>
 
     <div id="splash-screen">
-        <h2>Welcome to the Anthology</h2>
+        <h2>Welcome to the Portfolio</h2>
         <button class="enter-btn" id="enter-experience-btn">Enter Experience</button>
     </div>
 
@@ -455,97 +314,83 @@
         <header>
             <h1>YOUR NAME</h1>
             <nav id="main-nav">
-                <a href="#music">Music</a>
-                <a href="#art">Visual Arts</a>
-                <a href="#writings">Writings</a>
+                <a href="#audio-works">Audio</a>
+                <a href="#visual-works">Visuals</a>
+                <a href="#text-works">Writings</a>
             </nav>
         </header>
 
         <main>
             <section class="hero">
-                <h2>Musician, Artist, & Writer</h2>
-                <p>A curated anthology of sound, canvas, and written word.</p>
+                <h2>Creative Portfolio</h2>
+                <p>A curated showcase of dynamic projects, media, and conceptual works.</p>
             </section>
 
-            <section id="music" class="reveal">
-                <h3>Music</h3>
-                <div class="music-grid">
-                    <div class="track-card">
-                        <h4>Composition Title Suite</h4>
-                        <p class="meta">Classical / Ambient</p>
-                        <audio controls src="your-audio-file.mp3"></audio> 
-                    </div>
-                    <div class="track-card">
-                        <h4>Experimental Track 01</h4>
-                        <p class="meta">Electronic / Avant-garde</p>
-                        <audio controls src="your-audio-file-2.mp3"></audio>
-                    </div>
-                </div>
-            </section>
-
-            <section id="art">
-                <h3 class="reveal">Visual Arts</h3>
-                
-                <div class="reveal">
-                    <h4 class="art-subheading">Paintings</h4>
-                    <div class="gallery-grid">
-                        <div class="art-card">
-                            <div class="art-placeholder">[ Painting Image Here ]</div>
-                            <div class="art-info">
-                                <h5>Serenade in Oil</h5>
-                                <p class="meta">Oil on Canvas, 2025</p>
-                            </div>
+            <section id="audio-works" class="reveal">
+                <h3>Audio Projects</h3>
+                <div class="project-grid">
+                    
+                    <div class="work-card">
+                        <div class="card-body">
+                            <h4>Project Title One</h4>
+                            <p class="meta">Category / Format</p>
+                            <p>Add a brief description detailing the creation process or concept behind this audio work.</p>
+                            <audio controls src="your-file-1.mp3"></audio> 
                         </div>
                     </div>
-                </div>
 
-                <div class="reveal">
-                    <h4 class="art-subheading">Drawings & Sketches</h4>
-                    <div class="gallery-grid">
-                        <div class="art-card">
-                            <div class="art-placeholder">[ Sketch Image Here ]</div>
-                            <div class="art-info">
-                                <h5>Study of Light</h5>
-                                <p class="meta">Charcoal on Paper, 2026</p>
-                            </div>
+                    <div class="work-card">
+                        <div class="card-body">
+                            <h4>Project Title Two</h4>
+                            <p class="meta">Category / Format</p>
+                            <p>Add a brief description detailing the creation process or concept behind this audio work.</p>
+                            <audio controls src="your-file-2.mp3"></audio>
                         </div>
                     </div>
+
                 </div>
             </section>
 
-            <section id="writings">
-                <h3 class="reveal">Writings</h3>
+            <section id="visual-works">
+                <h3 class="reveal">Visual Works</h3>
+                <div class="project-grid reveal">
+                    
+                    <div class="work-card">
+                        <img src="image-path-1.jpg" alt="Descriptive title of your first artwork">
+                        <div class="card-body">
+                            <h4>Visual Work Title</h4>
+                            <p class="meta">Medium / Dimensions, Year</p>
+                        </div>
+                    </div>
 
-                <div class="writing-category reveal">
-                    <h4 class="art-subheading">Poetry</h4>
-                    <ul class="writing-list">
-                        <li class="writing-item">
-                            <h5>Echoes of the Solstice</h5>
-                            <p class="meta">Published in Lit Journal, 2024</p>
-                            <p>A brief excerpt or the full poem can go here to capture the reader's attention...</p>
-                        </li>
-                    </ul>
+                    <div class="work-card">
+                        <img src="image-path-2.jpg" alt="Descriptive title of your second artwork">
+                        <div class="card-body">
+                            <h4>Visual Work Title</h4>
+                            <p class="meta">Medium / Dimensions, Year</p>
+                        </div>
+                    </div>
+
                 </div>
+            </section>
 
-                <div class="writing-category reveal">
-                    <h4 class="art-subheading">Essays & Literature</h4>
-                    <ul class="writing-list">
-                        <li class="writing-item">
-                            <h5>The Modern Canvas: A Narrative Study</h5>
-                            <p class="meta">Creative Non-Fiction</p>
-                            <p>An introductory paragraph or abstract detailing your literary essay work.</p>
+            <section id="text-works">
+                <h3 class="reveal">Written & Text Works</h3>
+                <div class="reveal">
+                    <ul class="text-list">
+                        
+                        <li class="text-item">
+                            <h4>Written Piece Title One</h4>
+                            <p class="meta">Publication / Context, Year</p>
+                            <p>Your full text body context, essay extract, narrative summary, or poetry paragraphs go directly right here...</p>
                         </li>
-                    </ul>
-                </div>
 
-                <div class="writing-category reveal">
-                    <h4 class="art-subheading">Academic Research</h4>
-                    <ul class="writing-list">
-                        <li class="writing-item">
-                            <h5>Socio-Aesthetic Shifts in 21st Century Composition</h5>
-                            <p class="meta">Peer-Reviewed Journal / Methodology</p>
-                            <p>Abstract: This paper explores the intersection of digital evolution and acoustic traditions...</p>
+                        <li class="text-item">
+                            <h4>Written Piece Title Two</h4>
+                            <p class="meta">Publication / Context, Year</p>
+                            <p>Your full text body context, essay extract, narrative summary, or poetry paragraphs go directly right here...</p>
                         </li>
+
                     </ul>
                 </div>
             </section>
@@ -559,15 +404,14 @@
     <script>
         const revealElements = document.querySelectorAll('.reveal');
 
-        // Handle splash screen entry
+        // Splash screen reveal trigger
         document.getElementById('enter-experience-btn').addEventListener('click', function() {
             document.getElementById('splash-screen').classList.add('fade-out');
             document.body.classList.add('active');
-            // Immediate safe-check for layout frame reveals upon initialization
             setTimeout(checkReveals, 400); 
         });
 
-        // Smart Audio Management
+        // Mutually exclusive audio controller (stops tracks from overlapping)
         const allAudioPlayers = document.querySelectorAll('audio');
         allAudioPlayers.forEach(player => {
             player.addEventListener('play', () => {
@@ -579,7 +423,7 @@
             });
         });
 
-        // Immersive Scroll Reveal System (High Performance Optimization)
+        // High-Performance Scroll Observer
         const revealObserver = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
@@ -587,15 +431,11 @@
                     revealObserver.unobserve(entry.target);
                 }
             });
-        }, {
-            root: null,
-            threshold: 0.02,
-            rootMargin: "0px 0px -10px 0px"
-        });
+        }, { root: null, threshold: 0.02, rootMargin: "0px 0px -10px 0px" });
 
         revealElements.forEach(element => revealObserver.observe(element));
         
-        // Targeted optimization: Instantly forces animation visibility when user uses navigation links
+        // Manual sync positioning calculation helper for internal link jumping
         function checkReveals() {
             revealElements.forEach(element => {
                 const elementTop = element.getBoundingClientRect().top;
@@ -605,16 +445,12 @@
             });
         }
 
-        // Attach click triggers to nav links rather than expensive window scroll event-listeners
         document.querySelectorAll('#main-nav a').forEach(link => {
             link.addEventListener('click', () => {
-                // Check multiple points during the smooth navigation glide to guarantee visibility triggers
                 setTimeout(checkReveals, 200);
                 setTimeout(checkReveals, 500);
-                setTimeout(checkReveals, 800);
             });
         });
     </script>
-
 </body>
 </html>
