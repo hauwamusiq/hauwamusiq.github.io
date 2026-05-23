@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>tilaelia's portfolio // integrated 3d gallery</title>
+    <title>tilaelia's portfolio // integrated master engine</title>
     <style>
         /* --- SYSTEM VARIABLE ENGINE & RESETS --- */
         :root {
@@ -31,7 +31,7 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* --- THREE.JS LAYER --- */
+        /* --- THREE.JS ENGINE LAYER --- */
         #webgl-canvas {
             position: fixed;
             top: 0;
@@ -100,7 +100,7 @@
         /* --- HARDWARE ACCELERATED SPATIAL CAROUSEL SLIDER --- */
         .viewport-slider {
             display: flex;
-            width: 400%; /* 4 Views total: Home, Music, Paintings, Etc */
+            width: 400%; /* 4 Views total: Home, Music, Paintings, Metrics */
             height: 100vh;
             transition: transform 1s cubic-bezier(0.85, 0, 0.15, 1);
             will-change: transform;
@@ -227,7 +227,7 @@
             border-color: var(--text-main);
         }
         .terminal-node span { display: block; color: var(--text-muted); margin-bottom: 5px; }
-        .terminal-node div { font-size: 1.1rem; color: #ccff00; font-weight: bold; }
+        .terminal-node div { font-size: 1.1rem; color: #ffaa00; font-weight: bold; }
 
         /* --- SPATIAL 3D ART HUD INTERFACES --- */
         .paintings-spatial-hud {
@@ -292,7 +292,7 @@
                     </div>
                     <div class="menu-card mb-target" onclick="UIController.switchView(3, 'etc-view')">
                         <h3>03 // METRICS</h3>
-                        <p>Real-time technical tracking engine monitoring systemic operational overhead.</p>
+                        <p>Real-time gravitational lensing metrics tracking computational singularity conditions.</p>
                     </div>
                 </div>
             </section>
@@ -330,16 +330,16 @@
                 <div class="back-nav mb-target" onclick="UIController.switchView(0, 'home-view')">◀ RETREAT TO BASE</div>
                 <div class="terminal-grid">
                     <div class="terminal-node mb-target">
-                        <span>SYSTEM ENGINE DRIFT</span>
+                        <span>SINGULARITY DRIFT</span>
                         <div id="metric-drift">0.0000ms</div>
                     </div>
                     <div class="terminal-node mb-target">
-                        <span>VECTOR TRANSLATIONS</span>
-                        <div id="metric-vectors">0.0249</div>
+                        <span>SCHWARZSCHILD RADIUS (Rs)</span>
+                        <div id="metric-vectors">100.0000</div>
                     </div>
                     <div class="terminal-node mb-target">
-                        <span>3D PARTICLE ALLOCATION</span>
-                        <div>1000 / ACTIVE</div>
+                        <span>ORBITING QUANTUM FIELD</span>
+                        <div id="metric-particles">0 / ACTIVE</div>
                     </div>
                 </div>
             </section>
@@ -348,6 +348,8 @@
     </div>
 
     <script>
+        const isMobile = window.innerWidth < 768;
+
         let portfolioState = {
             isIntro: true,
             isPlaying: false,
@@ -366,7 +368,7 @@
             { id: 2, title: 'Deep Space Field', artist: 'Tilaelia Processing', color: '#9c27b0', hex3d: 0x9c27b0 }
         ];
 
-        /* --- FLUID VIEW COMPOSITOR CONTROLLER --- */
+        /* --- VIEW COMPOSITOR CONTROLLER --- */
         const UIController = {
             enterWebsite() {
                 portfolioState.isIntro = false;
@@ -381,16 +383,14 @@
                 portfolioState.activeView = viewNameString;
                 portfolioState.keyboardIndex = 0;
 
-                // Move container smoothly via hardware acceleration
                 document.getElementById('viewContainer').style.transform = `translate3d(${-slideIndex * 25}%, 0, 0)`;
 
-                // Contextual Particle Alteration
                 if(viewNameString === 'music-view') {
                     portfolioState.particleSpeedMultiplier = 0.4;
                     portfolioState.particleDistributionMode = 'disk';
                 } else if(viewNameString === 'etc-view') {
-                    portfolioState.particleSpeedMultiplier = 5.0;
-                    portfolioState.particleDistributionMode = 'wild';
+                    portfolioState.particleSpeedMultiplier = 1.0;
+                    portfolioState.particleDistributionMode = 'singularity';
                 } else {
                     portfolioState.particleSpeedMultiplier = 1.0;
                     portfolioState.particleDistributionMode = 'spread';
@@ -405,8 +405,6 @@
         const GalleryEngine = {
             focusPainting(index) {
                 if(portfolioState.isAnimating) return;
-                
-                // Align camera vectors with specific 3D wall configurations
                 if(index === 0) {
                     SpaceEngine.targetCamPos.set(-20, 3, -12);
                     SpaceEngine.targetCamLook.set(-25, 3, -12);
@@ -417,7 +415,7 @@
             }
         };
 
-        /* --- UNIFIED HARDWARE KEYBOARD LOOP --- */
+        /* --- HARMONIZED HARDWARE KEYBOARD LOOP --- */
         const KeyboardEngine = {
             init() {
                 window.addEventListener('keydown', (e) => this.handleKeyPress(e));
@@ -434,7 +432,6 @@
                     return;
                 }
 
-                // Custom Interface Overrides for Music Workspace
                 if (portfolioState.activeView === 'music-view') {
                     if (e.key === 'ArrowLeft') {
                         e.preventDefault();
@@ -483,7 +480,7 @@
         };
         KeyboardEngine.init();
 
-        /* --- REAL-TIME AUDIO METRIC MOCKING --- */
+        /* --- AUDIO TIMER MOCKING --- */
         let playbackTime = 0;
         const AudioSystemMock = {
             tick() {
@@ -505,7 +502,7 @@
         };
         setInterval(() => AudioSystemMock.tick(), 1000);
 
-        /* --- COLD STRUCTURAL INACTIVITY ENGINE --- */
+        /* --- SYSTEM INACTIVITY TIMEOUTS --- */
         const InactivityEngine = {
             timeoutHandle: null,
             init() { ['mousemove', 'keydown'].forEach(evt => window.addEventListener(evt, () => this.wake(), {passive:true})); this.start(); },
@@ -513,43 +510,51 @@
             wake() { clearTimeout(this.timeoutHandle); document.body.classList.remove('ambient-mode'); this.start(); }
         };
 
-        /* --- COMPOSITOR WEBGL MOTORS (THREE.JS) --- */
+        /* --- UNIFIED WEBGL SIMULATION MOTORS (THREE.JS) --- */
         const SpaceEngine = {
             scene: null, camera: null, renderer: null, basePositions: [],
             saturn: null, platter: null, tonearmAnchor: null, activeVinylMesh: null,
-            sleeves: [], vinylDiscs: [], galleryExhibits: [],
+            sleeves: [], vinylDiscs: [], textureLoader: null,
             targetCamPos: new THREE.Vector3(0, 15, 35), targetCamLook: new THREE.Vector3(0, 0, 0),
             currentCamLook: new THREE.Vector3(0, 0, 0), rotationSpeed: 0,
-            textureLoader: null,
+            bhGroup: null, bhDiskMat: null, bhHMat: null, bhPointsGeo: null,
+            bhPts: null, bhVel: null, bhN: 0, bhRs: 0, bhM: 50, bhG: 1, bhC: 1,
+            globalTime: 0,
 
             init() {
-                const canvas = document.getElementById('webgl-canvas');
-                this.scene = new THREE.Scene();
-                this.camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-                this.camera.position.set(0, 15, 35);
+                try {
+                    const canvas = document.getElementById('webgl-canvas');
+                    this.scene = new THREE.Scene();
+                    this.camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 2000);
+                    this.camera.position.set(0, 15, 35);
 
-                this.renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
-                this.renderer.setSize(window.innerWidth, window.innerHeight);
-                this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-
-                this.textureLoader = new THREE.TextureLoader();
-
-                this.scene.add(new THREE.AmbientLight(0x555555));
-                const directionalLight = new THREE.DirectionalLight(0xffffff, 1.5);
-                directionalLight.position.set(5, 20, 10);
-                this.scene.add(directionalLight);
-
-                this.buildStarscape();
-                this.buildPhysicalTurntableSystem();
-                this.buildImmersive3DGallery();
-
-                window.addEventListener('resize', () => {
-                    this.camera.aspect = window.innerWidth / window.innerHeight;
-                    this.camera.updateProjectionMatrix();
+                    this.renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: !isMobile, alpha: true });
                     this.renderer.setSize(window.innerWidth, window.innerHeight);
-                });
+                    this.renderer.setPixelRatio(isMobile ? Math.min(window.devicePixelRatio, 1.5) : Math.min(window.devicePixelRatio, 2));
 
-                this.renderLoop();
+                    this.textureLoader = new THREE.TextureLoader();
+
+                    this.scene.add(new THREE.AmbientLight(0x555555));
+                    const directionalLight = new THREE.DirectionalLight(0xffffff, 1.5);
+                    directionalLight.position.set(5, 20, 10);
+                    this.scene.add(directionalLight);
+
+                    this.buildStarscape();
+                    this.buildPhysicalTurntableSystem();
+                    this.buildImmersive3DGallery();
+                    this.buildRelativisticBlackhole();
+
+                    window.addEventListener('resize', () => {
+                        this.camera.aspect = window.innerWidth / window.innerHeight;
+                        this.camera.updateProjectionMatrix();
+                        this.renderer.setSize(window.innerWidth, window.innerHeight);
+                        if (isMobile) this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+                    });
+
+                    this.renderLoop();
+                } catch(e) {
+                    console.error("Critical core runtime failure:", e);
+                }
             },
 
             buildStarscape() {
@@ -630,9 +635,7 @@
                 });
             },
 
-            // Live Image Texture Processing & Fallback Asset Protection Architecture
             loadTextureWithProceduralFallback(url, type) {
-                // Instantly generate structural canvas maps to handle load delays or missing URLs gracefully
                 const canvas = document.createElement('canvas');
                 canvas.width = 512; canvas.height = 512;
                 const ctx = canvas.getContext('2d');
@@ -661,17 +664,12 @@
 
                 const fallbackTexture = new THREE.CanvasTexture(canvas);
 
-                // Attempt to safely bind the live image asset URL directly into WebGL memory
                 if (url && url !== '') {
                     return this.textureLoader.load(
                         url,
-                        (loaded) => {
-                            loaded.anisotropy = this.renderer.capabilities.getMaxAnisotropy();
-                        },
+                        (loaded) => { loaded.anisotropy = this.renderer.capabilities.getMaxAnisotropy(); },
                         undefined,
-                        () => {
-                            console.warn(`Texture path error on context: ${url}. Gracefully preserving fallback matrix.`);
-                        }
+                        () => { console.warn(`Asset failed to bind: ${url}. Fallback preserved.`); }
                     );
                 }
                 return fallbackTexture;
@@ -679,17 +677,15 @@
 
             buildImmersive3DGallery() {
                 this.galleryGroup = new THREE.Group();
-                this.galleryGroup.position.set(-25, 0, -8); // Positioned securely in the left quadrant space
+                this.galleryGroup.position.set(-25, 0, -8);
                 this.scene.add(this.galleryGroup);
 
-                // Structural Museum Wall Mesh
                 const wallGeo = new THREE.BoxGeometry(0.5, 12, 16);
                 const wallMat = new THREE.MeshStandardMaterial({ color: 0x09090c, roughness: 0.9 });
                 const mainWall = new THREE.Mesh(wallGeo, wallMat);
                 mainWall.position.set(0, 3, 0);
                 this.galleryGroup.add(mainWall);
 
-                // Integrated Asset Configuration Array (Change URLs here anytime)
                 const artConfigs = [
                     { y: 3, z: -4, type: 'geometry', url: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=500&auto=format&fit=crop' },
                     { y: 3, z: 4, type: 'vectors', url: 'https://images.unsplash.com/photo-1634017839464-5c339ebe3cb4?q=80&w=500&auto=format&fit=crop' }
@@ -698,13 +694,11 @@
                 artConfigs.forEach((config) => {
                     const frameGroup = new THREE.Group();
                     frameGroup.position.set(0.3, config.y, config.z);
-                    frameGroup.rotation.y = Math.PI / 2; // Orient flat against the geometric wall
+                    frameGroup.rotation.y = Math.PI / 2;
 
-                    // Obsidian Trim Profile Border
                     const border = new THREE.Mesh(new THREE.BoxGeometry(5.4, 6.8, 0.15), new THREE.MeshStandardMaterial({ color: 0x020202, roughness: 0.7 }));
                     frameGroup.add(border);
 
-                    // Image Texture Plate Bind
                     const texture = this.loadTextureWithProceduralFallback(config.url, config.type);
                     const canvasMesh = new THREE.Mesh(
                         new THREE.PlaneGeometry(5, 6),
@@ -717,194 +711,78 @@
                 });
             },
 
-            transitionCameraView(viewId) {
-                if (viewId === 'music-view') {
-                    this.targetCamPos.set(0, 5, 18); this.targetCamLook.set(0, -2, 6);
-                } else if (viewId === 'paintings-view') {
-                    this.targetCamPos.set(-14, 5, -8); this.targetCamLook.set(-25, 3, -8);
-                } else if (viewId === 'etc-view') {
-                    this.targetCamPos.set(8, 8, 20); this.targetCamLook.set(4, 2, -2);
-                } else {
-                    this.targetCamPos.set(0, 15, 35); this.targetCamLook.set(0, 0, 0);
-                }
-            },
+            /* --- RELATIVISTIC LENSING GRAVITATIONAL SINGLE ENGINE --- */
+            buildRelativisticBlackhole() {
+                this.bhGroup = new THREE.Group();
+                this.bhGroup.position.set(30, 0, -5); // Configured inside the Metrics Quadrant coordinate track
+                this.scene.add(this.bhGroup);
 
-            renderLoop() {
-                requestAnimationFrame(() => this.renderLoop());
-                const time = performance.now() * 0.001;
+                this.bhRs = (2 * this.bhG * this.bhM) / (this.bhC * this.bhC); // Rs calculation yields value of 100
 
-                const metricDrift = document.getElementById('metric-drift');
-                const metricVectors = document.getElementById('metric-vectors');
-                if(metricDrift) metricDrift.innerText = (Math.sin(time) * 0.02).toFixed(6) + "ms";
-                if(metricVectors) metricVectors.innerText = (time * 0.1).toFixed(4);
-
-                if (this.pointCloud) {
-                    const attr = this.pointCloud.geometry.attributes.position;
-                    for(let i=0; i<1000; i++) {
-                        let pt = this.basePositions[i];
-                        pt.angle += pt.speed * portfolioState.particleSpeedMultiplier;
-                        
-                        let curX = pt.x;
-                        let curY = pt.y;
-                        let curZ = pt.z;
-
-                        if (portfolioState.particleDistributionMode === 'disk') {
-                            curY = THREE.MathUtils.lerp(pt.y, Math.sin(pt.angle * 2) * 5, 0.05);
-                        } else if (portfolioState.particleDistributionMode === 'wild') {
-                            curX += Math.cos(pt.angle * 10) * 0.2;
-                            curY += Math.sin(pt.angle * 10) * 0.2;
+                // Doppler-Shifted Gravitational Accretion Disk Shader Matrix
+                const diskGeometry = new THREE.PlaneGeometry(this.bhRs * 0.25, this.bhRs * 0.25, 64, 64);
+                this.bhDiskMat = new THREE.ShaderMaterial({
+                    transparent: true,
+                    vertexShader: `
+                        varying vec2 vUv; varying float vDist;
+                        void main() {
+                            vUv = uv;
+                            vec4 wp = modelMatrix * vec4(position, 1.0);
+                            vDist = length(position.xy); // Normalized localized tracking metric
+                            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                        }`,
+                    fragmentShader: `
+                        varying vec2 vUv; varying float vDist;
+                        uniform float time; uniform float Rs;
+                        vec3 doppler(vec3 col, float v) {
+                            float g = 1.0/sqrt(1.0-v*v), d = g*(1.0-v);
+                            return col * vec3(clamp(1.0/d,0.0,2.0), clamp(1.0/sqrt(d),0.0,2.0), clamp(sqrt(d),0.0,2.0));
                         }
+                        void main() {
+                            float r = vDist * 8.0; 
+                            float v = sqrt(Rs/(2.0*r));
+                            vec3 sc = doppler(vec3(1.0,0.55,0.15), clamp(v, 0.0, 0.9));
+                            float i = smoothstep(Rs*0.2, Rs*0.5, r) * (1.0 - smoothstep(Rs*0.5, Rs * 1.5, r));
+                            float p = sin(r*1.5 - time*3.5)*0.5+0.5;
+                            gl_FragColor = vec4(sc*i*p, i*0.85);
+                        }`,
+                    uniforms: { time: { value: 0 }, Rs: { value: this.bhRs } },
+                    blending: THREE.AdditiveBlending, side: THREE.DoubleSide
+                });
+                
+                const diskMesh = new THREE.Mesh(diskGeometry, this.bhDiskMat);
+                diskMesh.rotation.x = Math.PI / 2.8;
+                this.bhGroup.add(diskMesh);
 
-                        const cosRot = Math.cos(0.0005 * portfolioState.particleSpeedMultiplier);
-                        const sinRot = Math.sin(0.0005 * portfolioState.particleSpeedMultiplier);
-                        const rotatedX = curX * cosRot - curZ * sinRot;
-                        const rotatedZ = curX * sinRot + curZ * cosRot;
+                // Event Horizon Structural Shell Mesh
+                const hGeo = new THREE.IcosahedronGeometry(this.bhRs * 0.04, 4);
+                this.bhHMat = new THREE.ShaderMaterial({
+                    vertexShader: `
+                        varying vec3 vP, vN;
+                        void main() { vP = position; vN = normal; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }`,
+                    fragmentShader: `
+                        varying vec3 vP, vN; uniform float time;
+                        float hex(vec3 p) { vec2 a = vec2(p.x+p.y/2.0,p.y)*4.0, f = fract(a); vec2 v = vec2((f.x+f.y/2.0)*2.0-1.0,f.y-0.5); return step(abs(v.x)+abs(v.y),1.0); }
+                        void main() {
+                            float fr = pow(1.0-abs(dot(normalize(vP),vN)),2.0);
+                            float p = hex(vP+vec3(time*0.05));
+                            vec3 col = mix(vec3(0.9,0.25,0.05),vec3(1.0,0.5,0.1),p);
+                            gl_FragColor = vec4(col, fr*0.95);
+                        }`,
+                    uniforms: { time: { value: 0 } },
+                    transparent: true, blending: THREE.AdditiveBlending
+                });
+                this.bhGroup.add(new THREE.Mesh(hGeo, this.bhHMat));
 
-                        pt.x = rotatedX;
-                        pt.z = rotatedZ;
-
-                        attr.setXYZ(i, rotatedX, curY, rotatedZ);
-                    }
-                    attr.needsUpdate = true;
+                // Accelerated Singularity Orbiting Particle Setup
+                this.bhN = isMobile ? 1500 : 6000;
+                this.bhPts = new Float32Array(this.bhN * 3);
+                this.bhVel = new Float32Array(this.bhN * 3);
+                
+                this.bhPointsGeo = new THREE.BufferGeometry();
+                
+                for (let i = 0; i < this.bhN; i++) {
+                    this.initQuantumParticle(i);
                 }
-
-                this.camera.position.lerp(this.targetCamPos, 0.04);
-                this.currentCamLook.lerp(this.targetCamLook, 0.04);
-                this.camera.lookAt(this.currentCamLook);
-
-                let targetPlatterSpeed = portfolioState.isPlaying ? 2.0 : 0;
-                this.rotationSpeed += (targetPlatterSpeed - this.rotationSpeed) * 0.05;
-                if (this.rotationSpeed > 0.01) {
-                    if (this.activeVinylMesh) this.activeVinylMesh.rotation.y += this.rotationSpeed * 0.016;
-                    this.platter.rotation.y += this.rotationSpeed * 0.016;
-                }
-
-                this.renderer.render(this.scene, this.camera);
-            }
-        };
-
-        window.addEventListener('DOMContentLoaded', () => SpaceEngine.init());
-
-        /* --- ADVANCED MECHANICAL RECORD EXTRACTION LIFE CYCLES --- */
-        function trigger3DRecordExtractionPipeline(trackIdx) {
-            if (portfolioState.isAnimating) return;
-            portfolioState.isAnimating = true;
-            portfolioState.loadedTrackIndex = trackIdx;
-            portfolioState.isPlaying = false;
-
-            document.querySelector('.play-pause-btn').innerText = "▶";
-            AudioSystemMock.reset();
-
-            document.documentElement.style.setProperty('--current-theme-hue', tracks[trackIdx].color);
-
-            if(SpaceEngine.activeVinylMesh) {
-                SpaceEngine.turntableGroup.remove(SpaceEngine.activeVinylMesh);
-                SpaceEngine.activeVinylMesh = null;
-            }
-
-            SpaceEngine.tonearmAnchor.rotation.y = -Math.PI / 4;
-
-            const targetTrack = tracks[trackIdx];
-            const pivot = SpaceEngine.sleeves[trackIdx];
-            const disc = SpaceEngine.vinylDiscs[trackIdx];
-
-            let startT = null;
-            function runExtraction(now) {
-                if(!startT) startT = now;
-                let elapsed = now - startT;
-
-                if (elapsed < 400) {
-                    pivot.position.y = 1.8 + (elapsed / 400) * 1.5;
-                    requestAnimationFrame(runExtraction);
-                } else if (elapsed < 900) {
-                    disc.visible = true;
-                    disc.position.x = ((elapsed - 400) / 500) * 3.5;
-                    requestAnimationFrame(runExtraction);
-                } else {
-                    disc.visible = false; disc.position.set(0,0,0); pivot.position.y = 1.8;
-                    
-                    const flyingDisc = new THREE.Mesh(new THREE.CylinderGeometry(2,2,0.04,32), new THREE.MeshStandardMaterial({ color: 0x111111, metalness:0.8 }));
-                    SpaceEngine.scene.add(flyingDisc);
-                    
-                    let fStart = null;
-                    let sourcePos = new THREE.Vector3(6, -1.7, 8 + (trackIdx * 1.2));
-                    let targetPos = new THREE.Vector3(-6.5, -4.5, 8);
-
-                    function flyToPlatter(fNow) {
-                        if(!fStart) fStart = fNow;
-                        let fElapsed = fNow - fStart;
-                        let pct = Math.min(fElapsed / 800, 1);
-
-                        flyingDisc.position.lerpVectors(sourcePos, targetPos, pct);
-                        flyingDisc.position.y += Math.sin(pct * Math.PI) * 3;
-
-                        if (pct < 1) {
-                            requestAnimationFrame(flyToPlatter);
-                        } else {
-                            SpaceEngine.scene.remove(flyingDisc);
-                            
-                            SpaceEngine.activeVinylMesh = new THREE.Mesh(new THREE.CylinderGeometry(2,2,0.04,32), new THREE.MeshStandardMaterial({ color: 0x0a0a0a, roughness:0.3 }));
-                            SpaceEngine.activeVinylMesh.position.set(-0.5, 0.44, 0);
-                            
-                            const innerLabel = new THREE.Mesh(new THREE.CylinderGeometry(0.6,0.6,0.05,16), new THREE.MeshStandardMaterial({ color: targetTrack.hex3d }));
-                            innerLabel.position.y = 0.01;
-                            SpaceEngine.activeVinylMesh.add(innerLabel);
-
-                            SpaceEngine.turntableGroup.add(SpaceEngine.activeVinylMesh);
-
-                            let armStart = null;
-                            function dropArm(aNow) {
-                                if(!armStart) armStart = aNow;
-                                let aPct = Math.min((aNow - armStart) / 400, 1);
-                                SpaceEngine.tonearmAnchor.rotation.y = -Math.PI / 4 + (aPct * (Math.PI / 3.4));
-                                
-                                if(aPct < 1) requestAnimationFrame(dropArm);
-                                else {
-                                    document.getElementById('barTitle').innerText = targetTrack.title;
-                                    document.getElementById('barArtist').innerText = targetTrack.artist;
-                                    document.querySelector('.play-pause-btn').innerText = "⏸";
-                                    portfolioState.isPlaying = true;
-                                    portfolioState.isAnimating = false;
-                                }
-                            }
-                            requestAnimationFrame(dropArm);
-                        }
-                    }
-                    requestAnimationFrame(flyToPlatter);
-                }
-            }
-            requestAnimationFrame(runExtraction);
-        }
-
-        function togglePlayback() {
-            if (portfolioState.isAnimating || !SpaceEngine.activeVinylMesh) return;
-            portfolioState.isAnimating = true;
-
-            let targetArmRotation = portfolioState.isPlaying ? -Math.PI / 4 : -Math.PI / 4 + (Math.PI / 3.4);
-            let startArmRotation = SpaceEngine.tonearmAnchor.rotation.y;
-            let startT = null;
-
-            if(portfolioState.isPlaying) {
-                portfolioState.isPlaying = false;
-                document.querySelector('.play-pause-btn').innerText = "▶";
-            }
-
-            function animateArm(now) {
-                if(!startT) startT = now;
-                let pct = Math.min((now - startT) / 400, 1);
-                SpaceEngine.tonearmAnchor.rotation.y = startArmRotation + (targetArmRotation - startArmRotation) * pct;
-
-                if (pct < 1) requestAnimationFrame(animateArm);
-                else {
-                    portfolioState.isAnimating = false;
-                    if(targetArmRotation !== -Math.PI / 4) {
-                        portfolioState.isPlaying = true;
-                        document.querySelector('.play-pause-btn').innerText = "⏸";
-                    }
-                }
-            }
-            requestAnimationFrame(animateArm);
-        }
-    </script>
-</body>
-</html>
+                
+                this.bhPointsGeo.setAttribute('position', new THREE.BufferAttribute(this.bhPts, 3));
