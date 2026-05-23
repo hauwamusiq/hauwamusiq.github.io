@@ -3,31 +3,60 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>tilaelia's portfolio</title>
+    <title>tilaelia's portfolio // spatial v2</title>
     <style>
         /* --- SYSTEM VARIABLE ENGINE & RESETS --- */
         :root {
-            --bg-primary: #0b0b0b;
-            --bg-secondary: #050505;
-            --bg-card: #141414;
-            --accent-green: #1db954;
+            --bg-primary: #060606;
+            --bg-secondary: #020202;
+            --bg-card: rgba(14, 14, 14, 0.45);
+            --accent-glow: rgba(255, 255, 255, 0.15);
+            --accent-active: #ffffff;
             --text-main: #ffffff;
-            --text-muted: #888888;
-            --text-dim: #555555;
+            --text-muted: #a0a0a0;
+            --text-dim: #444444;
             --font-mono: 'Courier New', Courier, monospace;
+            --current-theme-hue: #ffffff;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
-        body {
-            font-family: var(--font-mono);
+        body, html {
+            width: 100%;
+            height: 100%;
             background-color: var(--bg-primary);
             color: var(--text-main);
-            overflow-x: hidden;
+            font-family: var(--font-mono);
+            overflow: hidden;
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* --- 1. INTRO SPLASH VIEW --- */
+        /* --- THREE.JS LAYER --- */
+        #webgl-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: auto;
+        }
+
+        /* --- KINETIC COMPOSITOR VIEWPORTS --- */
+        #app-ui-wrapper {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            height: 100vh;
+            pointer-events: none;
+            overflow: hidden;
+            transition: opacity 1s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        body.ambient-mode #app-ui-wrapper { opacity: 0; }
+        .interactive-ui { pointer-events: auto; }
+
+        /* --- INTRO SPLASH LAYER --- */
         #intro-page {
             position: fixed;
             top: 0;
@@ -39,303 +68,767 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            z-index: 999;
-            transition: opacity 0.8s ease, visibility 0.8s;
-            text-align: center;
-            padding: 20px;
+            z-index: 9999;
+            transition: transform 1.2s cubic-bezier(0.76, 0, 0.24, 1), opacity 1.2s ease;
         }
 
-        #intro-page h1 {
-            font-size: calc(1.8rem + 1.5vw);
-            margin-bottom: 10px;
-            letter-spacing: 3px;
-            text-transform: lowercase;
-        }
-
-        #intro-page p {
-            font-size: calc(1rem + 0.5vw);
-            color: var(--text-muted);
-            margin-bottom: 40px;
+        #intro-page.hidden {
+            transform: translateY(-100vh);
+            opacity: 0;
+            pointer-events: none;
         }
 
         .enter-btn {
             background: none;
-            border: 2px solid var(--text-main);
+            border: 1px solid var(--text-main);
             color: var(--text-main);
-            padding: 12px 30px;
-            font-size: 1.2rem;
+            padding: 14px 40px;
+            font-size: 1rem;
             font-family: inherit;
             cursor: pointer;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            letter-spacing: 2px;
+            margin-top: 30px;
             outline: none;
         }
-
-        .enter-btn:hover {
+        .enter-btn:hover, .enter-btn.kb-selected {
             background-color: var(--text-main);
             color: var(--bg-secondary);
-            box-shadow: 0 0 15px rgba(255, 255, 255, 0.6);
-            transform: scale(1.05);
+            box-shadow: 0 0 30px rgba(255, 255, 255, 0.2);
         }
 
-        .enter-btn:active { transform: scale(0.98); }
-
-        #intro-page.hidden {
-            opacity: 0;
-            visibility: hidden;
-            pointer-events: none;
+        /* --- HARDWARE ACCELERATED SPATIAL CAROUSEL SLIDER --- */
+        .viewport-slider {
+            display: flex;
+            width: 400%; /* 4 Views total: Home, Music, Paintings, Etc */
+            height: 100vh;
+            transition: transform 1s cubic-bezier(0.85, 0, 0.15, 1);
+            will-change: transform;
         }
 
-        /* --- 2. GLOBAL STRUCTURE & ROUTING ANIMATIONS --- */
-        #main-site {
-            opacity: 0;
-            transition: opacity 1s ease 0.5s;
-            padding: 40px 20px;
-            max-width: 1200px;
-            margin: 0 auto;
+        .slide-view {
+            width: 25%;
+            height: 100vh;
+            padding: 60px 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            overflow-y: auto;
         }
-
-        #main-site.visible { opacity: 1; }
 
         .site-header {
             text-align: center;
-            margin-bottom: 40px;
+            margin-bottom: 60px;
+            flex-shrink: 0;
         }
-        
         .site-header h2 {
-            font-size: 2rem;
-            letter-spacing: 2px;
+            font-size: 1.5rem;
+            letter-spacing: 6px;
             cursor: pointer;
-            display: inline-block;
+            text-transform: uppercase;
         }
 
-        /* Core Application Section Views */
-        .portfolio-view {
-            display: none;
-            opacity: 0;
-            transform: translateY(10px);
-            transition: opacity 0.4s ease, transform 0.4s ease;
-        }
-
-        .portfolio-view.view-active {
-            display: block;
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        /* Back Navigation Array Component */
         .back-nav {
             margin-bottom: 30px;
             cursor: pointer;
             color: var(--text-muted);
-            display: inline-flex;
-            align-items: center;
-            transition: color 0.2s;
-            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            font-size: 0.8rem;
+            letter-spacing: 2px;
+            display: inline-block;
+            text-transform: uppercase;
         }
-        .back-nav:hover { color: var(--text-main); }
+        .back-nav:hover, .back-nav.kb-selected { color: var(--text-main); transform: translateX(-5px); }
 
-        /* --- 3. VIEW PORTFOLIO MENU (HOME) --- */
+        /* --- HOME GRID INTERFACE --- */
         .portfolio-menu {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-top: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            max-width: 1200px;
+            margin: auto auto;
+            width: 100%;
         }
 
         .menu-card {
             background: var(--bg-card);
-            border: 1px solid #222;
-            padding: 40px 20px;
-            text-align: center;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: transform 0.3s ease, border-color 0.3s ease;
-        }
-
-        .menu-card:hover {
-            transform: translateY(-5px);
-            border-color: var(--text-dim);
-        }
-
-        .menu-card:active { background-color: #1a1a1a; }
-        .menu-card h3 { font-size: 1.8rem; margin-bottom: 15px; }
-        .menu-card p { color: var(--text-muted); font-size: 0.9rem; line-height: 1.4; }
-
-        /* --- 4. MUSIC WORKSPACE MODULE --- */
-        .music-layout {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 40px;
-            align-items: start;
-        }
-
-        .crate-container h3 { margin-bottom: 15px; font-size: 1.3rem; color: var(--text-muted); }
-
-        .vinyl-crate-item {
-            background: var(--bg-card);
-            border: 1px solid #222;
-            padding: 15px;
-            margin-bottom: 10px;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .vinyl-crate-item:hover { border-color: #444; background: #191919; }
-        .vinyl-crate-item.selected { border-color: var(--accent-green); box-shadow: 0 0 10px rgba(29, 185, 84, 0.2); }
-        .crate-track-info h4 { font-size: 1.1rem; margin-bottom: 4px; }
-        .crate-track-info p { font-size: 0.85rem; color: var(--text-muted); }
-
-        /* Physical Turntable Simulation Rendering Deck */
-        .turntable-deck {
-            background: #111;
-            border: 4px solid #222;
-            border-radius: 8px;
-            padding: 30px;
-            position: relative;
-            text-align: center;
-            box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
-        }
-
-        .vinyl-system-wrapper {
-            position: relative;
-            width: 220px;
-            height: 220px;
-            margin: 0 auto 30px auto;
-        }
-
-        .vinyl-disc {
-            width: 220px;
-            height: 220px;
-            background: radial-gradient(circle, #2c2c2c 2px, #000000 4px, #111 20px, #000 24px, #1a1a1a 80px, #000 100px);
-            border-radius: 50%;
-            position: relative;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-            transition: transform 0.5s ease;
-        }
-
-        .vinyl-disc.spinning { animation: spin 2.2s linear infinite; }
-
-        #vinylLabel {
-            width: 70px;
-            height: 70px;
-            border-radius: 50%;
-            background: var(--text-dim);
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 9px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #000;
-            font-weight: bold;
-            text-transform: uppercase;
-            padding: 8px;
-            text-align: center;
-            transition: background-color 0.4s ease;
-            box-shadow: inset 0 0 5px rgba(0,0,0,0.3);
-        }
-
-        #tonearm {
-            width: 24px;
-            height: 140px;
-            background: transparent;
-            position: absolute;
-            top: -10px;
-            right: 10px;
-            transform-origin: 12px 15px;
-            transform: rotate(-25deg);
-            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-            z-index: 5;
-            pointer-events: none;
-        }
-        /* Structural Arm Assets Elements */
-        #tonearm::before {
-            content: '';
-            position: absolute;
-            top: 15px; left: 10px;
-            width: 4px; height: 110px;
-            background: #888;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            padding: 50px 30px;
             border-radius: 2px;
-        }
-        #tonearm::after {
-            content: '';
-            position: absolute;
-            bottom: 5px; left: 5px;
-            width: 14px; height: 20px;
-            background: #333;
-            border-radius: 2px;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            overflow: hidden;
         }
 
-        #tonearm.placed { transform: rotate(12deg); }
-
-        .playback-meta h3 { font-size: 1.4rem; margin-bottom: 5px; }
-        .playback-meta p { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px; }
-
-        /* Scannable Progress Monitor Systems */
-        .timeline-matrix {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 25px;
+        .menu-card::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 2px;
+            background: linear-gradient(90deg, transparent, var(--text-main), transparent);
+            transform: translateX(-100%); transition: transform 0.6s ease;
         }
-        .progress-bar { flex: 1; height: 4px; background: #222; border-radius: 2px; overflow: hidden; position: relative; }
-        #progressFilled { width: 0%; height: 100%; background: var(--accent-green); transition: width 0.2s linear; }
-        #currentTime { font-size: 0.85rem; color: var(--text-muted); min-width: 35px; }
+
+        .menu-card:hover::before, .menu-card.kb-selected::before { transform: translateX(100%); }
+
+        .menu-card:hover, .menu-card.kb-selected {
+            background: rgba(255, 255, 255, 0.03);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+        }
+
+        .menu-card h3 { font-size: 1.4rem; font-weight: 300; margin-bottom: 15px; letter-spacing: 2px; }
+        .menu-card p { color: var(--text-muted); font-size: 0.85rem; line-height: 1.6; }
+
+        /* --- MUSIC HUD EXTENSIONS --- */
+        .music-3d-hud {
+            margin: auto auto 40px auto;
+            width: 100%;
+            max-width: 460px;
+            background: rgba(10, 10, 10, 0.6);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 25px;
+            text-align: center;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.4);
+        }
+
+        .timeline-matrix { display: flex; align-items: center; gap: 15px; margin: 20px 0; }
+        .progress-bar { flex: 1; height: 2px; background: #1a1a1a; position: relative; cursor: pointer; }
+        #progressFilled { width: 0%; height: 100%; background: var(--current-theme-hue); transition: width 0.1s linear; }
+        #currentTime { font-size: 0.75rem; color: var(--text-muted); min-width: 40px; }
 
         .play-pause-btn {
-            background: none;
-            border: 2px solid var(--text-dim);
-            color: var(--text-main);
-            width: 55px;
-            height: 55px;
-            border-radius: 50%;
-            font-size: 1.4rem;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            outline: none;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
+            background: none; border: 1px solid rgba(255,255,255,0.2); color: var(--text-main);
+            width: 54px; height: 54px; border-radius: 50%; font-size: 1rem; cursor: pointer;
+            transition: all 0.3s ease; display: inline-flex; align-items: center; justify-content: center; outline: none;
         }
-        .play-pause-btn:hover { border-color: var(--text-main); transform: scale(1.05); }
+        .play-pause-btn:hover, .play-pause-btn.kb-selected { border-color: var(--text-main); background: rgba(255,255,255,0.05); transform: scale(1.05); }
 
-        /* --- 5. PAINTINGS WORKSPACE GALLERIES --- */
+        /* --- METRICS & ETC CONTROL PANEL --- */
+        .terminal-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+        }
+        .terminal-node {
+            background: rgba(10, 10, 10, 0.8);
+            border: 1px dashed var(--text-dim);
+            padding: 20px;
+            font-size: 0.8rem;
+        }
+        .terminal-node.kb-selected {
+            border-style: solid;
+            border-color: var(--text-main);
+        }
+        .terminal-node span { display: block; color: var(--text-muted); margin-bottom: 5px; }
+        .terminal-node div { font-size: 1.1rem; color: #ccff00; font-weight: bold; }
+
+        /* --- FINE ART COMPOSITIONS --- */
         .paintings-gallery {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 25px;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
         }
 
         .painting-frame {
             background: var(--bg-card);
-            border: 1px solid #1c1c1c;
-            padding: 15px;
-            border-radius: 4px;
-            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            padding: 25px;
+            cursor: zoom-in;
+            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .painting-frame:hover, .painting-frame.kb-selected {
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-6px);
+            background: rgba(255, 255, 255, 0.02);
         }
 
         .image-placeholder {
-            width: 100%;
-            aspect-ratio: 4/5;
-            background: #1a1a1a;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--text-dim);
-            margin-bottom: 15px;
-            border: 1px dashed #333;
-            border-radius: 2px;
-            font-size: 0.9rem;
+            width: 100%; aspect-ratio: 4/5;
+            background: linear-gradient(135deg, #111, #080808);
+            display: flex; align-items: center; justify-content: center;
+            color: var(--text-dim); margin-bottom: 20px; font-size: 0.8rem;
+            border: 1px solid rgba(255, 255, 255, 0.01);
         }
 
-        .painting-frame h4 { font-size: 1.1rem; margin-bottom: 5px; }
-        .painting-frame p { color: var(--text-muted); font-size: 0.85rem; }
+        .painting-frame.lightbox-focus {
+            position: fixed; top: 50% !important; left: 50% !important;
+            transform: translate(-50%, -50%) scale(1) !important;
+            width: 85vw; max-width: 550px; z-index: 10000; cursor: zoom-out;
+            box-shadow: 0 40px 120px rgba(0, 0, 0, 0.95), 0 0 0 100vw rgba(2, 2, 2, 0.9);
+            background: #0e0e0e; border-color: rgba(255, 255, 255, 0.3);
+        }
 
-        /* --- 6. ASYNCHRONOUS SYSTEM RUN
+        /* --- COMPOSITOR DISK OVERLAYS --- */
+        .music-instruction {
+            text-align: center; color: var(--text-dim); font-size: 0.7rem; letter-spacing: 2px; margin-bottom: 20px;
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+
+    <canvas id="webgl-canvas"></canvas>
+
+    <div id="intro-page" class="interactive-ui">
+        <h1 style="font-weight: 300; letter-spacing: 8px; font-size: 1.5rem;">TILAELIA</h1>
+        <button class="enter-btn mb-target" onclick="UIController.enterWebsite()">INITIALIZE SPACE</button>
+    </div>
+
+    <div id="app-ui-wrapper">
+        <div class="viewport-slider interactive-ui" id="viewContainer">
+            
+            <section class="slide-view" id="home-view">
+                <header class="site-header">
+                    <h2>TILAELIA</h2>
+                </header>
+                <div class="portfolio-menu">
+                    <div class="menu-card mb-target" onclick="UIController.switchView(1, 'music-view')">
+                        <h3>01 // MUSIC</h3>
+                        <p>Interact directly with multi-layered 3D automated turntables and geometric audio nodes.</p>
+                    </div>
+                    <div class="menu-card mb-target" onclick="UIController.switchView(2, 'paintings-view')">
+                        <h3>02 // IMAGERY</h3>
+                        <p>Curated archival directory of fine art, layout parameters, and spatial studies.</p>
+                    </div>
+                    <div class="menu-card mb-target" onclick="UIController.switchView(3, 'etc-view')">
+                        <h3>03 // METRICS</h3>
+                        <p>Real-time technical tracking engine monitoring systemic operational overhead.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="slide-view" id="music-view">
+                <div class="back-nav mb-target" onclick="UIController.switchView(0, 'home-view')">◀ RETREAT TO BASE</div>
+                <div class="music-instruction">LEFT / RIGHT ARROWS LOAD SYSTEM VINYLS • SPACEBAR TOGGLES ROTATION</div>
+                <div class="music-3d-hud">
+                    <h3 id="barTitle" style="font-weight: 400; letter-spacing: 1px;">CRATE VACANT</h3>
+                    <p id="barArtist" style="color: var(--text-muted); font-size: 0.8rem; margin-top: 4px;">Initialize record track architecture</p>
+                    <div class="timeline-matrix">
+                        <span id="currentTime">0:00</span>
+                        <div class="progress-bar" onclick="AudioSystemMock.scrub(event)"><div id="progressFilled"></div></div>
+                    </div>
+                    <button class="play-pause-btn mb-target" onclick="togglePlayback()">▶</button>
+                </div>
+            </section>
+
+            <section class="slide-view" id="paintings-view">
+                <div class="back-nav mb-target" onclick="UIController.switchView(0, 'home-view')">◀ RETREAT TO BASE</div>
+                <div class="paintings-gallery">
+                    <div class="painting-frame mb-target" onclick="GalleryEngine.toggleFocus(event, this)">
+                        <div class="image-placeholder"><span>[ RENDER.VAR_01 ]</span></div>
+                        <div class="painting-meta">
+                            <h4 style="font-weight: 400; letter-spacing: 1px; margin-bottom: 5px;">Oil Medium Over Layered Fiber</h4>
+                            <p style="font-size: 0.8rem; color: var(--text-muted);">A comprehensive study exploring physical material occlusions and spatial weight depth.</p>
+                        </div>
+                    </div>
+                    <div class="painting-frame mb-target" onclick="GalleryEngine.toggleFocus(event, this)">
+                        <div class="image-placeholder"><span>[ RENDER.VAR_02 ]</span></div>
+                        <div class="painting-meta">
+                            <h4 style="font-weight: 400; letter-spacing: 1px; margin-bottom: 5px;">Fine Charcoal Outlines</h4>
+                            <p style="font-size: 0.8rem; color: var(--text-muted);">Capturing temporal decay vectors across hyper-localized dimensional boundaries.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="slide-view" id="etc-view">
+                <div class="back-nav mb-target" onclick="UIController.switchView(0, 'home-view')">◀ RETREAT TO BASE</div>
+                <div class="terminal-grid">
+                    <div class="terminal-node mb-target">
+                        <span>SYSTEM ENGINE DRIFT</span>
+                        <div id="metric-drift">0.0000ms</div>
+                    </div>
+                    <div class="terminal-node mb-target">
+                        <span>VECTOR TRANSLATIONS</span>
+                        <div id="metric-vectors">0.0249</div>
+                    </div>
+                    <div class="terminal-node mb-target">
+                        <span>3D PARTICLE ALLOCATION</span>
+                        <div>600 / ACTIVE</div>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </div>
+
+    <script>
+        let portfolioState = {
+            isIntro: true,
+            isPlaying: false,
+            isAnimating: false,
+            loadedTrackIndex: null,
+            activeView: 'home-view',
+            activeSlideIndex: 0,
+            keyboardIndex: 0,
+            particleSpeedMultiplier: 1.0,
+            particleDistributionMode: 'spread'
+        };
+
+        const tracks = [
+            { id: 0, title: 'Lo-Fi Chill Ambient', artist: 'DJ Code Vector', color: '#ff5722', hex3d: 0xff5722 },
+            { id: 1, title: 'Synthwave Structural Drive', artist: 'Neon Frame Architecture', color: '#e91e63', hex3d: 0xe91e63 },
+            { id: 2, title: 'Deep Space Field', artist: 'Tilaelia Processing', color: '#9c27b0', hex3d: 0x9c27b0 }
+        ];
+
+        /* --- FLUID VIEW COMPOSITOR CONTROLLER --- */
+        const UIController = {
+            enterWebsite() {
+                portfolioState.isIntro = false;
+                document.getElementById('intro-page').classList.add('hidden');
+                InactivityEngine.init();
+                KeyboardEngine.updateVisualHighlights();
+            },
+            switchView(slideIndex, viewNameString) {
+                if (portfolioState.isAnimating) return; // Lifecycle Lock
+
+                GalleryEngine.clearActiveFocus();
+                portfolioState.activeSlideIndex = slideIndex;
+                portfolioState.activeView = viewNameString;
+                portfolioState.keyboardIndex = 0;
+
+                // Move container smoothly via hardware acceleration
+                document.getElementById('viewContainer').style.transform = `translate3d(${-slideIndex * 25}%, 0, 0)`;
+
+                // Contextual Particle Alteration
+                if(viewNameString === 'music-view') {
+                    portfolioState.particleSpeedMultiplier = 0.3;
+                    portfolioState.particleDistributionMode = 'disk';
+                } else if(viewNameString === 'etc-view') {
+                    portfolioState.particleSpeedMultiplier = 4.5;
+                    portfolioState.particleDistributionMode = 'wild';
+                } else {
+                    portfolioState.particleSpeedMultiplier = 1.0;
+                    portfolioState.particleDistributionMode = 'spread';
+                }
+
+                SpaceEngine.transitionCameraView(viewNameString);
+                KeyboardEngine.updateVisualHighlights();
+            }
+        };
+
+        /* --- LIGHTBOX FOCUS AND GALLERY ENGINE --- */
+        const GalleryEngine = {
+            toggleFocus(event, element) {
+                if(event) event.stopPropagation();
+                const isFocused = element.classList.contains('lightbox-focus');
+                this.clearActiveFocus();
+                if (!isFocused) {
+                    element.classList.add('lightbox-focus');
+                }
+            },
+            clearActiveFocus() {
+                document.querySelectorAll('.painting-frame').forEach(f => f.classList.remove('lightbox-focus'));
+            }
+        };
+
+        /* --- UNIFIED HARDWARE KEYBOARD LOOP --- */
+        const KeyboardEngine = {
+            init() {
+                window.addEventListener('keydown', (e) => this.handleKeyPress(e));
+            },
+            getTargets() {
+                if (portfolioState.isIntro) return [document.querySelector('.enter-btn')];
+                return Array.from(document.querySelectorAll(`#${portfolioState.activeView} .mb-target`));
+            },
+            handleKeyPress(e) {
+                const openLightbox = document.querySelector('.painting-frame.lightbox-focus');
+                if (openLightbox) {
+                    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp' || e.key === 'Escape') {
+                        e.preventDefault();
+                        GalleryEngine.clearActiveFocus();
+                        return;
+                    }
+                }
+
+                const targets = this.getTargets();
+
+                if (portfolioState.isIntro) {
+                    if (e.key === 'Enter' || e.key === 'ArrowRight') UIController.enterWebsite();
+                    return;
+                }
+
+                // Custom Interface Overrides for Music Workspace
+                if (portfolioState.activeView === 'music-view') {
+                    if (e.key === 'ArrowLeft') {
+                        e.preventDefault();
+                        UIController.switchView(0, 'home-view');
+                        return;
+                    } else if (e.key === 'ArrowRight') {
+                        e.preventDefault();
+                        let nextIdx = (portfolioState.loadedTrackIndex === null) ? 0 : (portfolioState.loadedTrackIndex + 1) % tracks.length;
+                        trigger3DRecordExtractionPipeline(nextIdx);
+                        return;
+                    } else if (e.key === ' ') {
+                        e.preventDefault();
+                        togglePlayback();
+                        return;
+                    }
+                }
+
+                if (targets.length === 0) return;
+
+                if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+                    e.preventDefault();
+                    portfolioState.keyboardIndex = (portfolioState.keyboardIndex + 1) % targets.length;
+                    this.updateVisualHighlights();
+                    targets[portfolioState.keyboardIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+                    e.preventDefault();
+                    if (e.key === 'ArrowLeft' && portfolioState.activeView !== 'home-view') {
+                        UIController.switchView(0, 'home-view');
+                        return;
+                    }
+                    portfolioState.keyboardIndex = (portfolioState.keyboardIndex - 1 + targets.length) % targets.length;
+                    this.updateVisualHighlights();
+                    targets[portfolioState.keyboardIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                } else if (e.key === 'Enter') {
+                    e.preventDefault();
+                    targets[portfolioState.keyboardIndex].click();
+                }
+            },
+            updateVisualHighlights() {
+                document.querySelectorAll('.kb-selected').forEach(el => el.classList.remove('kb-selected'));
+                const targets = this.getTargets();
+                if (targets[portfolioState.keyboardIndex]) {
+                    targets[portfolioState.keyboardIndex].classList.add('kb-selected');
+                }
+            }
+        };
+        KeyboardEngine.init();
+
+        /* --- REAL-TIME AUDIO METRIC MOCKING --- */
+        let playbackTime = 0;
+        const AudioSystemMock = {
+            tick() {
+                if (!portfolioState.isPlaying) return;
+                playbackTime++;
+                const currentStr = Math.floor(playbackTime / 60) + ":" + ((playbackTime % 60 < 10) ? "0" : "") + (playbackTime % 60);
+                document.getElementById('currentTime').innerText = currentStr;
+                document.getElementById('progressFilled').style.width = (playbackTime / 180 * 100) + "%";
+                if(playbackTime >= 180) { this.reset(); togglePlayback(); }
+            },
+            reset() { playbackTime = 0; document.getElementById('progressFilled').style.width = "0%"; document.getElementById('currentTime').innerText = "0:00"; },
+            scrub(e) {
+                if(!SpaceEngine.activeVinylMesh || portfolioState.isAnimating) return;
+                const rect = e.currentTarget.getBoundingClientRect();
+                const pct = (e.clientX - rect.left) / rect.width;
+                playbackTime = Math.floor(pct * 180);
+                this.tick();
+            }
+        };
+        setInterval(() => AudioSystemMock.tick(), 1000);
+
+        /* --- COLD STRUCTURAL INACTIVITY ENGINE --- */
+        const InactivityEngine = {
+            timeoutHandle: null,
+            init() { ['mousemove', 'keydown'].forEach(evt => window.addEventListener(evt, () => this.wake(), {passive:true})); this.start(); },
+            start() { this.timeoutHandle = setTimeout(() => document.body.classList.add('ambient-mode'), 30000); },
+            wake() { clearTimeout(this.timeoutHandle); document.body.classList.remove('ambient-mode'); this.start(); }
+        };
+
+        /* --- COMPOSITOR WEBGL MOTORS (THREE.JS) --- */
+        const SpaceEngine = {
+            scene: null, camera: null, renderer: null, particles: [], basePositions: [],
+            saturn: null, platter: null, tonearmAnchor: null, activeVinylMesh: null,
+            sleeves: [], vinylDiscs: [],
+            targetCamPos: new THREE.Vector3(0, 15, 35), targetCamLook: new THREE.Vector3(0, 0, 0),
+            currentCamLook: new THREE.Vector3(0, 0, 0), rotationSpeed: 0,
+
+            init() {
+                const canvas = document.getElementById('webgl-canvas');
+                this.scene = new THREE.Scene();
+                this.camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 1000);
+                this.camera.position.set(0, 15, 35);
+
+                this.renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
+                this.renderer.setSize(window.innerWidth, window.innerHeight);
+                this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+                this.scene.add(new THREE.AmbientLight(0x333333));
+                const directionalLight = new THREE.DirectionalLight(0xffffff, 1.5);
+                directionalLight.position.set(5, 20, 10);
+                this.scene.add(directionalLight);
+
+                this.buildStarscape();
+                this.buildPhysicalTurntableSystem();
+
+                window.addEventListener('resize', () => {
+                    this.camera.aspect = window.innerWidth / window.innerHeight;
+                    this.camera.updateProjectionMatrix();
+                    this.renderer.setSize(window.innerWidth, window.innerHeight);
+                });
+
+                this.renderLoop();
+            },
+
+            buildStarscape() {
+                const saturnGeo = new THREE.SphereGeometry(3.5, 32, 32);
+                const saturnMat = new THREE.MeshStandardMaterial({ color: 0x1f1f1f, roughness: 0.8, metalness: 0.2 });
+                this.saturn = new THREE.Mesh(saturnGeo, saturnMat);
+                this.saturn.position.set(0, 2, -25);
+                this.scene.add(this.saturn);
+
+                const count = 600;
+                const geometry = new THREE.BufferGeometry();
+                const positions = new Float32Array(count * 3);
+
+                for(let i=0; i<count; i++) {
+                    let radius = 6 + Math.random() * 12;
+                    let angle = Math.random() * Math.PI * 2;
+                    positions[i*3] = Math.cos(angle) * radius;
+                    positions[i*3+1] = (Math.random() - 0.5) * 4;
+                    positions[i*3+2] = Math.sin(angle) * radius - 25;
+
+                    this.basePositions.push({ radius, angle, y: positions[i*3+1] });
+                }
+
+                geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+                const pointsMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.05, transparent: true, opacity: 0.4 });
+                this.pointCloud = new THREE.Points(geometry, pointsMat);
+                this.scene.add(this.pointCloud);
+            },
+
+            buildPhysicalTurntableSystem() {
+                this.turntableGroup = new THREE.Group();
+                this.recordCrateGroup = new THREE.Group();
+                this.turntableGroup.position.set(-6, -5, 8);
+                this.recordCrateGroup.position.set(6, -5, 8);
+                this.scene.add(this.turntableGroup, this.recordCrateGroup);
+
+                // Turntable Deck Base
+                const deck = new THREE.Mesh(new THREE.BoxGeometry(9, 0.6, 7), new THREE.MeshStandardMaterial({ color: 0x0f0f0f, roughness: 0.6 }));
+                this.turntableGroup.add(deck);
+
+                this.platter = new THREE.Mesh(new THREE.CylinderGeometry(3.2, 3.2, 0.15, 32), new THREE.MeshStandardMaterial({ color: 0x252525, metalness: 0.7 }));
+                this.platter.position.set(-0.5, 0.35, 0);
+                this.turntableGroup.add(this.platter);
+
+                this.tonearmAnchor = new THREE.Group();
+                this.tonearmAnchor.position.set(3.4, 0.4, -2.2);
+                this.tonearmAnchor.rotation.y = -Math.PI / 4;
+                this.turntableGroup.add(this.tonearmAnchor);
+
+                const armRod = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 4, 8), new THREE.MeshStandardMaterial({ color: 0x999999, metalness: 0.9 }));
+                armRod.rotation.x = Math.PI / 2; armRod.position.set(0, 0, 1.6);
+                this.tonearmAnchor.add(armRod);
+
+                // Build Record Rack Stack
+                tracks.forEach((track, i) => {
+                    const pivot = new THREE.Group();
+                    pivot.position.set(0, 1.8, -1.2 + (i * 1.2));
+                    this.recordCrateGroup.add(pivot);
+
+                    const sleeve = new THREE.Mesh(new THREE.BoxGeometry(4.6, 3.8, 0.1), new THREE.MeshStandardMaterial({ color: track.hex3d, roughness: 0.5 }));
+                    sleeve.userData = { isSleeve: true, trackIndex: i };
+                    pivot.add(sleeve);
+                    this.sleeves.push(pivot);
+
+                    const disc = new THREE.Group();
+                    disc.visible = false;
+                    pivot.add(disc);
+                    disc.add(new THREE.Mesh(new THREE.CylinderGeometry(2, 2, 0.03, 32), new THREE.MeshStandardMaterial({ color: 0x050505, roughness: 0.4 })));
+                    this.vinylDiscs.push(disc);
+                });
+            },
+
+            transitionCameraView(viewId) {
+                if (viewId === 'music-view') {
+                    this.targetCamPos.set(0, 5, 18); this.targetCamLook.set(0, -2, 6);
+                } else if (viewId === 'paintings-view') {
+                    this.targetCamPos.set(-8, 12, 25); this.targetCamLook.set(-5, 0, -5);
+                } else if (viewId === 'etc-view') {
+                    this.targetCamPos.set(8, 8, 20); this.targetCamLook.set(4, 2, -2);
+                } else {
+                    this.targetCamPos.set(0, 15, 35); this.targetCamLook.set(0, 0, 0);
+                }
+            },
+
+            renderLoop() {
+                requestAnimationFrame(() => this.renderLoop());
+                const time = performance.now() * 0.001;
+
+                // Live Interface Analytics Hookup
+                const metricDrift = document.getElementById('metric-drift');
+                const metricVectors = document.getElementById('metric-vectors');
+                if(metricDrift) metricDrift.innerText = (Math.sin(time) * 0.02).toFixed(6) + "ms";
+                if(metricVectors) metricVectors.innerText = (time * 0.1).toFixed(4);
+
+                // Nebula Cosmic Morph Mechanics
+                if (this.pointCloud) {
+                    const attr = this.pointCloud.geometry.attributes.position;
+                    for(let i=0; i<600; i++) {
+                        let pt = this.basePositions[i];
+                        pt.angle += 0.005 * portfolioState.particleSpeedMultiplier;
+                        
+                        let targetX = Math.cos(pt.angle) * pt.radius;
+                        let targetZ = Math.sin(pt.angle) * pt.radius - 25;
+                        let targetY = pt.y;
+
+                        if (portfolioState.particleDistributionMode === 'disk') {
+                            targetY = Math.sin(pt.angle * 3) * 0.5 - 4;
+                        } else if (portfolioState.particleDistributionMode === 'wild') {
+                            targetY += Math.sin(time + i) * 0.1;
+                        }
+
+                        attr.setXYZ(i, targetX, targetY, targetZ);
+                    }
+                    attr.needsUpdate = true;
+                }
+
+                this.camera.position.lerp(this.targetCamPos, 0.04);
+                this.currentCamLook.lerp(this.targetCamLook, 0.04);
+                this.camera.lookAt(this.currentCamLook);
+
+                let targetPlatterSpeed = portfolioState.isPlaying ? 2.0 : 0;
+                this.rotationSpeed += (targetPlatterSpeed - this.rotationSpeed) * 0.05;
+                if (this.rotationSpeed > 0.01) {
+                    if (this.activeVinylMesh) this.activeVinylMesh.rotation.y += this.rotationSpeed * 0.016;
+                    this.platter.rotation.y += this.rotationSpeed * 0.016;
+                }
+
+                this.renderer.render(this.scene, this.camera);
+            }
+        };
+
+        window.addEventListener('DOMContentLoaded', () => SpaceEngine.init());
+
+        /* --- ADVANCED MECHANICAL RECORD EXTRACTION LIFE CYCLES --- */
+        function trigger3DRecordExtractionPipeline(trackIdx) {
+            if (portfolioState.isAnimating) return;
+            portfolioState.isAnimating = true;
+            portfolioState.loadedTrackIndex = trackIdx;
+            portfolioState.isPlaying = false;
+
+            document.querySelector('.play-pause-btn').innerText = "▶";
+            AudioSystemMock.reset();
+
+            // Set accent theme variables seamlessly on the root element
+            document.documentElement.style.setProperty('--current-theme-hue', tracks[trackIdx].color);
+
+            if(SpaceEngine.activeVinylMesh) {
+                SpaceEngine.turntableGroup.remove(SpaceEngine.activeVinylMesh);
+                SpaceEngine.activeVinylMesh = null;
+            }
+
+            SpaceEngine.tonearmAnchor.rotation.y = -Math.PI / 4;
+
+            const targetTrack = tracks[trackIdx];
+            const pivot = SpaceEngine.sleeves[trackIdx];
+            const disc = SpaceEngine.vinylDiscs[trackIdx];
+
+            // Mechanical Flight Paths
+            let startT = null;
+            function runExtraction(now) {
+                if(!startT) startT = now;
+                let elapsed = now - startT;
+
+                if (elapsed < 400) {
+                    pivot.position.y = 1.8 + (elapsed / 400) * 1.5;
+                    requestAnimationFrame(runExtraction);
+                } else if (elapsed < 900) {
+                    disc.visible = true;
+                    disc.position.x = ((elapsed - 400) / 500) * 3.5;
+                    requestAnimationFrame(runExtraction);
+                } else {
+                    disc.visible = false; disc.position.set(0,0,0); pivot.position.y = 1.8;
+                    
+                    // Instantiate Flying Plate Object
+                    const flyingDisc = new THREE.Mesh(new THREE.CylinderGeometry(2,2,0.04,32), new THREE.MeshStandardMaterial({ color: 0x111111, metalness:0.8 }));
+                    SpaceEngine.scene.add(flyingDisc);
+                    
+                    let fStart = null;
+                    let sourcePos = new THREE.Vector3(6, -1.7, 8 + (trackIdx * 1.2));
+                    let targetPos = new THREE.Vector3(-6.5, -4.5, 8);
+
+                    function flyToPlatter(fNow) {
+                        if(!fStart) fStart = fNow;
+                        let fElapsed = fNow - fStart;
+                        let pct = Math.min(fElapsed / 800, 1);
+
+                        flyingDisc.position.lerpVectors(sourcePos, targetPos, pct);
+                        flyingDisc.position.y += Math.sin(pct * Math.PI) * 3;
+
+                        if (pct < 1) {
+                            requestAnimationFrame(flyToPlatter);
+                        } else {
+                            SpaceEngine.scene.remove(flyingDisc);
+                            
+                            SpaceEngine.activeVinylMesh = new THREE.Mesh(new THREE.CylinderGeometry(2,2,0.04,32), new THREE.MeshStandardMaterial({ color: 0x0a0a0a, roughness:0.3 }));
+                            SpaceEngine.activeVinylMesh.position.set(-0.5, 0.44, 0);
+                            
+                            // Center track label details
+                            const innerLabel = new THREE.Mesh(new THREE.CylinderGeometry(0.6,0.6,0.05,16), new THREE.MeshStandardMaterial({ color: targetTrack.hex3d }));
+                            innerLabel.position.y = 0.01;
+                            SpaceEngine.activeVinylMesh.add(innerLabel);
+
+                            SpaceEngine.turntableGroup.add(SpaceEngine.activeVinylMesh);
+
+                            // Drop System Tonearm Mesh
+                            let armStart = null;
+                            function dropArm(aNow) {
+                                if(!armStart) armStart = aNow;
+                                let aPct = Math.min((aNow - armStart) / 400, 1);
+                                SpaceEngine.tonearmAnchor.rotation.y = -Math.PI / 4 + (aPct * (Math.PI / 3.4));
+                                
+                                if(aPct < 1) requestAnimationFrame(dropArm);
+                                else {
+                                    document.getElementById('barTitle').innerText = targetTrack.title;
+                                    document.getElementById('barArtist').innerText = targetTrack.artist;
+                                    document.querySelector('.play-pause-btn').innerText = "⏸";
+                                    portfolioState.isPlaying = true;
+                                    portfolioState.isAnimating = false;
+                                }
+                            }
+                            requestAnimationFrame(dropArm);
+                        }
+                    }
+                    requestAnimationFrame(flyToPlatter);
+                }
+            }
+            requestAnimationFrame(runExtraction);
+        }
+
+        function togglePlayback() {
+            if (portfolioState.isAnimating || !SpaceEngine.activeVinylMesh) return;
+            portfolioState.isAnimating = true;
+
+            let targetArmRotation = portfolioState.isPlaying ? -Math.PI / 4 : -Math.PI / 4 + (Math.PI / 3.4);
+            let startArmRotation = SpaceEngine.tonearmAnchor.rotation.y;
+            let startT = null;
+
+            if(portfolioState.isPlaying) {
+                portfolioState.isPlaying = false;
+                document.querySelector('.play-pause-btn').innerText = "▶";
+            }
+
+            function animateArm(now) {
+                if(!startT) startT = now;
+                let pct = Math.min((now - startT) / 400, 1);
+                SpaceEngine.tonearmAnchor.rotation.y = startArmRotation + (targetArmRotation - startArmRotation) * pct;
+
+                if (pct < 1) requestAnimationFrame(animateArm);
+                else {
+                    portfolioState.isAnimating = false;
+                    if(targetArmRotation !== -Math.PI / 4) {
+                        portfolioState.isPlaying = true;
+                        document.querySelector('.play-pause-btn').innerText = "⏸";
+                    }
+                }
+            }
+            requestAnimationFrame(animateArm);
+        }
+    </script>
+</body>
+</html>
