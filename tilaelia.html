@@ -16,7 +16,7 @@
             --text-muted: #a0a0a0;
             --text-dim: #444444;
             --font-mono: 'Courier New', Courier, monospace;
-            --current-theme-hue: #ffffff;
+            --current-theme-hue: #ff5722;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -31,7 +31,7 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* --- THREE.JS ENGINE LAYER --- */
+        /* --- THREE.JS BACKGROUND CANVAS --- */
         #webgl-canvas {
             position: fixed;
             top: 0;
@@ -42,7 +42,7 @@
             pointer-events: auto;
         }
 
-        /* --- KINETIC COMPOSITOR VIEWPORTS --- */
+        /* --- UI COMPOSITOR VIEWPORTS --- */
         #app-ui-wrapper {
             position: relative;
             z-index: 2;
@@ -100,7 +100,7 @@
         /* --- HARDWARE ACCELERATED SPATIAL CAROUSEL SLIDER --- */
         .viewport-slider {
             display: flex;
-            width: 400%; /* 4 Views total: Home, Music, Paintings, Metrics */
+            width: 400%; 
             height: 100vh;
             transition: transform 1s cubic-bezier(0.85, 0, 0.15, 1);
             will-change: transform;
@@ -109,16 +109,16 @@
         .slide-view {
             width: 25%;
             height: 100vh;
-            padding: 60px 40px;
+            padding: 40px;
             display: flex;
             flex-direction: column;
-            justify-content: flex-start;
+            justify-content: space-between;
             overflow-y: auto;
         }
 
         .site-header {
             text-align: center;
-            margin-bottom: 60px;
+            margin-bottom: 20px;
             flex-shrink: 0;
         }
         .site-header h2 {
@@ -129,7 +129,6 @@
         }
 
         .back-nav {
-            margin-bottom: 30px;
             cursor: pointer;
             color: var(--text-muted);
             transition: all 0.3s ease;
@@ -137,6 +136,7 @@
             letter-spacing: 2px;
             display: inline-block;
             text-transform: uppercase;
+            margin-bottom: 20px;
         }
         .back-nav:hover, .back-nav.kb-selected { color: var(--text-main); transform: translateX(-5px); }
 
@@ -168,9 +168,7 @@
             background: linear-gradient(90deg, transparent, var(--text-main), transparent);
             transform: translateX(-100%); transition: transform 0.6s ease;
         }
-
         .menu-card:hover::before, .menu-card.kb-selected::before { transform: translateX(100%); }
-
         .menu-card:hover, .menu-card.kb-selected {
             background: rgba(255, 255, 255, 0.03);
             border-color: rgba(255, 255, 255, 0.2);
@@ -181,20 +179,71 @@
         .menu-card h3 { font-size: 1.4rem; font-weight: 300; margin-bottom: 15px; letter-spacing: 2px; }
         .menu-card p { color: var(--text-muted); font-size: 0.85rem; line-height: 1.6; }
 
-        /* --- MUSIC HUD EXTENSIONS --- */
-        .music-3d-hud {
-            margin: auto auto 40px auto;
+        /* --- NEW DIGITAL AUDIO CONTAINER GRID (REPLACES 3D PLAYER) --- */
+        .music-grid-workspace {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            max-width: 1000px;
             width: 100%;
-            max-width: 460px;
+            margin: auto auto;
+        }
+
+        @media (max-width: 768px) {
+            .music-grid-workspace { grid-template-columns: 1fr; gap: 20px; }
+        }
+
+        .track-directory-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .directory-item {
             background: rgba(10, 10, 10, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .directory-item.active-track {
+            border-color: var(--current-theme-hue);
+            background: rgba(255, 255, 255, 0.02);
+            box-shadow: inset 0 0 15px rgba(255, 255, 255, 0.02);
+        }
+        .directory-item h4 { font-size: 1rem; font-weight: 400; letter-spacing: 1px; margin-bottom: 4px; }
+        .directory-item p { font-size: 0.75rem; color: var(--text-muted); }
+
+        .music-3d-hud {
+            width: 100%;
+            background: rgba(10, 10, 10, 0.85);
             backdrop-filter: blur(30px);
             -webkit-backdrop-filter: blur(30px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 30px;
             text-align: center;
-            box-shadow: 0 30px 60px rgba(0,0,0,0.4);
-            margin-top: auto; /* Force control overlay down to give 3D elements premium placement */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.7);
         }
+
+        /* --- WAVEFORM EQUALIZER COMPONENT --- */
+        .audio-eq-bars {
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            gap: 4px;
+            height: 40px;
+            margin: 25px auto;
+        }
+        .eq-bar {
+            width: 3px;
+            height: 5px;
+            background-color: var(--current-theme-hue);
+            transition: height 0.15s ease, background-color 0.5s ease;
+        }
+        /* Simulated dynamic code loop triggers heights natively below */
 
         .timeline-matrix { display: flex; align-items: center; gap: 15px; margin: 20px 0; }
         .progress-bar { flex: 1; height: 2px; background: #1a1a1a; position: relative; cursor: pointer; }
@@ -205,32 +254,30 @@
             background: none; border: 1px solid rgba(255,255,255,0.2); color: var(--text-main);
             width: 54px; height: 54px; border-radius: 50%; font-size: 1rem; cursor: pointer;
             transition: all 0.3s ease; display: inline-flex; align-items: center; justify-content: center; outline: none;
+            margin: 0 auto;
         }
         .play-pause-btn:hover, .play-pause-btn.kb-selected { border-color: var(--text-main); background: rgba(255,255,255,0.05); transform: scale(1.05); }
 
-        /* --- METRICS & ETC CONTROL PANEL --- */
+        /* --- METRICS PANEL --- */
         .terminal-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
             gap: 20px;
             max-width: 1000px;
-            margin: 0 auto;
+            margin: auto auto;
             width: 100%;
         }
         .terminal-node {
-            background: rgba(10, 10, 10, 0.8);
+            background: rgba(10, 10, 10, 0.85);
             border: 1px dashed var(--text-dim);
             padding: 20px;
             font-size: 0.8rem;
         }
-        .terminal-node.kb-selected {
-            border-style: solid;
-            border-color: var(--text-main);
-        }
+        .terminal-node.kb-selected { border-style: solid; border-color: var(--text-main); }
         .terminal-node span { display: block; color: var(--text-muted); margin-bottom: 5px; }
         .terminal-node div { font-size: 1.1rem; color: #ffaa00; font-weight: bold; }
 
-        /* --- SPATIAL 3D ART HUD INTERFACES --- */
+        /* --- SPATIAL GALLERY OVERLAYS --- */
         .paintings-spatial-hud {
             display: flex;
             flex-direction: column;
@@ -238,12 +285,10 @@
             max-width: 440px;
             width: 100%;
             margin: auto 0;
-            background: rgba(10, 10, 10, 0.65);
+            background: rgba(10, 10, 10, 0.75);
             backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
             padding: 30px;
             border: 1px solid rgba(255, 255, 255, 0.05);
-            box-shadow: 0 30px 60px rgba(0,0,0,0.5);
         }
         .art-hud-card {
             padding: 15px;
@@ -261,7 +306,7 @@
         .art-hud-card p { font-size: 0.75rem; color: var(--text-muted); line-height: 1.4; }
 
         .music-instruction {
-            text-align: center; color: var(--text-dim); font-size: 0.7rem; letter-spacing: 2px; margin-bottom: 20px;
+            text-align: center; color: var(--text-muted); font-size: 0.75rem; letter-spacing: 2px; margin-top: 10px;
         }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -285,7 +330,7 @@
                 <div class="portfolio-menu">
                     <div class="menu-card mb-target" onclick="UIController.switchView(1, 'music-view')">
                         <h3>01 // MUSIC</h3>
-                        <p>Interact directly with multi-layered 3D automated turntables and geometric audio nodes.</p>
+                        <p>Interact directly with generative background parameters and integrated studio nodes.</p>
                     </div>
                     <div class="menu-card mb-target" onclick="UIController.switchView(2, 'paintings-view')">
                         <h3>02 // IMAGERY</h3>
@@ -296,25 +341,53 @@
                         <p>Real-time gravitational lensing metrics tracking computational singularity conditions.</p>
                     </div>
                 </div>
+                <div></div>
             </section>
 
             <section class="slide-view" id="music-view">
-                <div class="back-nav mb-target" onclick="UIController.switchView(0, 'home-view')">◀ RETREAT TO BASE</div>
-                <div class="music-instruction">LEFT / RIGHT ARROWS LOAD SYSTEM VINYLS • SPACEBAR TOGGLES ROTATION</div>
-                <div class="music-3d-hud">
-                    <h3 id="barTitle" style="font-weight: 400; letter-spacing: 1px;">CRATE VACANT</h3>
-                    <p id="barArtist" style="color: var(--text-muted); font-size: 0.8rem; margin-top: 4px;">Initialize record track architecture</p>
-                    <div class="timeline-matrix">
-                        <span id="currentTime">0:00</span>
-                        <div class="progress-bar" onclick="AudioSystemMock.scrub(event)"><div id="progressFilled"></div></div>
-                    </div>
-                    <button class="play-pause-btn mb-target" onclick="togglePlayback()">▶</button>
+                <div>
+                    <div class="back-nav mb-target" onclick="UIController.switchView(0, 'home-view')">◀ RETREAT TO BASE</div>
+                    <div class="music-instruction">SELECT A CORE OSCILLATOR ARCHITECTURE TERMINAL</div>
                 </div>
+                
+                <div class="music-grid-workspace">
+                    <div class="track-directory-list">
+                        <div class="directory-item mb-target active-track" id="track-0" onclick="switchActiveTrack(0)">
+                            <h4>01 // Lo-Fi Chill Ambient</h4>
+                            <p>DJ Code Vector — 114 BPM</p>
+                        </div>
+                        <div class="directory-item mb-target" id="track-1" onclick="switchActiveTrack(1)">
+                            <h4>02 // Synthwave Structural Drive</h4>
+                            <p>Neon Frame Architecture — 130 BPM</p>
+                        </div>
+                        <div class="directory-item mb-target" id="track-2" onclick="switchActiveTrack(2)">
+                            <h4>03 // Deep Space Field</h4>
+                            <p>Tilaelia Processing — 90 BPM</p>
+                        </div>
+                    </div>
+
+                    <div class="music-3d-hud">
+                        <h3 id="barTitle" style="font-weight: 300; letter-spacing: 2px; text-transform: uppercase;">Lo-Fi Chill Ambient</h3>
+                        <p id="barArtist" style="color: var(--text-muted); font-size: 0.8rem; margin-top: 4px;">DJ Code Vector</p>
+                        
+                        <div class="audio-eq-bars">
+                            <div class="eq-bar"></div><div class="eq-bar"></div><div class="eq-bar"></div>
+                            <div class="eq-bar"></div><div class="eq-bar"></div><div class="eq-bar"></div>
+                            <div class="eq-bar"></div><div class="eq-bar"></div><div class="eq-bar"></div>
+                        </div>
+
+                        <div class="timeline-matrix">
+                            <span id="currentTime">0:00</span>
+                            <div class="progress-bar" onclick="AudioSystemMock.scrub(event)"><div id="progressFilled"></div></div>
+                        </div>
+                        <button class="play-pause-btn mb-target" onclick="togglePlayback()">▶</button>
+                    </div>
+                </div>
+                <div></div>
             </section>
 
             <section class="slide-view" id="paintings-view">
                 <div class="back-nav mb-target" onclick="UIController.switchView(0, 'home-view')">◀ RETREAT TO BASE</div>
-                <div class="music-instruction">SELECT AN ARTWORK TO INTERPOLATE CAMERA PATHING</div>
                 <div class="paintings-spatial-hud">
                     <div class="art-hud-card mb-target" onclick="GalleryEngine.focusPainting(0)">
                         <h4>01 // Spatial Weight Depth</h4>
@@ -325,6 +398,7 @@
                         <p>High-contrast linear vectors tracking localized multi-dimensional boundaries.</p>
                     </div>
                 </div>
+                <div></div>
             </section>
 
             <section class="slide-view" id="etc-view">
@@ -343,6 +417,7 @@
                         <div id="metric-particles">0 / ACTIVE</div>
                     </div>
                 </div>
+                <div></div>
             </section>
 
         </div>
@@ -354,8 +429,7 @@
         let portfolioState = {
             isIntro: true,
             isPlaying: false,
-            isAnimating: false,
-            loadedTrackIndex: null,
+            loadedTrackIndex: 0,
             activeView: 'home-view',
             activeSlideIndex: 0,
             keyboardIndex: 0,
@@ -364,9 +438,9 @@
         };
 
         const tracks = [
-            { id: 0, title: 'Lo-Fi Chill Ambient', artist: 'DJ Code Vector', color: '#ff5722', hex3d: 0xff5722 },
-            { id: 1, title: 'Synthwave Structural Drive', artist: 'Neon Frame Architecture', color: '#e91e63', hex3d: 0xe91e63 },
-            { id: 2, title: 'Deep Space Field', artist: 'Tilaelia Processing', color: '#9c27b0', hex3d: 0x9c27b0 }
+            { id: 0, title: 'Lo-Fi Chill Ambient', artist: 'DJ Code Vector', color: '#ff5722' },
+            { id: 1, title: 'Synthwave Structural Drive', artist: 'Neon Frame Architecture', color: '#e91e63' },
+            { id: 2, title: 'Deep Space Field', artist: 'Tilaelia Processing', color: '#9c27b0' }
         ];
 
         /* --- VIEW COMPOSITOR CONTROLLER --- */
@@ -378,8 +452,6 @@
                 KeyboardEngine.updateVisualHighlights();
             },
             switchView(slideIndex, viewNameString) {
-                if (portfolioState.isAnimating) return; 
-
                 portfolioState.activeSlideIndex = slideIndex;
                 portfolioState.activeView = viewNameString;
                 portfolioState.keyboardIndex = 0;
@@ -390,7 +462,7 @@
                     portfolioState.particleSpeedMultiplier = 0.4;
                     portfolioState.particleDistributionMode = 'disk';
                 } else if(viewNameString === 'etc-view') {
-                    portfolioState.particleSpeedMultiplier = 1.0;
+                    portfolioState.particleSpeedMultiplier = 1.8;
                     portfolioState.particleDistributionMode = 'singularity';
                 } else {
                     portfolioState.particleSpeedMultiplier = 1.0;
@@ -402,70 +474,62 @@
             }
         };
 
+        /* --- OSCILLATOR MATRIX DIRECTORY SYSTEM --- */
+        function switchActiveTrack(index) {
+            portfolioState.loadedTrackIndex = index;
+            portfolioState.isPlaying = false;
+            document.querySelector('.play-pause-btn').innerText = "▶";
+            AudioSystemMock.reset();
+
+            const track = tracks[index];
+            document.documentElement.style.setProperty('--current-theme-hue', track.color);
+            document.getElementById('barTitle').innerText = track.title;
+            document.getElementById('barArtist').innerText = track.artist;
+
+            document.querySelectorAll('.directory-item').forEach(el => el.classList.remove('active-track'));
+            document.getElementById(`track-${index}`).classList.add('active-track');
+        }
+
         /* --- IMMERSIVE GALLERY CONTROLLER --- */
         const GalleryEngine = {
             focusPainting(index) {
-                if(portfolioState.isAnimating) return;
                 if(index === 0) {
-                    SpaceEngine.targetCamPos.set(-20, 3, -12);
-                    SpaceEngine.targetCamLook.set(-25, 3, -12);
+                    SpaceEngine.targetCamPos.set(-25, 3, -12);
+                    SpaceEngine.targetCamLook.set(-35, 3, -12);
                 } else if(index === 1) {
-                    SpaceEngine.targetCamPos.set(-20, 3, -4);
-                    SpaceEngine.targetCamLook.set(-25, 3, -4);
+                    SpaceEngine.targetCamPos.set(-25, 3, -4);
+                    SpaceEngine.targetCamLook.set(-35, 3, -4);
                 }
             }
         };
 
-        /* --- HARMONIZED HARDWARE KEYBOARD LOOP --- */
+        /* --- KEYBOARD HANDLING MATRIX --- */
         const KeyboardEngine = {
-            init() {
-                window.addEventListener('keydown', (e) => this.handleKeyPress(e));
-            },
+            init() { window.addEventListener('keydown', (e) => this.handleKeyPress(e)); },
             getTargets() {
                 if (portfolioState.isIntro) return [document.querySelector('.enter-btn')];
                 return Array.from(document.querySelectorAll(`#${portfolioState.activeView} .mb-target`));
             },
             handleKeyPress(e) {
                 const targets = this.getTargets();
-
                 if (portfolioState.isIntro) {
-                    if (e.key === 'Enter' || e.key === 'ArrowRight') UIController.enterWebsite();
+                    if (e.key === 'Enter') UIController.enterWebsite();
                     return;
                 }
-
-                if (portfolioState.activeView === 'music-view') {
-                    if (e.key === 'ArrowLeft') {
-                        e.preventDefault();
-                        UIController.switchView(0, 'home-view');
-                        return;
-                    } else if (e.key === 'ArrowRight') {
-                        e.preventDefault();
-                        let nextIdx = (portfolioState.loadedTrackIndex === null) ? 0 : (portfolioState.loadedTrackIndex + 1) % tracks.length;
-                        trigger3DRecordExtractionPipeline(nextIdx);
-                        return;
-                    } else if (e.key === ' ') {
-                        e.preventDefault();
-                        togglePlayback();
-                        return;
-                    }
-                }
-
                 if (targets.length === 0) return;
 
                 if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
                     e.preventDefault();
                     portfolioState.keyboardIndex = (portfolioState.keyboardIndex + 1) % targets.length;
                     this.updateVisualHighlights();
-                    targets[portfolioState.keyboardIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
                 } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
                     e.preventDefault();
-                    if (e.key === 'ArrowLeft' && portfolioState.activeView !== 'home-view') {
+                    if (e.key === 'ArrowLeft' && portfolioState.activeView !== 'home-view' && e.target.tagName !== 'INPUT') {
                         UIController.switchView(0, 'home-view');
                         return;
                     }
                     portfolioState.keyboardIndex = (portfolioState.keyboardIndex - 1 + targets.length) % targets.length;
                     this.updateVisualHighlights();
-                    targets[portfolioState.keyboardIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
                 } else if (e.key === 'Enter') {
                     e.preventDefault();
                     targets[portfolioState.keyboardIndex].click();
@@ -474,9 +538,7 @@
             updateVisualHighlights() {
                 document.querySelectorAll('.kb-selected').forEach(el => el.classList.remove('kb-selected'));
                 const targets = this.getTargets();
-                if (targets[portfolioState.keyboardIndex]) {
-                    targets[portfolioState.keyboardIndex].classList.add('kb-selected');
-                }
+                if (targets[portfolioState.keyboardIndex]) targets[portfolioState.keyboardIndex].classList.add('kb-selected');
             }
         };
         KeyboardEngine.init();
@@ -491,17 +553,33 @@
                 document.getElementById('currentTime').innerText = currentStr;
                 document.getElementById('progressFilled').style.width = (playbackTime / 180 * 100) + "%";
                 if(playbackTime >= 180) { this.reset(); togglePlayback(); }
+
+                // Animate CSS EQ heights dynamically if music is playing
+                document.querySelectorAll('.eq-bar').forEach(bar => {
+                    bar.style.height = (Math.random() * 35 + 5) + 'px';
+                });
             },
-            reset() { playbackTime = 0; document.getElementById('progressFilled').style.width = "0%"; document.getElementById('currentTime').innerText = "0:00"; },
+            reset() { 
+                playbackTime = 0; 
+                document.getElementById('progressFilled').style.width = "0%"; 
+                document.getElementById('currentTime').innerText = "0:00"; 
+                document.querySelectorAll('.eq-bar').forEach(bar => bar.style.height = '5px');
+            },
             scrub(e) {
-                if(!SpaceEngine.activeVinylMesh || portfolioState.isAnimating) return;
                 const rect = e.currentTarget.getBoundingClientRect();
-                const pct = (e.clientX - rect.left) / rect.width;
-                playbackTime = Math.floor(pct * 180);
+                playbackTime = Math.floor(((e.clientX - rect.left) / rect.width) * 180);
                 this.tick();
             }
         };
         setInterval(() => AudioSystemMock.tick(), 1000);
+
+        function togglePlayback() {
+            portfolioState.isPlaying = !portfolioState.isPlaying;
+            document.querySelector('.play-pause-btn').innerText = portfolioState.isPlaying ? "⏸" : "▶";
+            if (!portfolioState.isPlaying) {
+                document.querySelectorAll('.eq-bar').forEach(bar => bar.style.height = '5px');
+            }
+        }
 
         /* --- SYSTEM INACTIVITY TIMEOUTS --- */
         const InactivityEngine = {
@@ -511,16 +589,13 @@
             wake() { clearTimeout(this.timeoutHandle); document.body.classList.remove('ambient-mode'); this.start(); }
         };
 
-        /* --- UNIFIED WEBGL SIMULATION MOTORS (THREE.JS) --- */
+        /* --- RE-OPTIMIZED BACKGROUND CANVAS SCHEDULERS --- */
         const SpaceEngine = {
             scene: null, camera: null, renderer: null, basePositions: [],
-            saturn: null, platter: null, tonearmAnchor: null, activeVinylMesh: null,
-            sleeves: [], vinylDiscs: [], textureLoader: null,
+            galleryGroup: null, bhGroup: null, pointCloud: null,
             targetCamPos: new THREE.Vector3(0, 15, 35), targetCamLook: new THREE.Vector3(0, 0, 0),
-            currentCamLook: new THREE.Vector3(0, 0, 0), rotationSpeed: 0,
-            bhGroup: null, bhDiskMat: null, bhHMat: null, bhPointsGeo: null,
-            bhPts: null, bhVel: null, bhN: 0, bhRs: 0, bhM: 50, bhG: 1, bhC: 1,
-            globalTime: 0,
+            currentCamLook: new THREE.Vector3(0, 0, 0), bhDiskMat: null, bhPointsGeo: null,
+            bhPts: null, bhVel: null, bhN: 0, bhRs: 0, bhM: 50, bhG: 1, bhC: 1, globalTime: 0,
 
             init() {
                 try {
@@ -533,15 +608,12 @@
                     this.renderer.setSize(window.innerWidth, window.innerHeight);
                     this.renderer.setPixelRatio(isMobile ? Math.min(window.devicePixelRatio, 1.5) : Math.min(window.devicePixelRatio, 2));
 
-                    this.textureLoader = new THREE.TextureLoader();
-
-                    this.scene.add(new THREE.AmbientLight(0x555555));
-                    const directionalLight = new THREE.DirectionalLight(0xffffff, 1.5);
-                    directionalLight.position.set(5, 20, 10);
-                    this.scene.add(directionalLight);
+                    this.scene.add(new THREE.AmbientLight(0x444444));
+                    const light = new THREE.DirectionalLight(0xffffff, 1.2);
+                    light.position.set(5, 20, 15);
+                    this.scene.add(light);
 
                     this.buildStarscape();
-                    this.buildPhysicalTurntableSystem();
                     this.buildImmersive3DGallery();
                     this.buildRelativisticBlackhole();
 
@@ -549,276 +621,108 @@
                         this.camera.aspect = window.innerWidth / window.innerHeight;
                         this.camera.updateProjectionMatrix();
                         this.renderer.setSize(window.innerWidth, window.innerHeight);
-                        if (isMobile) this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+                        this.transitionCameraView(portfolioState.activeView);
                     });
 
                     this.renderLoop();
-                } catch(e) {
-                    console.error("Critical core runtime failure:", e);
-                }
+                } catch(e) { console.error("Canvas matrix init fail:", e); }
             },
 
             buildStarscape() {
-                const saturnGeo = new THREE.SphereGeometry(3.5, 32, 32);
-                const saturnMat = new THREE.MeshStandardMaterial({ color: 0x1a1a1a, roughness: 0.8, metalness: 0.2 });
-                this.saturn = new THREE.Mesh(saturnGeo, saturnMat);
-                this.saturn.position.set(0, 2, -45); // Pushed further back to clear space for the music module
-                this.scene.add(this.saturn);
-
-                const count = 1000;
+                const count = 900;
                 const geometry = new THREE.BufferGeometry();
                 const positions = new Float32Array(count * 3);
 
                 for(let i=0; i<count; i++) {
-                    const u = Math.random();
-                    const v = Math.random();
-                    const theta = u * 2.0 * Math.PI;
-                    const phi = Math.acos(2.0 * v - 1.0);
-                    const radius = 65 + Math.random() * 25;
+                    const u = Math.random(), v = Math.random();
+                    const theta = u * 2.0 * Math.PI, phi = Math.acos(2.0 * v - 1.0);
+                    const radius = 45 + Math.random() * 25;
 
                     positions[i*3] = radius * Math.sin(phi) * Math.cos(theta);
                     positions[i*3+1] = radius * Math.sin(phi) * Math.sin(theta);
                     positions[i*3+2] = radius * Math.cos(phi);
 
                     this.basePositions.push({
-                        x: positions[i*3],
-                        y: positions[i*3+1],
-                        z: positions[i*3+2],
-                        angle: Math.random() * Math.PI * 2,
-                        speed: 0.002 + Math.random() * 0.004
+                        x: positions[i*3], y: positions[i*3+1], z: positions[i*3+2],
+                        angle: Math.random() * Math.PI * 2, speed: 0.001 + Math.random() * 0.002
                     });
                 }
-
                 geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-                const pointsMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.08, transparent: true, opacity: 0.5 });
-                this.pointCloud = new THREE.Points(geometry, pointsMat);
+                this.pointCloud = new THREE.Points(geometry, new THREE.PointsMaterial({ color: 0xffffff, size: 0.07, transparent: true, opacity: 0.35 }));
                 this.scene.add(this.pointCloud);
-            },
-
-            buildPhysicalTurntableSystem() {
-                this.musicViewStage = new THREE.Group();
-                // Positioned right in front of the camera when view switches to slide 1
-                this.musicViewStage.position.set(0, -1, 0); 
-                this.scene.add(this.musicViewStage);
-
-                this.turntableGroup = new THREE.Group();
-                this.recordCrateGroup = new THREE.Group();
-                
-                // Fine-tuned placement within the local viewport stage space
-                this.turntableGroup.position.set(-4.5, -1.5, 0);
-                this.recordCrateGroup.position.set(4.5, -1.5, 0);
-                this.musicViewStage.add(this.turntableGroup, this.recordCrateGroup);
-
-                const deck = new THREE.Mesh(new THREE.BoxGeometry(7.5, 0.6, 6), new THREE.MeshStandardMaterial({ color: 0x0f0f0f, roughness: 0.6 }));
-                this.turntableGroup.add(deck);
-
-                this.platter = new THREE.Mesh(new THREE.CylinderGeometry(2.6, 2.6, 0.15, 32), new THREE.MeshStandardMaterial({ color: 0x252525, metalness: 0.7 }));
-                this.platter.position.set(-0.3, 0.35, 0);
-                this.turntableGroup.add(this.platter);
-
-                this.tonearmAnchor = new THREE.Group();
-                this.tonearmAnchor.position.set(2.8, 0.4, -1.8);
-                this.tonearmAnchor.rotation.y = -Math.PI / 4;
-                this.turntableGroup.add(this.tonearmAnchor);
-
-                const armRod = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 3.2, 8), new THREE.MeshStandardMaterial({ color: 0x999999, metalness: 0.9 }));
-                armRod.rotation.x = Math.PI / 2; armRod.position.set(0, 0, 1.3);
-                this.tonearmAnchor.add(armRod);
-
-                tracks.forEach((track, i) => {
-                    const pivot = new THREE.Group();
-                    pivot.position.set(0, 1.2, -1.0 + (i * 1.0));
-                    this.recordCrateGroup.add(pivot);
-
-                    const sleeve = new THREE.Mesh(new THREE.BoxGeometry(3.8, 3.2, 0.1), new THREE.MeshStandardMaterial({ color: track.hex3d, roughness: 0.5 }));
-                    sleeve.userData = { isSleeve: true, trackIndex: i };
-                    pivot.add(sleeve);
-                    this.sleeves.push(pivot);
-
-                    const disc = new THREE.Group();
-                    disc.visible = false;
-                    pivot.add(disc);
-                    disc.add(new THREE.Mesh(new THREE.CylinderGeometry(1.6, 1.6, 0.03, 32), new THREE.MeshStandardMaterial({ color: 0x050505, roughness: 0.4 })));
-                    this.vinylDiscs.push(disc);
-                });
-            },
-
-            loadTextureWithProceduralFallback(url, type) {
-                const canvas = document.createElement('canvas');
-                canvas.width = 512; canvas.height = 512;
-                const ctx = canvas.getContext('2d');
-
-                const grad = ctx.createLinearGradient(0, 0, 512, 512);
-                grad.addColorStop(0, '#0d0d11'); grad.addColorStop(1, '#020205');
-                ctx.fillStyle = grad; ctx.fillRect(0, 0, 512, 512);
-                ctx.lineWidth = 2;
-
-                if(type === 'geometry') {
-                    ctx.strokeStyle = 'rgba(255, 87, 34, 0.65)';
-                    for(let i=0; i<8; i++) ctx.strokeRect(100 + i*20, 100 + i*15, 312 - i*40, 312 - i*30);
-                    ctx.fillStyle = '#ff5722'; ctx.font = '16px monospace';
-                    ctx.fillText('VAR_01 // OCCLUSION MATRIX', 40, 460);
-                } else {
-                    ctx.strokeStyle = 'rgba(233, 30, 99, 0.5)';
-                    ctx.beginPath();
-                    for(let x=0; x<512; x+=20) {
-                        ctx.moveTo(x, 50 + Math.sin(x*0.05)*60);
-                        ctx.lineTo(512-x, 450 + Math.cos(x*0.05)*60);
-                    }
-                    ctx.stroke();
-                    ctx.fillStyle = '#e91e63'; ctx.font = '16px monospace';
-                    ctx.fillText('VAR_02 // DECAY_BOUNDARIES', 40, 460);
-                }
-
-                const fallbackTexture = new THREE.CanvasTexture(canvas);
-
-                if (url && url !== '') {
-                    return this.textureLoader.load(
-                        url,
-                        (loaded) => { loaded.anisotropy = this.renderer.capabilities.getMaxAnisotropy(); },
-                        undefined,
-                        () => { console.warn(`Asset failed to bind: ${url}. Fallback preserved.`); }
-                    );
-                }
-                return fallbackTexture;
             },
 
             buildImmersive3DGallery() {
                 this.galleryGroup = new THREE.Group();
-                this.galleryGroup.position.set(-35, 0, -8);
+                this.galleryGroup.position.set(-35, 0, 0);
                 this.scene.add(this.galleryGroup);
 
-                const wallGeo = new THREE.BoxGeometry(0.5, 12, 16);
-                const wallMat = new THREE.MeshStandardMaterial({ color: 0x09090c, roughness: 0.9 });
-                const mainWall = new THREE.Mesh(wallGeo, wallMat);
-                mainWall.position.set(0, 3, 0);
-                this.galleryGroup.add(mainWall);
+                const wall = new THREE.Mesh(new THREE.BoxGeometry(0.5, 12, 16), new THREE.MeshStandardMaterial({ color: 0x050507 }));
+                wall.position.set(0, 3, 0);
+                this.galleryGroup.add(wall);
 
-                const artConfigs = [
-                    { y: 3, z: -4, type: 'geometry', url: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=500&auto=format&fit=crop' },
-                    { y: 3, z: 4, type: 'vectors', url: 'https://images.unsplash.com/photo-1634017839464-5c339ebe3cb4?q=80&w=500&auto=format&fit=crop' }
-                ];
-
-                artConfigs.forEach((config) => {
-                    const frameGroup = new THREE.Group();
-                    frameGroup.position.set(0.3, config.y, config.z);
-                    frameGroup.rotation.y = Math.PI / 2;
-
-                    const border = new THREE.Mesh(new THREE.BoxGeometry(5.4, 6.8, 0.15), new THREE.MeshStandardMaterial({ color: 0x020202, roughness: 0.7 }));
-                    frameGroup.add(border);
-
-                    const texture = this.loadTextureWithProceduralFallback(config.url, config.type);
-                    const canvasMesh = new THREE.Mesh(
-                        new THREE.PlaneGeometry(5, 6),
-                        new THREE.MeshStandardMaterial({ map: texture, roughness: 0.4, metalness: 0.1 })
-                    );
-                    canvasMesh.position.z = 0.09;
-                    frameGroup.add(canvasMesh);
-
-                    this.galleryGroup.add(frameGroup);
-                });
+                const canvasMesh = new THREE.Mesh(new THREE.PlaneGeometry(4, 5), new THREE.MeshStandardMaterial({ color: 0x111115 }));
+                canvasMesh.position.set(0.3, 3, 0);
+                canvasMesh.rotation.y = Math.PI / 2;
+                this.galleryGroup.add(canvasMesh);
+                this.galleryGroup.visible = false;
             },
 
             buildRelativisticBlackhole() {
                 this.bhGroup = new THREE.Group();
-                this.bhGroup.position.set(35, 0, -5); 
+                this.bhGroup.position.set(35, 0, 0); 
                 this.scene.add(this.bhGroup);
 
                 this.bhRs = (2 * this.bhG * this.bhM) / (this.bhC * this.bhC); 
-
-                const diskGeometry = new THREE.PlaneGeometry(this.bhRs * 0.25, this.bhRs * 0.25, 64, 64);
+                const diskGeometry = new THREE.PlaneGeometry(this.bhRs * 0.22, this.bhRs * 0.22, 64, 64);
+                
                 this.bhDiskMat = new THREE.ShaderMaterial({
                     transparent: true,
-                    vertexShader: `
-                        varying vec2 vUv; varying float vDist;
-                        void main() {
-                            vUv = uv;
-                            vec4 wp = modelMatrix * vec4(position, 1.0);
-                            vDist = length(position.xy); 
-                            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-                        }`,
-                    fragmentShader: `
-                        varying vec2 vUv; varying float vDist;
-                        uniform float time; uniform float Rs;
-                        vec3 doppler(vec3 col, float v) {
-                            float g = 1.0/sqrt(1.0-v*v), d = g*(1.0-v);
-                            return col * vec3(clamp(1.0/d,0.0,2.0), clamp(1.0/sqrt(d),0.0,2.0), clamp(sqrt(d),0.0,2.0));
-                        }
-                        void main() {
-                            float r = vDist * 8.0; 
-                            float v = sqrt(Rs/(2.0*r));
-                            vec3 sc = doppler(vec3(1.0,0.55,0.15), clamp(v, 0.0, 0.9));
-                            float i = smoothstep(Rs*0.2, Rs*0.5, r) * (1.0 - smoothstep(Rs*0.5, Rs * 1.5, r));
-                            float p = sin(r*1.5 - time*3.5)*0.5+0.5;
-                            gl_FragColor = vec4(sc*i*p, i*0.85);
-                        }`,
+                    vertexShader: `varying vec2 vUv; varying float vDist; void main() { vUv = uv; vDist = length(position.xy); gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
+                    fragmentShader: `varying vec2 vUv; varying float vDist; uniform float time; uniform float Rs; void main() { float r = vDist * 8.0; float i = smoothstep(Rs*0.2, Rs*0.5, r) * (1.0 - smoothstep(Rs*0.5, Rs * 1.4, r)); float p = sin(r*1.5 - time*4.0)*0.5+0.5; gl_FragColor = vec4(vec3(1.0, 0.4, 0.1)*i*p, i*0.8); }`,
                     uniforms: { time: { value: 0 }, Rs: { value: this.bhRs } },
                     blending: THREE.AdditiveBlending, side: THREE.DoubleSide
                 });
                 
                 const diskMesh = new THREE.Mesh(diskGeometry, this.bhDiskMat);
-                diskMesh.rotation.x = Math.PI / 2.8;
+                diskMesh.rotation.x = Math.PI / 2.5;
                 this.bhGroup.add(diskMesh);
 
-                const hGeo = new THREE.IcosahedronGeometry(this.bhRs * 0.04, 4);
-                this.bhHMat = new THREE.ShaderMaterial({
-                    vertexShader: `
-                        varying vec3 vP, vN;
-                        void main() { vP = position; vN = normal; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }`,
-                    fragmentShader: `
-                        varying vec3 vP, vN; uniform float time;
-                        float hex(vec3 p) { vec2 a = vec2(p.x+p.y/2.0,p.y)*4.0, f = fract(a); vec2 v = vec2((f.x+f.y/2.0)*2.0-1.0,f.y-0.5); return step(abs(v.x)+abs(v.y),1.0); }
-                        void main() {
-                            float fr = pow(1.0-abs(dot(normalize(vP),vN)),2.0);
-                            float p = hex(vP+vec3(time*0.05));
-                            vec3 col = mix(vec3(0.9,0.25,0.05),vec3(1.0,0.5,0.1),p);
-                            gl_FragColor = vec4(col, fr*0.95);
-                        }`,
-                    uniforms: { time: { value: 0 } },
-                    transparent: true, blending: THREE.AdditiveBlending
-                });
-                this.bhGroup.add(new THREE.Mesh(hGeo, this.bhHMat));
-
-                this.bhN = isMobile ? 1500 : 6000;
+                this.bhN = isMobile ? 800 : 3000;
                 this.bhPts = new Float32Array(this.bhN * 3);
                 this.bhVel = new Float32Array(this.bhN * 3);
-                
                 this.bhPointsGeo = new THREE.BufferGeometry();
                 
-                for (let i = 0; i < this.bhN; i++) {
-                    this.initQuantumParticle(i);
-                }
+                for (let i = 0; i < this.bhN; i++) this.initQuantumParticle(i);
                 
                 this.bhPointsGeo.setAttribute('position', new THREE.BufferAttribute(this.bhPts, 3));
-                const bhPointsMat = new THREE.PointsMaterial({ size: 0.07, color: 0xffaa00, transparent: true, opacity: 0.7, blending: THREE.AdditiveBlending });
-                this.bhGroup.add(new THREE.Points(this.bhPointsGeo, bhPointsMat));
+                this.bhGroup.add(new THREE.Points(this.bhPointsGeo, new THREE.PointsMaterial({ size: 0.06, color: 0xff7700, transparent: true, opacity: 0.7, blending: THREE.AdditiveBlending })));
+                this.bhGroup.visible = false;
             },
 
             initQuantumParticle(i) {
-                const scaleFactor = 0.08;
-                const r = this.bhRs * (3.5 + Math.random() * 6.5) * scaleFactor;
+                const sf = 0.07;
+                const r = this.bhRs * (3.0 + Math.random() * 5.0) * sf;
                 const t = Math.random() * Math.PI * 2;
-                
                 this.bhPts[i*3] = r * Math.cos(t);
-                this.bhPts[i*3+1] = (Math.random() - 0.5) * this.bhRs * 0.5 * scaleFactor;
+                this.bhPts[i*3+1] = (Math.random() - 0.5) * 0.4;
                 this.bhPts[i*3+2] = r * Math.sin(t);
-                
-                const orbitalV = Math.sqrt((this.bhG * this.bhM) / (r / scaleFactor)) * 0.18;
-                this.bhVel[i*3] = -orbitalV * Math.sin(t);
-                this.bhVel[i*3+1] = 0;
-                this.bhVel[i*3+2] = orbitalV * Math.cos(t);
+                const v = Math.sqrt((this.bhG * this.bhM) / (r / sf)) * 0.15;
+                this.bhVel[i*3] = -v * Math.sin(t); this.bhVel[i*3+1] = 0; this.bhVel[i*3+2] = v * Math.cos(t);
             },
 
             transitionCameraView(viewId) {
+                this.galleryGroup.visible = (viewId === 'paintings-view');
+                this.bhGroup.visible = (viewId === 'etc-view');
+
                 if (viewId === 'music-view') {
-                    // Snaps directly down overlooking the platform deck layout
-                    this.targetCamPos.set(0, 6.5, 9); this.targetCamLook.set(0, -1.2, 0);
+                    // Pull ambient stars cleanly forward to settle behind the new workstation layout grid
+                    this.targetCamPos.set(0, 0, 22); this.targetCamLook.set(0, 0, 0);
                 } else if (viewId === 'paintings-view') {
-                    this.targetCamPos.set(-22, 5, -8); this.targetCamLook.set(-35, 3, -8);
+                    this.targetCamPos.set(-23, 3, 0); this.targetCamLook.set(-35, 3, 0);
                 } else if (viewId === 'etc-view') {
-                    this.targetCamPos.set(35, 4, 14); this.targetCamLook.set(35, 0, -5);
+                    this.targetCamPos.set(35, 3, 12); this.targetCamLook.set(35, 0, 0);
                 } else {
-                    // Stage 0: Main Home Menu Overview
                     this.targetCamPos.set(0, 15, 35); this.targetCamLook.set(0, 0, 0);
                 }
             },
@@ -827,227 +731,51 @@
                 requestAnimationFrame(() => this.renderLoop());
                 this.globalTime += 0.01;
 
-                const metricDrift = document.getElementById('metric-drift');
-                const metricVectors = document.getElementById('metric-vectors');
-                const metricParticles = document.getElementById('metric-particles');
-                
-                if(metricDrift) metricDrift.innerText = (Math.sin(this.globalTime) * 0.04).toFixed(6) + "ms";
-                if(metricVectors) metricVectors.innerText = (this.bhRs + Math.sin(this.globalTime * 2) * 0.02).toFixed(4);
-                if(metricParticles) metricParticles.innerText = this.bhN + " / ACTIVE";
+                if (this.bhGroup.visible && this.bhDiskMat) {
+                    this.bhDiskMat.uniforms.time.value = this.globalTime;
+                    const sf = 0.07;
+                    for (let i = 0; i < this.bhN; i++) {
+                        const j = i * 3;
+                        const x = this.bhPts[j]; const z = this.bhPts[j+2];
+                        const r = Math.sqrt(x*x + z*z);
+                        if (r < this.bhRs * 1.1 * sf) { this.initQuantumParticle(i); continue; }
+                        const pull = (this.bhG * this.bhM * 0.006) / (r * r);
+                        const angle = Math.atan2(z, x);
+                        this.bhVel[j]   += (-pull * Math.cos(angle));
+                        this.bhVel[j+2] += (-pull * Math.sin(angle));
+                        this.bhPts[j]   += this.bhVel[j]; this.bhPts[j+2] += this.bhVel[j+2];
+                    }
+                    this.bhPointsGeo.attributes.position.needsUpdate = true;
+                }
 
-                if (this.pointCloud && portfolioState.particleDistributionMode !== 'singularity') {
+                if (this.pointCloud) {
                     const attr = this.pointCloud.geometry.attributes.position;
-                    for(let i=0; i<1000; i++) {
+                    for(let i=0; i<900; i++) {
                         let pt = this.basePositions[i];
                         pt.angle += pt.speed * portfolioState.particleSpeedMultiplier;
-                        
-                        let curX = pt.x;
                         let curY = pt.y;
-                        let curZ = pt.z;
-
                         if (portfolioState.particleDistributionMode === 'disk') {
-                            curY = THREE.MathUtils.lerp(pt.y, Math.sin(pt.angle * 2) * 3, 0.05);
-                        } else if (portfolioState.particleDistributionMode === 'wild') {
-                            curX += Math.cos(pt.angle * 10) * 0.2;
-                            curY += Math.sin(pt.angle * 10) * 0.2;
+                            curY = THREE.MathUtils.lerp(pt.y, Math.sin(pt.angle * 2) * 2, 0.05);
                         }
-
-                        const cosRot = Math.cos(0.0005 * portfolioState.particleSpeedMultiplier);
-                        const sinRot = Math.sin(0.0005 * portfolioState.particleSpeedMultiplier);
-                        const rotatedX = curX * cosRot - curZ * sinRot;
-                        const rotatedZ = curX * sinRot + curZ * cosRot;
-
-                        pt.x = rotatedX;
-                        pt.z = rotatedZ;
-
+                        const cosRot = Math.cos(0.0004 * portfolioState.particleSpeedMultiplier);
+                        const sinRot = Math.sin(0.0004 * portfolioState.particleSpeedMultiplier);
+                        const rotatedX = pt.x * cosRot - pt.z * sinRot;
+                        const rotatedZ = pt.x * sinRot + pt.z * cosRot;
+                        pt.x = rotatedX; pt.z = rotatedZ;
                         attr.setXYZ(i, rotatedX, curY, rotatedZ);
                     }
                     attr.needsUpdate = true;
                 }
 
-                if(this.bhDiskMat && this.bhHMat && this.bhPointsGeo) {
-                    this.bhHMat.uniforms.time.value = this.globalTime;
-                    this.bhDiskMat.uniforms.time.value = this.globalTime;
-
-                    const scaleFactor = 0.08;
-                    const innerLimit = this.bhRs * 1.1 * scaleFactor;
-                    const captureBoundary = this.bhRs * 2.0 * scaleFactor;
-
-                    for (let i = 0; i < this.bhN; i++) {
-                        const j = i * 3;
-                        const x = this.bhPts[j];
-                        const y = this.bhPts[j+1];
-                        const z = this.bhPts[j+2];
-                        const r = Math.sqrt(x*x + z*z);
-
-                        if (r < innerLimit) {
-                            this.initQuantumParticle(i);
-                            continue;
-                        }
-
-                        const pullAcceleration = (this.bhG * this.bhM * 0.008) / (r * r);
-                        const headingAngle = Math.atan2(z, x);
-                        const frictionDrag = Math.max(0, (captureBoundary - r) / captureBoundary) * 0.015;
-
-                        this.bhVel[j]   += (-pullAcceleration * Math.cos(headingAngle) + frictionDrag * Math.sin(headingAngle));
-                        this.bhVel[j+2] += (-pullAcceleration * Math.sin(headingAngle) - frictionDrag * Math.cos(headingAngle));
-
-                        this.bhPts[j]   += this.bhVel[j];
-                        this.bhPts[j+1] += this.bhVel[j+1];
-                        this.bhPts[j+2] += this.bhVel[j+2];
-                    }
-                    this.bhPointsGeo.attributes.position.needsUpdate = true;
-                }
-
-                if(portfolioState.activeView === 'etc-view') {
-                    const driftRadius = 14;
-                    const pathTime = this.globalTime * 0.15;
-                    this.camera.position.set(
-                        35 + driftRadius * Math.cos(pathTime),
-                        4 + Math.sin(pathTime * 1.5) * 2,
-                        -5 + driftRadius * Math.sin(pathTime)
-                    );
-                    this.camera.lookAt(35, 0, -5);
-                } else {
-                    this.camera.position.lerp(this.targetCamPos, 0.04);
-                    this.currentCamLook.lerp(this.targetCamLook, 0.04);
-                    this.camera.lookAt(this.currentCamLook);
-                }
-
-                let targetPlatterSpeed = portfolioState.isPlaying ? 2.0 : 0;
-                this.rotationSpeed += (targetPlatterSpeed - this.rotationSpeed) * 0.05;
-                if (this.rotationSpeed > 0.01) {
-                    if (this.activeVinylMesh) this.activeVinylMesh.rotation.y += this.rotationSpeed * 0.016;
-                    this.platter.rotation.y += this.rotationSpeed * 0.016;
-                }
+                this.camera.position.lerp(this.targetCamPos, 0.05);
+                this.currentCamLook.lerp(this.targetCamLook, 0.05);
+                this.camera.lookAt(this.currentCamLook);
 
                 this.renderer.render(this.scene, this.camera);
             }
         };
 
         window.addEventListener('DOMContentLoaded', () => SpaceEngine.init());
-
-        /* --- ADVANCED RECORD EXTRACTION LIFE CYCLES --- */
-        function trigger3DRecordExtractionPipeline(trackIdx) {
-            if (portfolioState.isAnimating) return;
-            portfolioState.isAnimating = true;
-            portfolioState.loadedTrackIndex = trackIdx;
-            portfolioState.isPlaying = false;
-
-            document.querySelector('.play-pause-btn').innerText = "▶";
-            AudioSystemMock.reset();
-
-            document.documentElement.style.setProperty('--current-theme-hue', tracks[trackIdx].color);
-
-            if(SpaceEngine.activeVinylMesh) {
-                SpaceEngine.turntableGroup.remove(SpaceEngine.activeVinylMesh);
-                SpaceEngine.activeVinylMesh = null;
-            }
-
-            SpaceEngine.tonearmAnchor.rotation.y = -Math.PI / 4;
-
-            const targetTrack = tracks[trackIdx];
-            const pivot = SpaceEngine.sleeves[trackIdx];
-            const disc = SpaceEngine.vinylDiscs[trackIdx];
-
-            let startT = null;
-            function runExtraction(now) {
-                if(!startT) startT = now;
-                let elapsed = now - startT;
-
-                if (elapsed < 400) {
-                    pivot.position.y = 1.2 + (elapsed / 400) * 1.2;
-                    requestAnimationFrame(runExtraction);
-                } else if (elapsed < 900) {
-                    disc.visible = true;
-                    disc.position.x = ((elapsed - 400) / 500) * 2.5;
-                    requestAnimationFrame(runExtraction);
-                } else {
-                    disc.visible = false; disc.position.set(0,0,0); pivot.position.y = 1.2;
-                    
-                    const flyingDisc = new THREE.Mesh(new THREE.CylinderGeometry(1.6,1.6,0.04,32), new THREE.MeshStandardMaterial({ color: 0x111111, metalness:0.8 }));
-                    // Add directly to localized stage relative to table positions
-                    SpaceEngine.musicViewStage.add(flyingDisc);
-                    
-                    let fStart = null;
-                    let sourcePos = new THREE.Vector3(4.5, 1.2, -1.0 + (trackIdx * 1.0));
-                    let targetPos = new THREE.Vector3(-4.8, 0.4, 0);
-
-                    function flyToPlatter(fNow) {
-                        if(!fStart) fStart = fNow;
-                        let fElapsed = fNow - fStart;
-                        let pct = Math.min(fElapsed / 800, 1);
-
-                        flyingDisc.position.lerpVectors(sourcePos, targetPos, pct);
-                        flyingDisc.position.y += Math.sin(pct * Math.PI) * 2.5;
-
-                        if (pct < 1) {
-                            requestAnimationFrame(flyToPlatter);
-                        } else {
-                            SpaceEngine.musicViewStage.remove(flyingDisc);
-                            
-                            SpaceEngine.activeVinylMesh = new THREE.Mesh(new THREE.CylinderGeometry(1.6,1.6,0.04,32), new THREE.MeshStandardMaterial({ color: 0x0a0a0a, roughness:0.3 }));
-                            SpaceEngine.activeVinylMesh.position.set(-0.3, 0.44, 0);
-                            
-                            const innerLabel = new THREE.Mesh(new THREE.CylinderGeometry(0.5,0.5,0.05,16), new THREE.MeshStandardMaterial({ color: targetTrack.hex3d }));
-                            innerLabel.position.y = 0.01;
-                            SpaceEngine.activeVinylMesh.add(innerLabel);
-
-                            SpaceEngine.turntableGroup.add(SpaceEngine.activeVinylMesh);
-
-                            let armStart = null;
-                            function dropArm(aNow) {
-                                if(!armStart) armStart = aNow;
-                                let aPct = Math.min((aNow - armStart) / 400, 1);
-                                SpaceEngine.tonearmAnchor.rotation.y = -Math.PI / 4 + (aPct * (Math.PI / 3.4));
-                                
-                                if(aPct < 1) requestAnimationFrame(dropArm);
-                                else {
-                                    document.getElementById('barTitle').innerText = targetTrack.title;
-                                    document.getElementById('barArtist').innerText = targetTrack.artist;
-                                    document.querySelector('.play-pause-btn').innerText = "⏸";
-                                    portfolioState.isPlaying = true;
-                                    portfolioState.isAnimating = false;
-                                }
-                            }
-                            requestAnimationFrame(dropArm);
-                        }
-                    }
-                    requestAnimationFrame(flyToPlatter);
-                }
-            }
-            requestAnimationFrame(runExtraction);
-        }
-
-        function togglePlayback() {
-            if (portfolioState.isAnimating || !SpaceEngine.activeVinylMesh) return;
-            portfolioState.isAnimating = true;
-
-            let targetArmRotation = portfolioState.isPlaying ? -Math.PI / 4 : -Math.PI / 4 + (Math.PI / 3.4);
-            let startArmRotation = SpaceEngine.tonearmAnchor.rotation.y;
-            let startT = null;
-
-            if(portfolioState.isPlaying) {
-                portfolioState.isPlaying = false;
-                document.querySelector('.play-pause-btn').innerText = "▶";
-            }
-
-            function animateArm(now) {
-                if(!startT) startT = now;
-                let pct = Math.min((now - startT) / 400, 1);
-                SpaceEngine.tonearmAnchor.rotation.y = startArmRotation + (targetArmRotation - startArmRotation) * pct;
-
-                if (pct < 1) requestAnimationFrame(animateArm);
-                else {
-                    portfolioState.isAnimating = false;
-                    if(targetArmRotation !== -Math.PI / 4) {
-                        portfolioState.isPlaying = true;
-                        document.querySelector('.play-pause-btn').innerText = "⏸";
-                    }
-                }
-            }
-            requestAnimationFrame(animateArm);
-        }
     </script>
 </body>
 </html>
