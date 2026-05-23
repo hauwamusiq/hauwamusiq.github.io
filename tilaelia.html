@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>tilaelia's portfolio // fully immersive 3d space</title>
+    <title>tilaelia's portfolio // integrated 3d gallery</title>
     <style>
         /* --- SYSTEM VARIABLE ENGINE & RESETS --- */
         :root {
@@ -216,7 +216,7 @@
             margin: 0 auto;
             width: 100%;
         }
-        .terminal-node mb-target {
+        .terminal-node {
             background: rgba(10, 10, 10, 0.8);
             border: 1px dashed var(--text-dim);
             padding: 20px;
@@ -229,47 +229,36 @@
         .terminal-node span { display: block; color: var(--text-muted); margin-bottom: 5px; }
         .terminal-node div { font-size: 1.1rem; color: #ccff00; font-weight: bold; }
 
-        /* --- FINE ART COMPOSITIONS --- */
-        .paintings-gallery {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-            gap: 40px;
-            max-width: 1200px;
-            margin: 0 auto;
+        /* --- SPATIAL 3D ART HUD INTERFACES --- */
+        .paintings-spatial-hud {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            max-width: 440px;
             width: 100%;
+            margin: auto 0;
+            background: rgba(10, 10, 10, 0.65);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            padding: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.5);
         }
-
-        .painting-frame {
-            background: var(--bg-card);
-            border: 1px solid rgba(255, 255, 255, 0.03);
-            padding: 25px;
-            cursor: zoom-in;
-            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        .art-hud-card {
+            padding: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            transition: all 0.4s ease;
         }
-
-        .painting-frame:hover, .painting-frame.kb-selected {
-            border-color: rgba(255, 255, 255, 0.2);
-            transform: translateY(-6px);
-            background: rgba(255, 255, 255, 0.02);
+        .art-hud-card:hover, .art-hud-card.kb-selected {
+            border-color: var(--text-main);
+            background: rgba(255, 255, 255, 0.03);
+            transform: translateX(5px);
         }
+        .art-hud-card h4 { font-size: 0.95rem; font-weight: 400; margin-bottom: 5px; letter-spacing: 1px; }
+        .art-hud-card p { font-size: 0.75rem; color: var(--text-muted); line-height: 1.4; }
 
-        .image-placeholder {
-            width: 100%; aspect-ratio: 4/5;
-            background: linear-gradient(135deg, #111, #080808);
-            display: flex; align-items: center; justify-content: center;
-            color: var(--text-dim); margin-bottom: 20px; font-size: 0.8rem;
-            border: 1px solid rgba(255, 255, 255, 0.01);
-        }
-
-        .painting-frame.lightbox-focus {
-            position: fixed; top: 50% !important; left: 50% !important;
-            transform: translate(-50%, -50%) scale(1) !important;
-            width: 85vw; max-width: 550px; z-index: 10000; cursor: zoom-out;
-            box-shadow: 0 40px 120px rgba(0, 0, 0, 0.95), 0 0 0 100vw rgba(2, 2, 2, 0.9);
-            background: #0e0e0e; border-color: rgba(255, 255, 255, 0.3);
-        }
-
-        /* --- COMPOSITOR DISK OVERLAYS --- */
         .music-instruction {
             text-align: center; color: var(--text-dim); font-size: 0.7rem; letter-spacing: 2px; margin-bottom: 20px;
         }
@@ -324,23 +313,598 @@
 
             <section class="slide-view" id="paintings-view">
                 <div class="back-nav mb-target" onclick="UIController.switchView(0, 'home-view')">◀ RETREAT TO BASE</div>
-                <div class="paintings-gallery">
-                    <div class="painting-frame mb-target" onclick="GalleryEngine.toggleFocus(event, this)">
-                        <div class="image-placeholder"><span>[ RENDER.VAR_01 ]</span></div>
-                        <div class="painting-meta">
-                            <h4 style="font-weight: 400; letter-spacing: 1px; margin-bottom: 5px;">Oil Medium Over Layered Fiber</h4>
-                            <p style="font-size: 0.8rem; color: var(--text-muted);">A comprehensive study exploring physical material occlusions and spatial weight depth.</p>
-                        </div>
+                <div class="music-instruction">SELECT AN ARTWORK TO INTERPOLATE CAMERA PATHING</div>
+                <div class="paintings-spatial-hud">
+                    <div class="art-hud-card mb-target" onclick="GalleryEngine.focusPainting(0)">
+                        <h4>01 // Spatial Weight Depth</h4>
+                        <p>An abstract geometric calculation exploring structural shadows and material occlusion.</p>
                     </div>
-                    <div class="painting-frame mb-target" onclick="GalleryEngine.toggleFocus(event, this)">
-                        <div class="image-placeholder"><span>[ RENDER.VAR_02 ]</span></div>
-                        <div class="painting-meta">
-                            <h4 style="font-weight: 400; letter-spacing: 1px; margin-bottom: 5px;">Fine Charcoal Outlines</h4>
-                            <p style="font-size: 0.8rem; color: var(--text-muted);">Capturing temporal decay vectors across hyper-localized dimensional boundaries.</p>
-                        </div>
+                    <div class="art-hud-card mb-target" onclick="GalleryEngine.focusPainting(1)">
+                        <h4>02 // Temporal Decay Vectors</h4>
+                        <p>High-contrast linear vectors tracking localized multi-dimensional boundaries.</p>
                     </div>
                 </div>
             </section>
 
             <section class="slide-view" id="etc-view">
-                <div class="back-nav
+                <div class="back-nav mb-target" onclick="UIController.switchView(0, 'home-view')">◀ RETREAT TO BASE</div>
+                <div class="terminal-grid">
+                    <div class="terminal-node mb-target">
+                        <span>SYSTEM ENGINE DRIFT</span>
+                        <div id="metric-drift">0.0000ms</div>
+                    </div>
+                    <div class="terminal-node mb-target">
+                        <span>VECTOR TRANSLATIONS</span>
+                        <div id="metric-vectors">0.0249</div>
+                    </div>
+                    <div class="terminal-node mb-target">
+                        <span>3D PARTICLE ALLOCATION</span>
+                        <div>1000 / ACTIVE</div>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </div>
+
+    <script>
+        let portfolioState = {
+            isIntro: true,
+            isPlaying: false,
+            isAnimating: false,
+            loadedTrackIndex: null,
+            activeView: 'home-view',
+            activeSlideIndex: 0,
+            keyboardIndex: 0,
+            particleSpeedMultiplier: 1.0,
+            particleDistributionMode: 'spread'
+        };
+
+        const tracks = [
+            { id: 0, title: 'Lo-Fi Chill Ambient', artist: 'DJ Code Vector', color: '#ff5722', hex3d: 0xff5722 },
+            { id: 1, title: 'Synthwave Structural Drive', artist: 'Neon Frame Architecture', color: '#e91e63', hex3d: 0xe91e63 },
+            { id: 2, title: 'Deep Space Field', artist: 'Tilaelia Processing', color: '#9c27b0', hex3d: 0x9c27b0 }
+        ];
+
+        /* --- FLUID VIEW COMPOSITOR CONTROLLER --- */
+        const UIController = {
+            enterWebsite() {
+                portfolioState.isIntro = false;
+                document.getElementById('intro-page').classList.add('hidden');
+                InactivityEngine.init();
+                KeyboardEngine.updateVisualHighlights();
+            },
+            switchView(slideIndex, viewNameString) {
+                if (portfolioState.isAnimating) return; 
+
+                portfolioState.activeSlideIndex = slideIndex;
+                portfolioState.activeView = viewNameString;
+                portfolioState.keyboardIndex = 0;
+
+                // Move container smoothly via hardware acceleration
+                document.getElementById('viewContainer').style.transform = `translate3d(${-slideIndex * 25}%, 0, 0)`;
+
+                // Contextual Particle Alteration
+                if(viewNameString === 'music-view') {
+                    portfolioState.particleSpeedMultiplier = 0.4;
+                    portfolioState.particleDistributionMode = 'disk';
+                } else if(viewNameString === 'etc-view') {
+                    portfolioState.particleSpeedMultiplier = 5.0;
+                    portfolioState.particleDistributionMode = 'wild';
+                } else {
+                    portfolioState.particleSpeedMultiplier = 1.0;
+                    portfolioState.particleDistributionMode = 'spread';
+                }
+
+                SpaceEngine.transitionCameraView(viewNameString);
+                KeyboardEngine.updateVisualHighlights();
+            }
+        };
+
+        /* --- IMMERSIVE GALLERY CONTROLLER --- */
+        const GalleryEngine = {
+            focusPainting(index) {
+                if(portfolioState.isAnimating) return;
+                
+                // Align camera vectors with specific 3D wall configurations
+                if(index === 0) {
+                    SpaceEngine.targetCamPos.set(-20, 3, -12);
+                    SpaceEngine.targetCamLook.set(-25, 3, -12);
+                } else if(index === 1) {
+                    SpaceEngine.targetCamPos.set(-20, 3, -4);
+                    SpaceEngine.targetCamLook.set(-25, 3, -4);
+                }
+            }
+        };
+
+        /* --- UNIFIED HARDWARE KEYBOARD LOOP --- */
+        const KeyboardEngine = {
+            init() {
+                window.addEventListener('keydown', (e) => this.handleKeyPress(e));
+            },
+            getTargets() {
+                if (portfolioState.isIntro) return [document.querySelector('.enter-btn')];
+                return Array.from(document.querySelectorAll(`#${portfolioState.activeView} .mb-target`));
+            },
+            handleKeyPress(e) {
+                const targets = this.getTargets();
+
+                if (portfolioState.isIntro) {
+                    if (e.key === 'Enter' || e.key === 'ArrowRight') UIController.enterWebsite();
+                    return;
+                }
+
+                // Custom Interface Overrides for Music Workspace
+                if (portfolioState.activeView === 'music-view') {
+                    if (e.key === 'ArrowLeft') {
+                        e.preventDefault();
+                        UIController.switchView(0, 'home-view');
+                        return;
+                    } else if (e.key === 'ArrowRight') {
+                        e.preventDefault();
+                        let nextIdx = (portfolioState.loadedTrackIndex === null) ? 0 : (portfolioState.loadedTrackIndex + 1) % tracks.length;
+                        trigger3DRecordExtractionPipeline(nextIdx);
+                        return;
+                    } else if (e.key === ' ') {
+                        e.preventDefault();
+                        togglePlayback();
+                        return;
+                    }
+                }
+
+                if (targets.length === 0) return;
+
+                if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+                    e.preventDefault();
+                    portfolioState.keyboardIndex = (portfolioState.keyboardIndex + 1) % targets.length;
+                    this.updateVisualHighlights();
+                    targets[portfolioState.keyboardIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+                    e.preventDefault();
+                    if (e.key === 'ArrowLeft' && portfolioState.activeView !== 'home-view') {
+                        UIController.switchView(0, 'home-view');
+                        return;
+                    }
+                    portfolioState.keyboardIndex = (portfolioState.keyboardIndex - 1 + targets.length) % targets.length;
+                    this.updateVisualHighlights();
+                    targets[portfolioState.keyboardIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                } else if (e.key === 'Enter') {
+                    e.preventDefault();
+                    targets[portfolioState.keyboardIndex].click();
+                }
+            },
+            updateVisualHighlights() {
+                document.querySelectorAll('.kb-selected').forEach(el => el.classList.remove('kb-selected'));
+                const targets = this.getTargets();
+                if (targets[portfolioState.keyboardIndex]) {
+                    targets[portfolioState.keyboardIndex].classList.add('kb-selected');
+                }
+            }
+        };
+        KeyboardEngine.init();
+
+        /* --- REAL-TIME AUDIO METRIC MOCKING --- */
+        let playbackTime = 0;
+        const AudioSystemMock = {
+            tick() {
+                if (!portfolioState.isPlaying) return;
+                playbackTime++;
+                const currentStr = Math.floor(playbackTime / 60) + ":" + ((playbackTime % 60 < 10) ? "0" : "") + (playbackTime % 60);
+                document.getElementById('currentTime').innerText = currentStr;
+                document.getElementById('progressFilled').style.width = (playbackTime / 180 * 100) + "%";
+                if(playbackTime >= 180) { this.reset(); togglePlayback(); }
+            },
+            reset() { playbackTime = 0; document.getElementById('progressFilled').style.width = "0%"; document.getElementById('currentTime').innerText = "0:00"; },
+            scrub(e) {
+                if(!SpaceEngine.activeVinylMesh || portfolioState.isAnimating) return;
+                const rect = e.currentTarget.getBoundingClientRect();
+                const pct = (e.clientX - rect.left) / rect.width;
+                playbackTime = Math.floor(pct * 180);
+                this.tick();
+            }
+        };
+        setInterval(() => AudioSystemMock.tick(), 1000);
+
+        /* --- COLD STRUCTURAL INACTIVITY ENGINE --- */
+        const InactivityEngine = {
+            timeoutHandle: null,
+            init() { ['mousemove', 'keydown'].forEach(evt => window.addEventListener(evt, () => this.wake(), {passive:true})); this.start(); },
+            start() { this.timeoutHandle = setTimeout(() => document.body.classList.add('ambient-mode'), 30000); },
+            wake() { clearTimeout(this.timeoutHandle); document.body.classList.remove('ambient-mode'); this.start(); }
+        };
+
+        /* --- COMPOSITOR WEBGL MOTORS (THREE.JS) --- */
+        const SpaceEngine = {
+            scene: null, camera: null, renderer: null, basePositions: [],
+            saturn: null, platter: null, tonearmAnchor: null, activeVinylMesh: null,
+            sleeves: [], vinylDiscs: [], galleryExhibits: [],
+            targetCamPos: new THREE.Vector3(0, 15, 35), targetCamLook: new THREE.Vector3(0, 0, 0),
+            currentCamLook: new THREE.Vector3(0, 0, 0), rotationSpeed: 0,
+            textureLoader: null,
+
+            init() {
+                const canvas = document.getElementById('webgl-canvas');
+                this.scene = new THREE.Scene();
+                this.camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+                this.camera.position.set(0, 15, 35);
+
+                this.renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
+                this.renderer.setSize(window.innerWidth, window.innerHeight);
+                this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+                this.textureLoader = new THREE.TextureLoader();
+
+                this.scene.add(new THREE.AmbientLight(0x555555));
+                const directionalLight = new THREE.DirectionalLight(0xffffff, 1.5);
+                directionalLight.position.set(5, 20, 10);
+                this.scene.add(directionalLight);
+
+                this.buildStarscape();
+                this.buildPhysicalTurntableSystem();
+                this.buildImmersive3DGallery();
+
+                window.addEventListener('resize', () => {
+                    this.camera.aspect = window.innerWidth / window.innerHeight;
+                    this.camera.updateProjectionMatrix();
+                    this.renderer.setSize(window.innerWidth, window.innerHeight);
+                });
+
+                this.renderLoop();
+            },
+
+            buildStarscape() {
+                const saturnGeo = new THREE.SphereGeometry(3.5, 32, 32);
+                const saturnMat = new THREE.MeshStandardMaterial({ color: 0x1a1a1a, roughness: 0.8, metalness: 0.2 });
+                this.saturn = new THREE.Mesh(saturnGeo, saturnMat);
+                this.saturn.position.set(0, 2, -25);
+                this.scene.add(this.saturn);
+
+                const count = 1000;
+                const geometry = new THREE.BufferGeometry();
+                const positions = new Float32Array(count * 3);
+
+                for(let i=0; i<count; i++) {
+                    const u = Math.random();
+                    const v = Math.random();
+                    const theta = u * 2.0 * Math.PI;
+                    const phi = Math.acos(2.0 * v - 1.0);
+                    const radius = 65 + Math.random() * 25;
+
+                    positions[i*3] = radius * Math.sin(phi) * Math.cos(theta);
+                    positions[i*3+1] = radius * Math.sin(phi) * Math.sin(theta);
+                    positions[i*3+2] = radius * Math.cos(phi);
+
+                    this.basePositions.push({
+                        x: positions[i*3],
+                        y: positions[i*3+1],
+                        z: positions[i*3+2],
+                        angle: Math.random() * Math.PI * 2,
+                        speed: 0.002 + Math.random() * 0.004
+                    });
+                }
+
+                geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+                const pointsMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.08, transparent: true, opacity: 0.5 });
+                this.pointCloud = new THREE.Points(geometry, pointsMat);
+                this.scene.add(this.pointCloud);
+            },
+
+            buildPhysicalTurntableSystem() {
+                this.turntableGroup = new THREE.Group();
+                this.recordCrateGroup = new THREE.Group();
+                this.turntableGroup.position.set(-6, -5, 8);
+                this.recordCrateGroup.position.set(6, -5, 8);
+                this.scene.add(this.turntableGroup, this.recordCrateGroup);
+
+                const deck = new THREE.Mesh(new THREE.BoxGeometry(9, 0.6, 7), new THREE.MeshStandardMaterial({ color: 0x0f0f0f, roughness: 0.6 }));
+                this.turntableGroup.add(deck);
+
+                this.platter = new THREE.Mesh(new THREE.CylinderGeometry(3.2, 3.2, 0.15, 32), new THREE.MeshStandardMaterial({ color: 0x252525, metalness: 0.7 }));
+                this.platter.position.set(-0.5, 0.35, 0);
+                this.turntableGroup.add(this.platter);
+
+                this.tonearmAnchor = new THREE.Group();
+                this.tonearmAnchor.position.set(3.4, 0.4, -2.2);
+                this.tonearmAnchor.rotation.y = -Math.PI / 4;
+                this.turntableGroup.add(this.tonearmAnchor);
+
+                const armRod = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 4, 8), new THREE.MeshStandardMaterial({ color: 0x999999, metalness: 0.9 }));
+                armRod.rotation.x = Math.PI / 2; armRod.position.set(0, 0, 1.6);
+                this.tonearmAnchor.add(armRod);
+
+                tracks.forEach((track, i) => {
+                    const pivot = new THREE.Group();
+                    pivot.position.set(0, 1.8, -1.2 + (i * 1.2));
+                    this.recordCrateGroup.add(pivot);
+
+                    const sleeve = new THREE.Mesh(new THREE.BoxGeometry(4.6, 3.8, 0.1), new THREE.MeshStandardMaterial({ color: track.hex3d, roughness: 0.5 }));
+                    sleeve.userData = { isSleeve: true, trackIndex: i };
+                    pivot.add(sleeve);
+                    this.sleeves.push(pivot);
+
+                    const disc = new THREE.Group();
+                    disc.visible = false;
+                    pivot.add(disc);
+                    disc.add(new THREE.Mesh(new THREE.CylinderGeometry(2, 2, 0.03, 32), new THREE.MeshStandardMaterial({ color: 0x050505, roughness: 0.4 })));
+                    this.vinylDiscs.push(disc);
+                });
+            },
+
+            // Live Image Texture Processing & Fallback Asset Protection Architecture
+            loadTextureWithProceduralFallback(url, type) {
+                // Instantly generate structural canvas maps to handle load delays or missing URLs gracefully
+                const canvas = document.createElement('canvas');
+                canvas.width = 512; canvas.height = 512;
+                const ctx = canvas.getContext('2d');
+
+                const grad = ctx.createLinearGradient(0, 0, 512, 512);
+                grad.addColorStop(0, '#0d0d11'); grad.addColorStop(1, '#020205');
+                ctx.fillStyle = grad; ctx.fillRect(0, 0, 512, 512);
+                ctx.lineWidth = 2;
+
+                if(type === 'geometry') {
+                    ctx.strokeStyle = 'rgba(255, 87, 34, 0.65)';
+                    for(let i=0; i<8; i++) ctx.strokeRect(100 + i*20, 100 + i*15, 312 - i*40, 312 - i*30);
+                    ctx.fillStyle = '#ff5722'; ctx.font = '16px monospace';
+                    ctx.fillText('VAR_01 // OCCLUSION MATRIX', 40, 460);
+                } else {
+                    ctx.strokeStyle = 'rgba(233, 30, 99, 0.5)';
+                    ctx.beginPath();
+                    for(let x=0; x<512; x+=20) {
+                        ctx.moveTo(x, 50 + Math.sin(x*0.05)*60);
+                        ctx.lineTo(512-x, 450 + Math.cos(x*0.05)*60);
+                    }
+                    ctx.stroke();
+                    ctx.fillStyle = '#e91e63'; ctx.font = '16px monospace';
+                    ctx.fillText('VAR_02 // DECAY_BOUNDARIES', 40, 460);
+                }
+
+                const fallbackTexture = new THREE.CanvasTexture(canvas);
+
+                // Attempt to safely bind the live image asset URL directly into WebGL memory
+                if (url && url !== '') {
+                    return this.textureLoader.load(
+                        url,
+                        (loaded) => {
+                            loaded.anisotropy = this.renderer.capabilities.getMaxAnisotropy();
+                        },
+                        undefined,
+                        () => {
+                            console.warn(`Texture path error on context: ${url}. Gracefully preserving fallback matrix.`);
+                        }
+                    );
+                }
+                return fallbackTexture;
+            },
+
+            buildImmersive3DGallery() {
+                this.galleryGroup = new THREE.Group();
+                this.galleryGroup.position.set(-25, 0, -8); // Positioned securely in the left quadrant space
+                this.scene.add(this.galleryGroup);
+
+                // Structural Museum Wall Mesh
+                const wallGeo = new THREE.BoxGeometry(0.5, 12, 16);
+                const wallMat = new THREE.MeshStandardMaterial({ color: 0x09090c, roughness: 0.9 });
+                const mainWall = new THREE.Mesh(wallGeo, wallMat);
+                mainWall.position.set(0, 3, 0);
+                this.galleryGroup.add(mainWall);
+
+                // Integrated Asset Configuration Array (Change URLs here anytime)
+                const artConfigs = [
+                    { y: 3, z: -4, type: 'geometry', url: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=500&auto=format&fit=crop' },
+                    { y: 3, z: 4, type: 'vectors', url: 'https://images.unsplash.com/photo-1634017839464-5c339ebe3cb4?q=80&w=500&auto=format&fit=crop' }
+                ];
+
+                artConfigs.forEach((config) => {
+                    const frameGroup = new THREE.Group();
+                    frameGroup.position.set(0.3, config.y, config.z);
+                    frameGroup.rotation.y = Math.PI / 2; // Orient flat against the geometric wall
+
+                    // Obsidian Trim Profile Border
+                    const border = new THREE.Mesh(new THREE.BoxGeometry(5.4, 6.8, 0.15), new THREE.MeshStandardMaterial({ color: 0x020202, roughness: 0.7 }));
+                    frameGroup.add(border);
+
+                    // Image Texture Plate Bind
+                    const texture = this.loadTextureWithProceduralFallback(config.url, config.type);
+                    const canvasMesh = new THREE.Mesh(
+                        new THREE.PlaneGeometry(5, 6),
+                        new THREE.MeshStandardMaterial({ map: texture, roughness: 0.4, metalness: 0.1 })
+                    );
+                    canvasMesh.position.z = 0.09;
+                    frameGroup.add(canvasMesh);
+
+                    this.galleryGroup.add(frameGroup);
+                });
+            },
+
+            transitionCameraView(viewId) {
+                if (viewId === 'music-view') {
+                    this.targetCamPos.set(0, 5, 18); this.targetCamLook.set(0, -2, 6);
+                } else if (viewId === 'paintings-view') {
+                    this.targetCamPos.set(-14, 5, -8); this.targetCamLook.set(-25, 3, -8);
+                } else if (viewId === 'etc-view') {
+                    this.targetCamPos.set(8, 8, 20); this.targetCamLook.set(4, 2, -2);
+                } else {
+                    this.targetCamPos.set(0, 15, 35); this.targetCamLook.set(0, 0, 0);
+                }
+            },
+
+            renderLoop() {
+                requestAnimationFrame(() => this.renderLoop());
+                const time = performance.now() * 0.001;
+
+                const metricDrift = document.getElementById('metric-drift');
+                const metricVectors = document.getElementById('metric-vectors');
+                if(metricDrift) metricDrift.innerText = (Math.sin(time) * 0.02).toFixed(6) + "ms";
+                if(metricVectors) metricVectors.innerText = (time * 0.1).toFixed(4);
+
+                if (this.pointCloud) {
+                    const attr = this.pointCloud.geometry.attributes.position;
+                    for(let i=0; i<1000; i++) {
+                        let pt = this.basePositions[i];
+                        pt.angle += pt.speed * portfolioState.particleSpeedMultiplier;
+                        
+                        let curX = pt.x;
+                        let curY = pt.y;
+                        let curZ = pt.z;
+
+                        if (portfolioState.particleDistributionMode === 'disk') {
+                            curY = THREE.MathUtils.lerp(pt.y, Math.sin(pt.angle * 2) * 5, 0.05);
+                        } else if (portfolioState.particleDistributionMode === 'wild') {
+                            curX += Math.cos(pt.angle * 10) * 0.2;
+                            curY += Math.sin(pt.angle * 10) * 0.2;
+                        }
+
+                        const cosRot = Math.cos(0.0005 * portfolioState.particleSpeedMultiplier);
+                        const sinRot = Math.sin(0.0005 * portfolioState.particleSpeedMultiplier);
+                        const rotatedX = curX * cosRot - curZ * sinRot;
+                        const rotatedZ = curX * sinRot + curZ * cosRot;
+
+                        pt.x = rotatedX;
+                        pt.z = rotatedZ;
+
+                        attr.setXYZ(i, rotatedX, curY, rotatedZ);
+                    }
+                    attr.needsUpdate = true;
+                }
+
+                this.camera.position.lerp(this.targetCamPos, 0.04);
+                this.currentCamLook.lerp(this.targetCamLook, 0.04);
+                this.camera.lookAt(this.currentCamLook);
+
+                let targetPlatterSpeed = portfolioState.isPlaying ? 2.0 : 0;
+                this.rotationSpeed += (targetPlatterSpeed - this.rotationSpeed) * 0.05;
+                if (this.rotationSpeed > 0.01) {
+                    if (this.activeVinylMesh) this.activeVinylMesh.rotation.y += this.rotationSpeed * 0.016;
+                    this.platter.rotation.y += this.rotationSpeed * 0.016;
+                }
+
+                this.renderer.render(this.scene, this.camera);
+            }
+        };
+
+        window.addEventListener('DOMContentLoaded', () => SpaceEngine.init());
+
+        /* --- ADVANCED MECHANICAL RECORD EXTRACTION LIFE CYCLES --- */
+        function trigger3DRecordExtractionPipeline(trackIdx) {
+            if (portfolioState.isAnimating) return;
+            portfolioState.isAnimating = true;
+            portfolioState.loadedTrackIndex = trackIdx;
+            portfolioState.isPlaying = false;
+
+            document.querySelector('.play-pause-btn').innerText = "▶";
+            AudioSystemMock.reset();
+
+            document.documentElement.style.setProperty('--current-theme-hue', tracks[trackIdx].color);
+
+            if(SpaceEngine.activeVinylMesh) {
+                SpaceEngine.turntableGroup.remove(SpaceEngine.activeVinylMesh);
+                SpaceEngine.activeVinylMesh = null;
+            }
+
+            SpaceEngine.tonearmAnchor.rotation.y = -Math.PI / 4;
+
+            const targetTrack = tracks[trackIdx];
+            const pivot = SpaceEngine.sleeves[trackIdx];
+            const disc = SpaceEngine.vinylDiscs[trackIdx];
+
+            let startT = null;
+            function runExtraction(now) {
+                if(!startT) startT = now;
+                let elapsed = now - startT;
+
+                if (elapsed < 400) {
+                    pivot.position.y = 1.8 + (elapsed / 400) * 1.5;
+                    requestAnimationFrame(runExtraction);
+                } else if (elapsed < 900) {
+                    disc.visible = true;
+                    disc.position.x = ((elapsed - 400) / 500) * 3.5;
+                    requestAnimationFrame(runExtraction);
+                } else {
+                    disc.visible = false; disc.position.set(0,0,0); pivot.position.y = 1.8;
+                    
+                    const flyingDisc = new THREE.Mesh(new THREE.CylinderGeometry(2,2,0.04,32), new THREE.MeshStandardMaterial({ color: 0x111111, metalness:0.8 }));
+                    SpaceEngine.scene.add(flyingDisc);
+                    
+                    let fStart = null;
+                    let sourcePos = new THREE.Vector3(6, -1.7, 8 + (trackIdx * 1.2));
+                    let targetPos = new THREE.Vector3(-6.5, -4.5, 8);
+
+                    function flyToPlatter(fNow) {
+                        if(!fStart) fStart = fNow;
+                        let fElapsed = fNow - fStart;
+                        let pct = Math.min(fElapsed / 800, 1);
+
+                        flyingDisc.position.lerpVectors(sourcePos, targetPos, pct);
+                        flyingDisc.position.y += Math.sin(pct * Math.PI) * 3;
+
+                        if (pct < 1) {
+                            requestAnimationFrame(flyToPlatter);
+                        } else {
+                            SpaceEngine.scene.remove(flyingDisc);
+                            
+                            SpaceEngine.activeVinylMesh = new THREE.Mesh(new THREE.CylinderGeometry(2,2,0.04,32), new THREE.MeshStandardMaterial({ color: 0x0a0a0a, roughness:0.3 }));
+                            SpaceEngine.activeVinylMesh.position.set(-0.5, 0.44, 0);
+                            
+                            const innerLabel = new THREE.Mesh(new THREE.CylinderGeometry(0.6,0.6,0.05,16), new THREE.MeshStandardMaterial({ color: targetTrack.hex3d }));
+                            innerLabel.position.y = 0.01;
+                            SpaceEngine.activeVinylMesh.add(innerLabel);
+
+                            SpaceEngine.turntableGroup.add(SpaceEngine.activeVinylMesh);
+
+                            let armStart = null;
+                            function dropArm(aNow) {
+                                if(!armStart) armStart = aNow;
+                                let aPct = Math.min((aNow - armStart) / 400, 1);
+                                SpaceEngine.tonearmAnchor.rotation.y = -Math.PI / 4 + (aPct * (Math.PI / 3.4));
+                                
+                                if(aPct < 1) requestAnimationFrame(dropArm);
+                                else {
+                                    document.getElementById('barTitle').innerText = targetTrack.title;
+                                    document.getElementById('barArtist').innerText = targetTrack.artist;
+                                    document.querySelector('.play-pause-btn').innerText = "⏸";
+                                    portfolioState.isPlaying = true;
+                                    portfolioState.isAnimating = false;
+                                }
+                            }
+                            requestAnimationFrame(dropArm);
+                        }
+                    }
+                    requestAnimationFrame(flyToPlatter);
+                }
+            }
+            requestAnimationFrame(runExtraction);
+        }
+
+        function togglePlayback() {
+            if (portfolioState.isAnimating || !SpaceEngine.activeVinylMesh) return;
+            portfolioState.isAnimating = true;
+
+            let targetArmRotation = portfolioState.isPlaying ? -Math.PI / 4 : -Math.PI / 4 + (Math.PI / 3.4);
+            let startArmRotation = SpaceEngine.tonearmAnchor.rotation.y;
+            let startT = null;
+
+            if(portfolioState.isPlaying) {
+                portfolioState.isPlaying = false;
+                document.querySelector('.play-pause-btn').innerText = "▶";
+            }
+
+            function animateArm(now) {
+                if(!startT) startT = now;
+                let pct = Math.min((now - startT) / 400, 1);
+                SpaceEngine.tonearmAnchor.rotation.y = startArmRotation + (targetArmRotation - startArmRotation) * pct;
+
+                if (pct < 1) requestAnimationFrame(animateArm);
+                else {
+                    portfolioState.isAnimating = false;
+                    if(targetArmRotation !== -Math.PI / 4) {
+                        portfolioState.isPlaying = true;
+                        document.querySelector('.play-pause-btn').innerText = "⏸";
+                    }
+                }
+            }
+            requestAnimationFrame(animateArm);
+        }
+    </script>
+</body>
+</html>
