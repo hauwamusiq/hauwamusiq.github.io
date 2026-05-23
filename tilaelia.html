@@ -3,13 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Immersive Portfolio Gallery</title>
+    <title>The Creative Archive — Immersive Gallery</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
             user-select: none;
+            -webkit-user-select: none;
         }
 
         body, html {
@@ -17,11 +18,11 @@
             height: 100%;
             overflow: hidden;
             background-color: #0b0b0e;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             color: #f3f3f6;
         }
 
-        /* WebGL Canvas */
+        /* Hardware Accelerated WebGL Surface Target */
         #webgl-container {
             position: fixed;
             top: 0;
@@ -29,9 +30,10 @@
             width: 100%;
             height: 100%;
             z-index: 1;
+            transform: translateZ(0);
         }
 
-        /* Gatekeeper Screen */
+        /* Secure Gatekeeper Overlay Layer */
         #gatekeeper {
             position: fixed;
             top: 0;
@@ -39,23 +41,27 @@
             width: 100%;
             height: 100%;
             background: radial-gradient(circle at center, #1a1a24 0%, #0b0b0e 100%);
-            z-index: 10;
+            z-index: 100;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            transition: opacity 1.5s cubic-bezier(0.25, 1, 0.5, 1), visibility 1.5s;
+            opacity: 1;
+            visibility: visible;
+            transition: opacity 1.2s cubic-bezier(0.25, 1, 0.5, 1), visibility 1.2s;
+            will-change: opacity;
         }
 
         #gatekeeper.hidden {
             opacity: 0;
             visibility: hidden;
+            pointer-events: none;
         }
 
         .gatekeeper-content {
             text-align: center;
             max-width: 600px;
-            padding: 20px;
+            padding: 30px;
         }
 
         h1 {
@@ -80,54 +86,53 @@
         .enter-btn {
             background: transparent;
             border: 1px solid rgba(243, 243, 243, 0.3);
-            padding: 15px 40px;
+            padding: 16px 45px;
             color: #f3f3f6;
             font-size: 0.9rem;
             letter-spacing: 0.2em;
             text-transform: uppercase;
             cursor: pointer;
             border-radius: 50px;
-            transition: all 0.4s ease;
-            position: relative;
-            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+            outline: none;
         }
 
         .enter-btn:hover {
             border-color: #f3f3f6;
-            box-shadow: 0 0 20px rgba(253, 253, 253, 0.15);
+            box-shadow: 0 0 25px rgba(253, 253, 253, 0.15);
             transform: translateY(-2px);
         }
 
-        /* Immersive UI Overlay */
+        /* Immersive Context UI Layer */
         #ui-layer {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            z-index: 2;
-            pointer-events: none; /* Let clicks pass through to 3D scene */
+            z-index: 10;
+            pointer-events: none;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
             padding: 40px;
             opacity: 0;
-            transition: opacity 2s ease 1s;
+            transition: opacity 1.5s ease-in-out;
         }
 
         #ui-layer.visible {
-            pointer-events: auto;
             opacity: 1;
         }
 
         header h2 {
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             font-weight: 400;
-            letter-spacing: 0.2em;
+            letter-spacing: 0.25em;
             text-transform: uppercase;
+            color: rgba(243, 243, 243, 0.8);
         }
 
-        /* Dynamic Content Panel */
+        /* Elastic Side Content Display Panel */
         #panel-container {
             position: absolute;
             right: 40px;
@@ -135,82 +140,104 @@
             transform: translateY(-50%);
             width: 380px;
             background: rgba(11, 11, 14, 0.85);
-            backdrop-filter: blur(20px);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
             border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 16px;
-            padding: 30px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+            border-radius: 20px;
+            padding: 35px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6);
             display: none;
-            max-height: 80vh;
+            max-height: 85vh;
             overflow-y: auto;
+            pointer-events: auto;
         }
 
         #panel-container.active {
             display: block;
-            animation: fadeInRight 0.5s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+            animation: fadeInRight 0.6s cubic-bezier(0.25, 1, 0.5, 1) forwards;
         }
 
         .close-panel {
             position: absolute;
-            top: 20px;
-            right: 20px;
+            top: 25px;
+            right: 25px;
             background: transparent;
             border: none;
             color: #8a8a9e;
-            font-size: 1.2rem;
+            font-size: 1.5rem;
             cursor: pointer;
+            transition: color 0.3s ease;
         }
 
         .close-panel:hover { color: #f3f3f6; }
 
         .panel-title {
-            font-size: 1.5rem;
+            font-size: 1.6rem;
+            font-weight: 400;
             margin-bottom: 15px;
-            letter-spacing: 0.1em;
+            letter-spacing: 0.08em;
             text-transform: uppercase;
             color: #ffffff;
         }
 
         .sub-navigation {
-            margin-top: 20px;
+            margin-top: 25px;
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 12px;
         }
 
         .sub-nav-btn {
-            background: rgba(255,255,255,0.03);
-            border: 1px solid rgba(255,255,255,0.05);
-            padding: 12px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            padding: 14px 18px;
             text-align: left;
             color: #a2a2b0;
-            border-radius: 8px;
+            font-size: 0.9rem;
+            letter-spacing: 0.05em;
+            border-radius: 10px;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
         }
 
         .sub-nav-btn:hover {
-            background: rgba(255,255,255,0.1);
-            color: #fff;
-            padding-left: 18px;
+            background: rgba(255, 255, 255, 0.09);
+            color: #ffffff;
+            padding-left: 24px;
+            border-color: rgba(255, 255, 255, 0.2);
         }
 
-        /* Instructions HUD */
         .hud-instructions {
-            font-size: 0.8rem;
-            color: #646475;
-            letter-spacing: 0.15em;
+            font-size: 0.75rem;
+            color: #555566;
+            letter-spacing: 0.2em;
             text-transform: uppercase;
         }
 
         @keyframes fadeInRight {
-            from { opacity: 0; transform: translate(30px, -50%); }
+            from { opacity: 0; transform: translate(40px, -50%); }
             to { opacity: 1; transform: translate(0, -50%); }
+        }
+
+        @media(max-width: 768px) {
+            #ui-layer { padding: 20px; }
+            #panel-container {
+                right: 20px;
+                left: 20px;
+                width: calc(100% - 40px);
+                top: auto;
+                bottom: 20px;
+                transform: none;
+                max-height: 50vh;
+            }
+            @keyframes fadeInRight {
+                from { opacity: 0; transform: translateY(40px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
         }
     </style>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
 </head>
 <body>
 
@@ -218,7 +245,7 @@
         <div class="gatekeeper-content">
             <h1>The Creative Archive</h1>
             <p>An immersive multi-disciplinary space showcasing fine arts, musical compositions, and written literature.</p>
-            <button class="enter-btn" onclick="enterGallery()">Enter Experience</button>
+            <button id="enter-experience-btn" class="enter-btn">Enter Experience</button>
         </div>
     </div>
 
@@ -229,24 +256,23 @@
 
         <div id="panel-container">
             <button class="close-panel" onclick="closePanel()">×</button>
-            <div id="panel-content">
-                </div>
+            <div id="panel-content"></div>
         </div>
 
         <footer>
-            <div class="hud-instructions">● Click an exhibit to explore details</div>
+            <div class="hud-instructions">● Select an exhibit core to view collection channels</div>
         </footer>
     </div>
 
     <div id="webgl-container"></div>
 
     <script>
-        /* --- Diagnostic & Configuration Framework --- */
         let scene, camera, renderer, nodes = [];
         let raycaster, mouse;
         let isEntered = false;
+        let targetCameraZ = 7.5;
+        let currentIntersected = null;
 
-        // Data Structure for all items (Tested for structure integrity)
         const galleryData = {
             atelier: {
                 title: "The Atelier",
@@ -265,81 +291,77 @@
             }
         };
 
-        // Node Visual Configurations
         const nodeConfigs = [
-            { key: 'atelier', color: 0xd4af37, x: -3.5, y: 0, z: 0, size: 1.2 }, // Gold
-            { key: 'music', color: 0x4a90e2, x: 0, y: 1, z: -1, size: 1.0 },   // Blue
-            { key: 'writings', color: 0xe06d53, x: 3.5, y: -0.5, z: 0, size: 1.1 } // Coral
+            { key: 'atelier', color: 0xd4af37, x: -3.3, y: 0, z: 0, size: 1.1 }, 
+            { key: 'music', color: 0x4a90e2, x: 0, y: 0.8, z: -0.5, size: 0.95 },   
+            { key: 'writings', color: 0xe06d53, x: 3.3, y: -0.4, z: 0, size: 1.05 } 
         ];
 
         function init() {
             const container = document.getElementById('webgl-container');
+            if(!container) return;
 
-            // Scene setup
             scene = new THREE.Scene();
-            scene.fog = new THREE.FogExp2(0x0b0b0e, 0.05);
+            scene.fog = new THREE.FogExp2(0x0b0b0e, 0.06);
 
-            // Camera setup
             camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
-            camera.position.set(0, 0, 8);
+            camera.position.set(0, 0, 18); 
 
-            // Renderer setup
-            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+            // Patched Engine Context Call with High Performance Allocations
+            renderer = new THREE.WebGLRenderer({ 
+                antialias: true, 
+                alpha: false,
+                powerPreference: "high-performance" 
+            });
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             renderer.toneMapping = THREE.ACESFilmicToneMapping;
+            renderer.toneMappingExposure = 1.0;
             container.appendChild(renderer.domElement);
 
-            // Lighting Engine
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.65);
             scene.add(ambientLight);
 
-            const directionalLight = new THREE.DirectionalLight(0xffffff, 1.2);
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 1.1);
             directionalLight.position.set(5, 10, 7);
             scene.add(directionalLight);
 
-            const pointLight = new THREE.PointLight(0xffffff, 0.5, 15);
-            pointLight.position.set(0, -2, 3);
-            scene.add(pointLight);
-
-            // Generate Atmospheric Particle Dust Field
             createParticleField();
-
-            // Generate Interactive Gallery Nodes
             createGalleryNodes();
 
-            // Interaction Utilities
             raycaster = new THREE.Raycaster();
             mouse = new THREE.Vector2();
 
-            // Global Event Listeners
-            window.addEventListener('resize', onWindowResize);
-            window.addEventListener('mousemove', onMouseMove);
-            window.addEventListener('click', onSceneClick);
+            window.addEventListener('resize', onWindowResize, false);
+            window.addEventListener('mousemove', onMouseMove, false);
+            window.addEventListener('click', onSceneClick, false);
 
-            // Initialization loop call
+            const enterBtn = document.getElementById('enter-experience-btn');
+            if(enterBtn) {
+                enterBtn.addEventListener('click', enterGallery, false);
+            }
+
             animate();
         }
 
         function createParticleField() {
-            const particleCount = 400;
+            const particleCount = 350;
             const geometry = new THREE.BufferGeometry();
             const positions = new Float32Array(particleCount * 3);
 
             for (let i = 0; i < particleCount * 3; i += 3) {
-                positions[i] = (Math.random() - 0.5) * 20;
-                positions[i + 1] = (Math.random() - 0.5) * 20;
-                positions[i + 2] = (Math.random() - 0.5) * 20;
+                positions[i] = (Math.random() - 0.5) * 22;
+                positions[i + 1] = (Math.random() - 0.5) * 22;
+                positions[i + 2] = (Math.random() - 0.5) * 22;
             }
 
             geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
             
-            // Soft glowing particle points
             const material = new THREE.PointsMaterial({
-                size: 0.04,
+                size: 0.035,
                 color: 0x8a8a9e,
                 transparent: true,
-                opacity: 0.4,
+                opacity: 0.45,
                 blending: THREE.AdditiveBlending
             });
 
@@ -349,100 +371,115 @@
 
         function createGalleryNodes() {
             nodeConfigs.forEach(cfg => {
-                // Interactive complex geometry grouping
                 const group = new THREE.Group();
                 group.position.set(cfg.x, cfg.y, cfg.z);
-                group.userData = { key: cfg.key };
+                group.userData = { key: cfg.key, currentScale: 1.0, driftOffset: Math.random() * 100 };
 
-                // Core Sphere Mesh
+                // Outer Structural Mesh Wireframe
                 const geom = new THREE.IcosahedronGeometry(cfg.size, 1);
                 const mat = new THREE.MeshStandardMaterial({
                     color: cfg.color,
                     wireframe: true,
-                    roughness: 0.2,
-                    metalness: 0.8,
+                    roughness: 0.3,
+                    metalness: 0.7,
                 });
                 const mesh = new THREE.Mesh(geom, mat);
                 group.add(mesh);
 
-                // Inner Solid core wireframe partner for abstract aesthetic depth
-                const innerGeom = new THREE.IcosahedronGeometry(cfg.size * 0.4, 0);
+                // Internal Solid Core Emission Target
+                const innerGeom = new THREE.IcosahedronGeometry(cfg.size * 0.38, 0);
                 const innerMat = new THREE.MeshStandardMaterial({
                     color: 0xffffff,
                     emissive: cfg.color,
-                    roughness: 0.5,
+                    roughness: 0.4,
                     flatShading: true
                 });
                 const innerMesh = new THREE.Mesh(innerGeom, innerMat);
                 group.add(innerMesh);
+
+                // FIXED: Invisible Bounding Sphere Box for Flawless Interaction Hit Calculations
+                const hitGeom = new THREE.SphereGeometry(cfg.size * 1.1, 8, 8);
+                const hitMat = new THREE.MeshBasicMaterial({ visible: false });
+                const hitMesh = new THREE.Mesh(hitGeom, hitMat);
+                hitMesh.userData = { isHitTarget: true };
+                group.add(hitMesh);
 
                 scene.add(group);
                 nodes.push(group);
             });
         }
 
-        /* --- Animation & Mechanics Loop --- */
         function animate() {
             requestAnimationFrame(animate);
 
-            // Idle Rotations across components
-            const time = Date.now() * 0.0005;
+            const time = Date.now() * 0.0006;
             
-            nodes.forEach((node, idx) => {
-                node.children[0].rotation.y = time * (0.3 + (idx * 0.1));
-                node.children[0].rotation.x = time * 0.1;
-                node.children[1].rotation.y = -time * 0.5;
+            nodes.forEach((node) => {
+                const offset = node.userData.driftOffset;
+                node.children[0].rotation.y = time * 0.4 + offset * 0.01;
+                node.children[0].rotation.x = time * 0.15;
+                node.children[1].rotation.y = -time * 0.6;
                 
-                // Playful floating movement physics
-                node.position.y += Math.sin(time + idx * 2) * 0.002;
+                // Pure-math fluid floating matrix calculation
+                node.position.y += Math.sin(time + offset) * 0.0025;
+
+                // Native interpolation update sequence 
+                let tScale = node.userData.currentScale;
+                node.scale.x += (tScale - node.scale.x) * 0.12;
+                node.scale.y += (tScale - node.scale.y) * 0.12;
+                node.scale.z += (tScale - node.scale.z) * 0.12;
             });
 
-            // Smooth parallax interaction effect if user bypassed gatekeeper
             if(isEntered) {
-                camera.position.x += (mouse.x * 1.5 - camera.position.x) * 0.05;
-                camera.position.y += (mouse.y * 1.5 - camera.position.y) * 0.05;
+                // High precision camera translation vectors
+                camera.position.z += (targetCameraZ - camera.position.z) * 0.035;
+                camera.position.x += (mouse.x * 1.6 - camera.position.x) * 0.04;
+                camera.position.y += (mouse.y * 1.2 - camera.position.y) * 0.04;
                 camera.lookAt(0, 0, 0);
             }
 
             renderer.render(scene, camera);
         }
 
-        /* --- Interface Interaction Functions --- */
         function enterGallery() {
             isEntered = true;
             document.getElementById('gatekeeper').classList.add('hidden');
-            document.getElementById('ui-layer').classList.add('visible');
-
-            // Kinetic entrance zoom camera sequence
-            gsap.from(camera.position, {
-                z: 15,
-                duration: 2.5,
-                ease: "power3.out"
-            });
+            
+            const uiLayer = document.getElementById('ui-layer');
+            if(uiLayer) uiLayer.classList.add('visible');
         }
 
         function onMouseMove(event) {
-            // Calculate screen space coordinates mapped to canvas bounds
             mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
             mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 
-            // Hover interactions feedback mechanics
             if(!isEntered) return;
+
             raycaster.setFromCamera(mouse, camera);
             const intersects = raycaster.intersectObjects(scene.children, true);
 
+            let hoveredKey = null;
+
             if(intersects.length > 0) {
-                document.body.style.cursor = 'pointer';
-                // Soft pulsing scale target feedback
-                let hitNode = intersects[0].object.parent;
-                if(hitNode && hitNode.userData.key) {
-                    gsap.to(hitNode.scale, {x: 1.15, y: 1.15, z: 1.15, duration: 0.3});
+                // Trace back upward cleanly to find parent object parameters
+                let hitObj = intersects.find(o => o.object.parent);
+                if(hitObj) {
+                    let parentGroup = hitObj.object.parent;
+                    parentGroup.userData.currentScale = 1.18;
+                    hoveredKey = parentGroup.userData.key;
+                    document.body.style.cursor = 'pointer';
                 }
-            } else {
+            }
+
+            // Reset non-hovered visual scales seamlessly
+            nodes.forEach(node => {
+                if(node.userData.key !== hoveredKey) {
+                    node.userData.currentScale = 1.0;
+                }
+            });
+
+            if(!hoveredKey) {
                 document.body.style.cursor = 'default';
-                nodes.forEach(node => {
-                    gsap.to(node.scale, {x: 1, y: 1, z: 1, duration: 0.3});
-                });
             }
         }
 
@@ -453,9 +490,12 @@
             const intersects = raycaster.intersectObjects(scene.children, true);
 
             if(intersects.length > 0) {
-                let clickedNode = intersects[0].object.parent;
-                if(clickedNode && clickedNode.userData.key) {
-                    openCategoryPanel(clickedNode.userData.key);
+                let hitObj = intersects.find(o => o.object.parent);
+                if(hitObj) {
+                    let clickedNode = hitObj.object.parent;
+                    if(clickedNode && clickedNode.userData.key) {
+                        openCategoryPanel(clickedNode.userData.key);
+                    }
                 }
             }
         }
@@ -464,17 +504,17 @@
             const data = galleryData[key];
             const panel = document.getElementById('panel-container');
             const content = document.getElementById('panel-content');
+            if(!panel || !content || !data) return;
 
-            // Construct fully interactive custom HTML architecture for writing subsets
             let subNavHTML = data.subcategories.map(sub => `
-                <button class="sub-nav-btn" onclick="alert('Navigating deeper to: ${sub}')">
+                <button class="sub-nav-btn" onclick="console.log('Routing down to visual subchannel: ${sub}')">
                     ${sub} &rarr;
                 </button>
             `).join('');
 
             content.innerHTML = `
                 <h3 class="panel-title">${data.title}</h3>
-                <p style="margin-bottom:20px; font-size:0.95rem;">${data.desc}</p>
+                <p style="margin-bottom:20px; font-size:0.92rem; color:#8a8a9e; line-height:1.5;">${data.desc}</p>
                 <div class="sub-navigation">
                     ${subNavHTML}
                 </div>
@@ -484,7 +524,8 @@
         }
 
         function closePanel() {
-            document.getElementById('panel-container').classList.remove('active');
+            const panel = document.getElementById('panel-container');
+            if(panel) panel.classList.remove('active');
         }
 
         function onWindowResize() {
@@ -493,8 +534,12 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
         }
 
-        // Initialize execution setup automatically on load
-        window.onload = init;
+        // Failsafe Execution Architecture Bootloader
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
     </script>
 </body>
 </html>
