@@ -786,3 +786,269 @@
                 }
                 
                 this.bhPointsGeo.setAttribute('position', new THREE.BufferAttribute(this.bhPts, 3));
+                const bhPointsMat = new THREE.PointsMaterial({ size: 0.07, color: 0xffaa00, transparent: true, opacity: 0.7, blending: THREE.AdditiveBlending });
+                this.bhGroup.add(new THREE.Points(this.bhPointsGeo, bhPointsMat));
+            },
+
+            initQuantumParticle(i) {
+                const scaleFactor = 0.08;
+                const r = this.bhRs * (3.5 + Math.random() * 6.5) * scaleFactor;
+                const t = Math.random() * Math.PI * 2;
+                
+                this.bhPts[i*3] = r * Math.cos(t);
+                this.bhPts[i*3+1] = (Math.random() - 0.5) * this.bhRs * 0.5 * scaleFactor;
+                this.bhPts[i*3+2] = r * Math.sin(t);
+                
+                const orbitalV = Math.sqrt((this.bhG * this.bhM) / (r / scaleFactor)) * 0.18;
+                this.bhVel[i*3] = -orbitalV * Math.sin(t);
+                this.bhVel[i*3+1] = 0;
+                this.bhVel[i*3+2] = orbitalV * Math.cos(t);
+            },
+
+            transitionCameraView(viewId) {
+                if (viewId === 'music-view') {
+                    this.targetCamPos.set(0, 5, 18); this.targetCamLook.set(0, -2, 6);
+                } else if (viewId === 'paintings-view') {
+                    this.targetCamPos.set(-14, 5, -8); this.targetCamLook.set(-25, 3, -8);
+                } else if (viewId === 'etc-view') {
+                    // Positions viewpoint cleanly perpendicular to the relativistic blackhole matrix
+                    this.targetCamPos.set(30, 4, 14); this.targetCamLook.set(30, 0, -5);
+                } else {
+                    this.targetCamPos.set(0, 15, 35); this.targetCamLook.set(0, 0, 0);
+                }
+            },
+
+            renderLoop() {
+                requestAnimationFrame(() => this.renderLoop());
+                this.globalTime += 0.01;
+
+                // Sync terminal string UI metrics updates
+                const metricDrift = document.getElementById('metric-drift');
+                const metricVectors = document.getElementById('metric-vectors');
+                const metricParticles = document.getElementById('metric-particles');
+                
+                if(metricDrift) metricDrift.innerText = (Math.sin(this.globalTime) * 0.04).toFixed(6) + "ms";
+                if(metricVectors) metricVectors.innerText = (this.bhRs + Math.sin(this.globalTime * 2) * 0.02).toFixed(4);
+                if(metricParticles) metricParticles.innerText = this.bhN + " / ACTIVE";
+
+                // Base Ambient Starfield Loops
+                if (this.pointCloud && portfolioState.particleDistributionMode !== 'singularity') {
+                    const attr = this.pointCloud.geometry.attributes.position;
+                    for(let i=0; i<1000; i++) {
+                        let pt = this.basePositions[i];
+                        pt.angle += pt.speed * portfolioState.particleSpeedMultiplier;
+                        
+                        let curX = pt.x;
+                        let curY = pt.y;
+                        let curZ = pt.z;
+
+                        if (portfolioState.particleDistributionMode === 'disk') {
+                            curY = THREE.MathUtils.lerp(pt.y, Math.sin(pt.angle * 2) * 5, 0.05);
+                        } else if (portfolioState.particleDistributionMode === 'wild') {
+                            curX += Math.cos(pt.angle * 10) * 0.2;
+                            curY += Math.sin(pt.angle * 10) * 0.2;
+                        }
+
+                        const cosRot = Math.cos(0.0005 * portfolioState.particleSpeedMultiplier);
+                        const sinRot = Math.sin(0.0005 * portfolioState.particleSpeedMultiplier);
+                        const rotatedX = curX * cosRot - curZ * sinRot;
+                        const rotatedZ = curX * sinRot + curZ * cosRot;
+
+                        pt.x = rotatedX;
+                        pt.z = rotatedZ;
+
+                        attr.setXYZ(i, rotatedX, curY, rotatedZ);
+                    }
+                    attr.needsUpdate = true;
+                }
+
+                // Relativistic Blackhole Processing Iteration Loops
+                if(this.bhDiskMat && this.bhHMat && this.bhPointsGeo) {
+                    this.bhHMat.uniforms.time.value = this.globalTime;
+                    this.bhDiskMat.uniforms.time.value = this.globalTime;
+
+                    const scaleFactor = 0.08;
+                    const innerLimit = this.bhRs * 1.1 * scaleFactor;
+                    const captureBoundary = this.bhRs * 2.0 * scaleFactor;
+
+                    for (let i = 0; i < this.bhN; i++) {
+                        const j = i * 3;
+                        const x = this.bhPts[j];
+                        const y = this.bhPts[j+1];
+                        const z = this.bhPts[j+2];
+                        const r = Math.sqrt(x*x + z*z);
+
+                        if (r < innerLimit) {
+                            this.initQuantumParticle(i);
+                            continue;
+                        }
+
+                        // Relativistic acceleration vector modifications
+                        const pullAcceleration = (this.bhG * this.bhM * 0.008) / (r * r);
+                        const headingAngle = Math.atan2(z, x);
+                        const frictionDrag = Math.max(0, (captureBoundary - r) / captureBoundary) * 0.015;
+
+                        this.bhVel[j]   += (-pullAcceleration * Math.cos(headingAngle) + frictionDrag * Math.sin(headingAngle));
+                        this.bhVel[j+2] += (-pullAcceleration * Math.sin(headingAngle) - frictionDrag * Math.cos(headingAngle));
+
+                        this.bhPts[j]   += this.bhVel[j];
+                        this.bhPts[j+1] += this.bhVel[j+1];
+                        this.bhPts[j+2] += this.bhVel[j+2];
+                    }
+                    this.bhPointsGeo.attributes.position.needsUpdate = true;
+                }
+
+                // Smooth camera view interpolation glides
+                if(portfolioState.activeView === 'etc-view') {
+                    // Inject a light cinematic orbital drift while viewing the metrics terminal node
+                    const driftRadius = 14;
+                    const pathTime = this.globalTime * 0.15;
+                    this.camera.position.set(
+                        30 + driftRadius * Math.cos(pathTime),
+                        4 + Math.sin(pathTime * 1.5) * 2,
+                        -5 + driftRadius * Math.sin(pathTime)
+                    );
+                    this.camera.lookAt(30, 0, -5);
+                } else {
+                    this.camera.position.lerp(this.targetCamPos, 0.04);
+                    this.currentCamLook.lerp(this.targetCamLook, 0.04);
+                    this.camera.lookAt(this.currentCamLook);
+                }
+
+                // Turntable system rotational acceleration loops
+                let targetPlatterSpeed = portfolioState.isPlaying ? 2.0 : 0;
+                this.rotationSpeed += (targetPlatterSpeed - this.rotationSpeed) * 0.05;
+                if (this.rotationSpeed > 0.01) {
+                    if (this.activeVinylMesh) this.activeVinylMesh.rotation.y += this.rotationSpeed * 0.016;
+                    this.platter.rotation.y += this.rotationSpeed * 0.016;
+                }
+
+                this.renderer.render(this.scene, this.camera);
+            }
+        };
+
+        window.addEventListener('DOMContentLoaded', () => SpaceEngine.init());
+
+        /* --- RECORD EXTRACTION LIFE CYCLES --- */
+        function trigger3DRecordExtractionPipeline(trackIdx) {
+            if (portfolioState.isAnimating) return;
+            portfolioState.isAnimating = true;
+            portfolioState.loadedTrackIndex = trackIdx;
+            portfolioState.isPlaying = false;
+
+            document.querySelector('.play-pause-btn').innerText = "▶";
+            AudioSystemMock.reset();
+
+            document.documentElement.style.setProperty('--current-theme-hue', tracks[trackIdx].color);
+
+            if(SpaceEngine.activeVinylMesh) {
+                SpaceEngine.turntableGroup.remove(SpaceEngine.activeVinylMesh);
+                SpaceEngine.activeVinylMesh = null;
+            }
+
+            SpaceEngine.tonearmAnchor.rotation.y = -Math.PI / 4;
+
+            const targetTrack = tracks[trackIdx];
+            const pivot = SpaceEngine.sleeves[trackIdx];
+            const disc = SpaceEngine.vinylDiscs[trackIdx];
+
+            let startT = null;
+            function runExtraction(now) {
+                if(!startT) startT = now;
+                let elapsed = now - startT;
+
+                if (elapsed < 400) {
+                    pivot.position.y = 1.8 + (elapsed / 400) * 1.5;
+                    requestAnimationFrame(runExtraction);
+                } else if (elapsed < 900) {
+                    disc.visible = true;
+                    disc.position.x = ((elapsed - 400) / 500) * 3.5;
+                    requestAnimationFrame(runExtraction);
+                } else {
+                    disc.visible = false; disc.position.set(0,0,0); pivot.position.y = 1.8;
+                    
+                    const flyingDisc = new THREE.Mesh(new THREE.CylinderGeometry(2,2,0.04,32), new THREE.MeshStandardMaterial({ color: 0x111111, metalness:0.8 }));
+                    SpaceEngine.scene.add(flyingDisc);
+                    
+                    let fStart = null;
+                    let sourcePos = new THREE.Vector3(6, -1.7, 8 + (trackIdx * 1.2));
+                    let targetPos = new THREE.Vector3(-6.5, -4.5, 8);
+
+                    function flyToPlatter(fNow) {
+                        if(!fStart) fStart = fNow;
+                        let fElapsed = fNow - fStart;
+                        let pct = Math.min(fElapsed / 800, 1);
+
+                        flyingDisc.position.lerpVectors(sourcePos, targetPos, pct);
+                        flyingDisc.position.y += Math.sin(pct * Math.PI) * 3;
+
+                        if (pct < 1) {
+                            requestAnimationFrame(flyToPlatter);
+                        } else {
+                            SpaceEngine.scene.remove(flyingDisc);
+                            
+                            SpaceEngine.activeVinylMesh = new THREE.Mesh(new THREE.CylinderGeometry(2,2,0.04,32), new THREE.MeshStandardMaterial({ color: 0x0a0a0a, roughness:0.3 }));
+                            SpaceEngine.activeVinylMesh.position.set(-0.5, 0.44, 0);
+                            
+                            const innerLabel = new THREE.Mesh(new THREE.CylinderGeometry(0.6,0.6,0.05,16), new THREE.MeshStandardMaterial({ color: targetTrack.hex3d }));
+                            innerLabel.position.y = 0.01;
+                            SpaceEngine.activeVinylMesh.add(innerLabel);
+
+                            SpaceEngine.turntableGroup.add(SpaceEngine.activeVinylMesh);
+
+                            let armStart = null;
+                            function dropArm(aNow) {
+                                if(!armStart) armStart = aNow;
+                                let aPct = Math.min((aNow - armStart) / 400, 1);
+                                SpaceEngine.tonearmAnchor.rotation.y = -Math.PI / 4 + (aPct * (Math.PI / 3.4));
+                                
+                                if(aPct < 1) requestAnimationFrame(dropArm);
+                                else {
+                                    document.getElementById('barTitle').innerText = targetTrack.title;
+                                    document.getElementById('barArtist').innerText = targetTrack.artist;
+                                    document.querySelector('.play-pause-btn').innerText = "⏸";
+                                    portfolioState.isPlaying = true;
+                                    portfolioState.isAnimating = false;
+                                }
+                            }
+                            requestAnimationFrame(dropArm);
+                        }
+                    }
+                    requestAnimationFrame(flyToPlatter);
+                }
+            }
+            requestAnimationFrame(runExtraction);
+        }
+
+        function togglePlayback() {
+            if (portfolioState.isAnimating || !SpaceEngine.activeVinylMesh) return;
+            portfolioState.isAnimating = true;
+
+            let targetArmRotation = portfolioState.isPlaying ? -Math.PI / 4 : -Math.PI / 4 + (Math.PI / 3.4);
+            let startArmRotation = SpaceEngine.tonearmAnchor.rotation.y;
+            let startT = null;
+
+            if(portfolioState.isPlaying) {
+                portfolioState.isPlaying = false;
+                document.querySelector('.play-pause-btn').innerText = "▶";
+            }
+
+            function animateArm(now) {
+                if(!startT) startT = now;
+                let pct = Math.min((now - startT) / 400, 1);
+                SpaceEngine.tonearmAnchor.rotation.y = startArmRotation + (targetArmRotation - startArmRotation) * pct;
+
+                if (pct < 1) requestAnimationFrame(animateArm);
+                else {
+                    portfolioState.isAnimating = false;
+                    if(targetArmRotation !== -Math.PI / 4) {
+                        portfolioState.isPlaying = true;
+                        document.querySelector('.play-pause-btn').innerText = "⏸";
+                    }
+                }
+            }
+            requestAnimationFrame(animateArm);
+        }
+    </script>
+</body>
+</html>
