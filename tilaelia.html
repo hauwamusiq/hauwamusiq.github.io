@@ -23,7 +23,66 @@
             background-color: var(--bg-color);
             color: var(--text-color);
             line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* --- SPLASH SCREEN BUG FIX --- */
+        #splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: var(--bg-color);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.8s ease, visibility 0.8s;
+        }
+
+        #splash-screen.fade-out {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        #splash-screen h2 {
+            font-size: 2.5rem;
+            font-weight: 300;
+            margin-bottom: 2rem;
+            letter-spacing: 2px;
+        }
+
+        .enter-btn {
+            font-family: sans-serif;
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            padding: 1rem 2.5rem;
+            border: 1px solid var(--text-color);
+            background: transparent;
+            color: var(--text-color);
+            cursor: pointer;
+            transition: all 0.4s ease;
+        }
+
+        .enter-btn:hover {
+            background-color: var(--text-color);
+            color: var(--bg-color);
+        }
+
+        /* --- MAIN CONTENT --- */
+        .portfolio-content {
             padding: 0 2rem;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 1s ease 0.4s, transform 1s ease 0.4s;
+        }
+
+        body.active .portfolio-content {
+            opacity: 1;
+            transform: translateY(0);
         }
 
         header {
@@ -188,104 +247,121 @@
 </head>
 <body>
 
-    <header>
-        <h1>YOUR NAME</h1>
-        <nav>
-            <a href="#music">Music</a>
-            <a href="#art">Visual Arts</a>
-            <a href="#writings">Writings</a>
-        </nav>
-    </header>
+    <div id="splash-screen">
+        <h2>WELCOME TO THE ANTHOLOGY</h2>
+        <button class="enter-btn" id="enter-experience-btn">Enter Experience</button>
+    </div>
 
-    <main>
-        <section class="hero">
-            <h2>Musician, Artist, & Writer</h2>
-            <p>A curated anthology of sound, canvas, and written word.</p>
-        </section>
+    <div class="portfolio-content">
+        <header>
+            <h1>YOUR NAME</h1>
+            <nav>
+                <a href="#music">Music</a>
+                <a href="#art">Visual Arts</a>
+                <a href="#writings">Writings</a>
+            </nav>
+        </header>
 
-        <section id="music">
-            <h3>Music</h3>
-            <div class="music-grid">
-                <div class="track-card">
-                    <h4>Composition Title Suite</h4>
-                    <p class="meta">Classical / Ambient</p>
-                    <audio controls src="your-audio-file.mp3"></audio> 
+        <main>
+            <section class="hero">
+                <h2>Musician, Artist, & Writer</h2>
+                <p>A curated anthology of sound, canvas, and written word.</p>
+            </section>
+
+            <section id="music">
+                <h3>Music</h3>
+                <div class="music-grid">
+                    <div class="track-card">
+                        <h4>Composition Title Suite</h4>
+                        <p class="meta">Classical / Ambient</p>
+                        <audio controls src="your-audio-file.mp3"></audio> 
+                    </div>
+                    <div class="track-card">
+                        <h4>Experimental Track 01</h4>
+                        <p class="meta">Electronic / Avant-garde</p>
+                        <audio controls src="your-audio-file-2.mp3"></audio>
+                    </div>
                 </div>
-                <div class="track-card">
-                    <h4>Experimental Track 01</h4>
-                    <p class="meta">Electronic / Avant-garde</p>
-                    <audio controls src="your-audio-file-2.mp3"></audio>
-                </div>
-            </div>
-        </section>
+            </section>
 
-        <section id="art">
-            <h3>Visual Arts</h3>
+            <section id="art">
+                <h3>Visual Arts</h3>
+                
+                <div class="art-subheading">Paintings</div>
+                <div class="gallery-grid">
+                    <div class="art-card">
+                        <div class="art-placeholder">[ Painting Image Here ]</div>
+                        <div class="art-info">
+                            <h4>Serenade in Oil</h4>
+                            <p class="meta">Oil on Canvas, 2025</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="art-subheading">Drawings & Sketches</div>
+                <div class="gallery-grid">
+                    <div class="art-card">
+                        <div class="art-placeholder">[ Sketch Image Here ]</div>
+                        <div class="art-info">
+                            <h4>Study of Light</h4>
+                            <p class="meta">Charcoal on Paper, 2026</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="writings">
+                <h3>Writings</h3>
+
+                <div class="writing-category">
+                    <div class="art-subheading">Poetry</div>
+                    <ul class="writing-list">
+                        <li class="writing-item">
+                            <h4>Echoes of the Solstice</h4>
+                            <p class="meta">Published in Lit Journal, 2024</p>
+                            <p>A brief excerpt or the full poem can go here to capture the reader's attention...</p>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="writing-category">
+                    <div class="art-subheading">Essays & Literature</div>
+                    <ul class="writing-list">
+                        <li class="writing-item">
+                            <h4>The Modern Canvas: A Narrative Study</h4>
+                            <p class="meta">Creative Non-Fiction</p>
+                            <p>An introductory paragraph or abstract detailing your literary essay work.</p>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="writing-category">
+                    <div class="art-subheading">Academic Research</div>
+                    <ul class="writing-list">
+                        <li class="writing-item">
+                            <h4>Socio-Aesthetic Shifts in 21st Century Composition</h4>
+                            <p class="meta">Peer-Reviewed Journal / Methodology</p>
+                            <p>Abstract: This paper explores the intersection of digital evolution and acoustic traditions...</p>
+                        </li>
+                    </ul>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>&copy; 2026 Your Name. All Rights Reserved.</p>
+        </footer>
+    </div>
+
+    <script>
+        document.getElementById('enter-experience-btn').addEventListener('click', function() {
+            // Fade out the splash screen overlay
+            document.getElementById('splash-screen').classList.add('fade-out');
             
-            <div class="art-subheading">Paintings</div>
-            <div class="gallery-grid">
-                <div class="art-card">
-                    <div class="art-placeholder">[ Painting Image Here ]</div>
-                    <div class="art-info">
-                        <h4>Serenade in Oil</h4>
-                        <p class="meta">Oil on Canvas, 2025</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="art-subheading">Drawings & Sketches</div>
-            <div class="gallery-grid">
-                <div class="art-card">
-                    <div class="art-placeholder">[ Sketch Image Here ]</div>
-                    <div class="art-info">
-                        <h4>Study of Light</h4>
-                        <p class="meta">Charcoal on Paper, 2026</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section id="writings">
-            <h3>Writings</h3>
-
-            <div class="writing-category">
-                <div class="art-subheading">Poetry</div>
-                <ul class="writing-list">
-                    <li class="writing-item">
-                        <h4>Echoes of the Solstice</h4>
-                        <p class="meta">Published in Lit Journal, 2024</p>
-                        <p>A brief excerpt or the full poem can go here to capture the reader's attention...</p>
-                    </li>
-                </ul>
-            </div>
-
-            <div class="writing-category">
-                <div class="art-subheading">Essays & Literature</div>
-                <ul class="writing-list">
-                    <li class="writing-item">
-                        <h4>The Modern Canvas: A Narrative Study</h4>
-                        <p class="meta">Creative Non-Fiction</p>
-                        <p>An introductory paragraph or abstract detailing your literary essay work.</p>
-                    </li>
-                </ul>
-            </div>
-
-            <div class="writing-category">
-                <div class="art-subheading">Academic Research</div>
-                <ul class="writing-list">
-                    <li class="writing-item">
-                        <h4>Socio-Aesthetic Shifts in 21st Century Composition</h4>
-                        <p class="meta">Peer-Reviewed Journal / Methodology</p>
-                        <p>Abstract: This paper explores the intersection of digital evolution and acoustic traditions...</p>
-                    </li>
-                </ul>
-            </div>
-        </section>
-    </main>
-
-    <footer>
-        <p>&copy; 2026 Your Name. All Rights Reserved.</p>
-    </footer>
+            // Activate the layout animation for the portfolio body
+            document.body.classList.add('active');
+        });
+    </script>
 
 </body>
 </html>
