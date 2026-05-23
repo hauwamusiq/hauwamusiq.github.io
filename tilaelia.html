@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Creative Archive — Immersive Gallery</title>
+    <title>The Creative Archive</title>
     <style>
         * {
             margin: 0;
@@ -20,20 +20,10 @@
             background-color: #0b0b0e;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             color: #f3f3f6;
+            perspective: 1000px;
         }
 
-        /* Hardware Accelerated WebGL Surface Target */
-        #webgl-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 1;
-            transform: translateZ(0);
-        }
-
-        /* Secure Gatekeeper Overlay Layer */
+        /* Gatekeeper Overlay */
         #gatekeeper {
             position: fixed;
             top: 0;
@@ -46,10 +36,7 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            opacity: 1;
-            visibility: visible;
-            transition: opacity 1.2s cubic-bezier(0.25, 1, 0.5, 1), visibility 1.2s;
-            will-change: opacity;
+            transition: opacity 1s ease, visibility 1s;
         }
 
         #gatekeeper.hidden {
@@ -93,8 +80,7 @@
             text-transform: uppercase;
             cursor: pointer;
             border-radius: 50px;
-            transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
-            outline: none;
+            transition: all 0.4s ease;
         }
 
         .enter-btn:hover {
@@ -103,58 +89,96 @@
             transform: translateY(-2px);
         }
 
-        /* Immersive Context UI Layer */
-        #ui-layer {
-            position: fixed;
-            top: 0;
-            left: 0;
+        /* Pure CSS Immersive Gallery Stage */
+        #gallery-stage {
+            position: absolute;
             width: 100%;
             height: 100%;
-            z-index: 10;
-            pointer-events: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 50px;
+            opacity: 0;
+            transform: scale(0.8) translateZ(-200px);
+            transition: all 1.5s cubic-bezier(0.25, 1, 0.5, 1);
+            z-index: 1;
+        }
+
+        #gallery-stage.visible {
+            opacity: 1;
+            transform: scale(1) translateZ(0);
+        }
+
+        /* Playful Floating 3D Node Pods */
+        .art-node {
+            width: 220px;
+            height: 220px;
+            border-radius: 50%;
+            border: 2px dashed rgba(255, 255, 255, 0.15);
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
-            padding: 40px;
-            opacity: 0;
-            transition: opacity 1.5s ease-in-out;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+            transform-style: preserve-3d;
+            animation: floatSlow 6s ease-in-out infinite alternate;
         }
 
-        #ui-layer.visible {
-            opacity: 1;
+        .art-node:nth-child(2) { animation-delay: -2s; }
+        .art-node:nth-child(3) { animation-delay: -4s; }
+
+        .art-node:hover {
+            border-color: #ffffff;
+            transform: scale(1.1) rotateY(10deg);
+            box-shadow: 0 0 30px rgba(255, 255, 255, 0.1);
         }
 
-        header h2 {
+        .node-core {
+            width: 70px;
+            height: 70px;
+            border-radius: 35%;
+            margin-bottom: 15px;
+            transform: translateZ(20px);
+            transition: transform 0.5s;
+        }
+
+        #node-atelier .node-core { background: #d4af37; box-shadow: 0 0 20px rgba(212, 175, 55, 0.4); }
+        #node-music .node-core { background: #4a90e2; box-shadow: 0 0 20px rgba(74, 144, 226, 0.4); }
+        #node-writings .node-core { background: #e06d53; box-shadow: 0 0 20px rgba(224, 109, 83, 0.4); }
+
+        .node-title {
             font-size: 1.1rem;
-            font-weight: 400;
-            letter-spacing: 0.25em;
             text-transform: uppercase;
-            color: rgba(243, 243, 243, 0.8);
+            letter-spacing: 0.15em;
+            font-weight: 400;
         }
 
-        /* Elastic Side Content Display Panel */
+        /* Side Info Display Panel */
         #panel-container {
-            position: absolute;
+            position: fixed;
             right: 40px;
             top: 50%;
-            transform: translateY(-50%);
+            transform: translateY(-50%) translateX(100px);
             width: 380px;
-            background: rgba(11, 11, 14, 0.85);
+            background: rgba(11, 11, 14, 0.9);
             backdrop-filter: blur(25px);
             -webkit-backdrop-filter: blur(25px);
             border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 20px;
             padding: 35px;
             box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6);
-            display: none;
-            max-height: 85vh;
-            overflow-y: auto;
-            pointer-events: auto;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+            z-index: 10;
         }
 
         #panel-container.active {
-            display: block;
-            animation: fadeInRight 0.6s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(-50%) translateX(0);
         }
 
         .close-panel {
@@ -166,18 +190,13 @@
             color: #8a8a9e;
             font-size: 1.5rem;
             cursor: pointer;
-            transition: color 0.3s ease;
         }
-
-        .close-panel:hover { color: #f3f3f6; }
 
         .panel-title {
             font-size: 1.6rem;
-            font-weight: 400;
             margin-bottom: 15px;
             letter-spacing: 0.08em;
             text-transform: uppercase;
-            color: #ffffff;
         }
 
         .sub-navigation {
@@ -194,50 +213,28 @@
             text-align: left;
             color: #a2a2b0;
             font-size: 0.9rem;
-            letter-spacing: 0.05em;
             border-radius: 10px;
             cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+            transition: all 0.3s;
         }
 
         .sub-nav-btn:hover {
             background: rgba(255, 255, 255, 0.09);
             color: #ffffff;
             padding-left: 24px;
-            border-color: rgba(255, 255, 255, 0.2);
         }
 
-        .hud-instructions {
-            font-size: 0.75rem;
-            color: #555566;
-            letter-spacing: 0.2em;
-            text-transform: uppercase;
-        }
-
-        @keyframes fadeInRight {
-            from { opacity: 0; transform: translate(40px, -50%); }
-            to { opacity: 1; transform: translate(0, -50%); }
+        @keyframes floatSlow {
+            from { transform: translateY(-10px) rotateX(0deg); }
+            to { transform: translateY(10px) rotateX(5deg); }
         }
 
         @media(max-width: 768px) {
-            #ui-layer { padding: 20px; }
-            #panel-container {
-                right: 20px;
-                left: 20px;
-                width: calc(100% - 40px);
-                top: auto;
-                bottom: 20px;
-                transform: none;
-                max-height: 50vh;
-            }
-            @keyframes fadeInRight {
-                from { opacity: 0; transform: translateY(40px); }
-                to { opacity: 1; transform: translateY(0); }
-            }
+            #gallery-stage { flex-direction: column; gap: 20px; padding-top: 60px; }
+            #panel-container { bottom: 20px; top: auto; transform: translateY(100px); right: 20px; left: 20px; width: calc(100% - 40px); }
+            #panel-container.active { transform: translateY(0); }
         }
     </style>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 <body>
 
@@ -245,34 +242,31 @@
         <div class="gatekeeper-content">
             <h1>The Creative Archive</h1>
             <p>An immersive multi-disciplinary space showcasing fine arts, musical compositions, and written literature.</p>
-            <button id="enter-experience-btn" class="enter-btn">Enter Experience</button>
+            <button class="enter-btn" onclick="enterGallery()">Enter Experience</button>
         </div>
     </div>
 
-    <div id="ui-layer">
-        <header>
-            <h2>Portfolio Gallery</h2>
-        </header>
-
-        <div id="panel-container">
-            <button class="close-panel" onclick="closePanel()">×</button>
-            <div id="panel-content"></div>
+    <div id="gallery-stage">
+        <div class="art-node" id="node-atelier" onclick="openPanel('atelier')">
+            <div class="node-core"></div>
+            <div class="node-title">Atelier</div>
         </div>
-
-        <footer>
-            <div class="hud-instructions">● Select an exhibit core to view collection channels</div>
-        </footer>
+        <div class="art-node" id="node-music" onclick="openPanel('music')">
+            <div class="node-core"></div>
+            <div class="node-title">Music</div>
+        </div>
+        <div class="art-node" id="node-writings" onclick="openPanel('writings')">
+            <div class="node-core"></div>
+            <div class="node-title">Writings</div>
+        </div>
     </div>
 
-    <div id="webgl-container"></div>
+    <div id="panel-container">
+        <button class="close-panel" onclick="closePanel()">×</button>
+        <div id="panel-content"></div>
+    </div>
 
     <script>
-        let scene, camera, renderer, nodes = [];
-        let raycaster, mouse;
-        let isEntered = false;
-        let targetCameraZ = 7.5;
-        let currentIntersected = null;
-
         const galleryData = {
             atelier: {
                 title: "The Atelier",
@@ -291,223 +285,17 @@
             }
         };
 
-        const nodeConfigs = [
-            { key: 'atelier', color: 0xd4af37, x: -3.3, y: 0, z: 0, size: 1.1 }, 
-            { key: 'music', color: 0x4a90e2, x: 0, y: 0.8, z: -0.5, size: 0.95 },   
-            { key: 'writings', color: 0xe06d53, x: 3.3, y: -0.4, z: 0, size: 1.05 } 
-        ];
-
-        function init() {
-            const container = document.getElementById('webgl-container');
-            if(!container) return;
-
-            scene = new THREE.Scene();
-            scene.fog = new THREE.FogExp2(0x0b0b0e, 0.06);
-
-            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
-            camera.position.set(0, 0, 18); 
-
-            // Patched Engine Context Call with High Performance Allocations
-            renderer = new THREE.WebGLRenderer({ 
-                antialias: true, 
-                alpha: false,
-                powerPreference: "high-performance" 
-            });
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-            renderer.toneMapping = THREE.ACESFilmicToneMapping;
-            renderer.toneMappingExposure = 1.0;
-            container.appendChild(renderer.domElement);
-
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.65);
-            scene.add(ambientLight);
-
-            const directionalLight = new THREE.DirectionalLight(0xffffff, 1.1);
-            directionalLight.position.set(5, 10, 7);
-            scene.add(directionalLight);
-
-            createParticleField();
-            createGalleryNodes();
-
-            raycaster = new THREE.Raycaster();
-            mouse = new THREE.Vector2();
-
-            window.addEventListener('resize', onWindowResize, false);
-            window.addEventListener('mousemove', onMouseMove, false);
-            window.addEventListener('click', onSceneClick, false);
-
-            const enterBtn = document.getElementById('enter-experience-btn');
-            if(enterBtn) {
-                enterBtn.addEventListener('click', enterGallery, false);
-            }
-
-            animate();
-        }
-
-        function createParticleField() {
-            const particleCount = 350;
-            const geometry = new THREE.BufferGeometry();
-            const positions = new Float32Array(particleCount * 3);
-
-            for (let i = 0; i < particleCount * 3; i += 3) {
-                positions[i] = (Math.random() - 0.5) * 22;
-                positions[i + 1] = (Math.random() - 0.5) * 22;
-                positions[i + 2] = (Math.random() - 0.5) * 22;
-            }
-
-            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-            
-            const material = new THREE.PointsMaterial({
-                size: 0.035,
-                color: 0x8a8a9e,
-                transparent: true,
-                opacity: 0.45,
-                blending: THREE.AdditiveBlending
-            });
-
-            const particles = new THREE.Points(geometry, material);
-            scene.add(particles);
-        }
-
-        function createGalleryNodes() {
-            nodeConfigs.forEach(cfg => {
-                const group = new THREE.Group();
-                group.position.set(cfg.x, cfg.y, cfg.z);
-                group.userData = { key: cfg.key, currentScale: 1.0, driftOffset: Math.random() * 100 };
-
-                // Outer Structural Mesh Wireframe
-                const geom = new THREE.IcosahedronGeometry(cfg.size, 1);
-                const mat = new THREE.MeshStandardMaterial({
-                    color: cfg.color,
-                    wireframe: true,
-                    roughness: 0.3,
-                    metalness: 0.7,
-                });
-                const mesh = new THREE.Mesh(geom, mat);
-                group.add(mesh);
-
-                // Internal Solid Core Emission Target
-                const innerGeom = new THREE.IcosahedronGeometry(cfg.size * 0.38, 0);
-                const innerMat = new THREE.MeshStandardMaterial({
-                    color: 0xffffff,
-                    emissive: cfg.color,
-                    roughness: 0.4,
-                    flatShading: true
-                });
-                const innerMesh = new THREE.Mesh(innerGeom, innerMat);
-                group.add(innerMesh);
-
-                // FIXED: Invisible Bounding Sphere Box for Flawless Interaction Hit Calculations
-                const hitGeom = new THREE.SphereGeometry(cfg.size * 1.1, 8, 8);
-                const hitMat = new THREE.MeshBasicMaterial({ visible: false });
-                const hitMesh = new THREE.Mesh(hitGeom, hitMat);
-                hitMesh.userData = { isHitTarget: true };
-                group.add(hitMesh);
-
-                scene.add(group);
-                nodes.push(group);
-            });
-        }
-
-        function animate() {
-            requestAnimationFrame(animate);
-
-            const time = Date.now() * 0.0006;
-            
-            nodes.forEach((node) => {
-                const offset = node.userData.driftOffset;
-                node.children[0].rotation.y = time * 0.4 + offset * 0.01;
-                node.children[0].rotation.x = time * 0.15;
-                node.children[1].rotation.y = -time * 0.6;
-                
-                // Pure-math fluid floating matrix calculation
-                node.position.y += Math.sin(time + offset) * 0.0025;
-
-                // Native interpolation update sequence 
-                let tScale = node.userData.currentScale;
-                node.scale.x += (tScale - node.scale.x) * 0.12;
-                node.scale.y += (tScale - node.scale.y) * 0.12;
-                node.scale.z += (tScale - node.scale.z) * 0.12;
-            });
-
-            if(isEntered) {
-                // High precision camera translation vectors
-                camera.position.z += (targetCameraZ - camera.position.z) * 0.035;
-                camera.position.x += (mouse.x * 1.6 - camera.position.x) * 0.04;
-                camera.position.y += (mouse.y * 1.2 - camera.position.y) * 0.04;
-                camera.lookAt(0, 0, 0);
-            }
-
-            renderer.render(scene, camera);
-        }
-
         function enterGallery() {
-            isEntered = true;
             document.getElementById('gatekeeper').classList.add('hidden');
-            
-            const uiLayer = document.getElementById('ui-layer');
-            if(uiLayer) uiLayer.classList.add('visible');
+            document.getElementById('gallery-stage').classList.add('visible');
         }
 
-        function onMouseMove(event) {
-            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-
-            if(!isEntered) return;
-
-            raycaster.setFromCamera(mouse, camera);
-            const intersects = raycaster.intersectObjects(scene.children, true);
-
-            let hoveredKey = null;
-
-            if(intersects.length > 0) {
-                // Trace back upward cleanly to find parent object parameters
-                let hitObj = intersects.find(o => o.object.parent);
-                if(hitObj) {
-                    let parentGroup = hitObj.object.parent;
-                    parentGroup.userData.currentScale = 1.18;
-                    hoveredKey = parentGroup.userData.key;
-                    document.body.style.cursor = 'pointer';
-                }
-            }
-
-            // Reset non-hovered visual scales seamlessly
-            nodes.forEach(node => {
-                if(node.userData.key !== hoveredKey) {
-                    node.userData.currentScale = 1.0;
-                }
-            });
-
-            if(!hoveredKey) {
-                document.body.style.cursor = 'default';
-            }
-        }
-
-        function onSceneClick() {
-            if(!isEntered) return;
-
-            raycaster.setFromCamera(mouse, camera);
-            const intersects = raycaster.intersectObjects(scene.children, true);
-
-            if(intersects.length > 0) {
-                let hitObj = intersects.find(o => o.object.parent);
-                if(hitObj) {
-                    let clickedNode = hitObj.object.parent;
-                    if(clickedNode && clickedNode.userData.key) {
-                        openCategoryPanel(clickedNode.userData.key);
-                    }
-                }
-            }
-        }
-
-        function openCategoryPanel(key) {
+        function openPanel(key) {
             const data = galleryData[key];
-            const panel = document.getElementById('panel-container');
             const content = document.getElementById('panel-content');
-            if(!panel || !content || !data) return;
-
+            
             let subNavHTML = data.subcategories.map(sub => `
-                <button class="sub-nav-btn" onclick="console.log('Routing down to visual subchannel: ${sub}')">
+                <button class="sub-nav-btn" onclick="alert('Opening collection channel: ${sub}')">
                     ${sub} &rarr;
                 </button>
             `).join('');
@@ -515,30 +303,14 @@
             content.innerHTML = `
                 <h3 class="panel-title">${data.title}</h3>
                 <p style="margin-bottom:20px; font-size:0.92rem; color:#8a8a9e; line-height:1.5;">${data.desc}</p>
-                <div class="sub-navigation">
-                    ${subNavHTML}
-                </div>
+                <div class="sub-navigation">${subNavHTML}</div>
             `;
 
-            panel.classList.add('active');
+            document.getElementById('panel-container').classList.add('active');
         }
 
         function closePanel() {
-            const panel = document.getElementById('panel-container');
-            if(panel) panel.classList.remove('active');
-        }
-
-        function onWindowResize() {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        }
-
-        // Failsafe Execution Architecture Bootloader
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', init);
-        } else {
-            init();
+            document.getElementById('panel-container').classList.remove('active');
         }
     </script>
 </body>
