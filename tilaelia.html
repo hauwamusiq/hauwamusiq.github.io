@@ -4,15 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Studio Noir | Private Index</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    
     <style>
         :root {
-            --bg-color: #09090b;       /* Dark Velvet Charcoal */
-            --card-bg: #121214;        /* Lifted Shadow Black */
-            --text-main: #e4e4e7;      /* Ghost White */
-            --text-muted: #71717a;     /* Ash Gray */
-            --accent-color: #00b4d8;   /* Cyber/Toxic Cyan */
-            --line-color: #1f1f23;     /* Low-Visibility Grid Line */
-            --mono-font: 'Courier New', Courier, monospace;
+            --bg-color: #0c0d0e;       /* Obsidian Iron */
+            --card-bg: #131517;        /* Raw Dark Slate */
+            --text-main: #f1f2f4;      /* Off-White Titanium */
+            --text-muted: #8a929b;     /* Light Concrete for softer chic look */
+            --accent-color: #c5fa50;   /* Acid Volt / Low-Saturated Lime */
+            --line-color: #1a1d20;     /* Dim Steel Grid Line */
+            
+            /* CHIC TYPOGRAPHY PARING */
+            --serif-chic: 'Playfair Display', Georgia, serif;
+            --sans-chic: 'Inter', sans-serif;
         }
 
         * {
@@ -26,18 +33,20 @@
         }
 
         body {
-            font-family: var(--mono-font);
+            font-family: var(--sans-chic);
             background-color: var(--bg-color);
             color: var(--text-main);
-            line-height: 1.65;
+            line-height: 1.75;
             overflow-x: hidden;
             -webkit-text-size-adjust: 100%;
-            letter-spacing: -0.02em;
+            letter-spacing: 0.01em;
+            font-weight: 300;
         }
 
-        /* Sharp Technical Focus Rings for the Shadows */
+        /* Sharp Technical Focus Rings */
         a:focus-visible, 
-        button:focus-visible {
+        button:focus-visible,
+        audio:focus-visible {
             outline: 1px solid var(--accent-color);
             outline-offset: 4px;
         }
@@ -65,11 +74,12 @@
         }
 
         #splash-screen h2 {
-            font-family: var(--mono-font);
-            font-size: 3.5rem;
-            font-weight: 700;
-            letter-spacing: -0.05em;
-            margin-bottom: 0.5rem;
+            font-family: var(--serif-chic);
+            font-size: 4.5rem;
+            font-weight: 400;
+            font-style: italic;
+            letter-spacing: -0.02em;
+            margin-bottom: 1.5rem;
             color: var(--text-main);
             opacity: 0;
             transform: translateY(20px);
@@ -78,11 +88,11 @@
         }
 
         #splash-screen .warning-subtext {
-            font-family: var(--mono-font);
-            font-size: 0.85rem;
-            letter-spacing: 0.1em;
+            font-family: var(--sans-chic);
+            font-size: 0.8rem;
+            letter-spacing: 0.25em;
             color: var(--text-muted);
-            margin-bottom: 3.5rem;
+            margin-bottom: 4rem;
             text-transform: uppercase;
             opacity: 0;
             transform: translateY(20px);
@@ -90,35 +100,21 @@
         }
 
         .enter-btn {
-            font-family: var(--mono-font);
-            font-size: 0.75rem;
+            font-family: var(--sans-chic);
+            font-size: 0.7rem;
             font-weight: 600;
             text-transform: uppercase;
-            letter-spacing: 0.2em;
-            padding: 1.2rem 3.5rem;
-            border: 1px solid var(--text-muted);
+            letter-spacing: 0.4em;
+            padding: 1.2rem 4rem;
+            border: 1px solid rgba(255, 255, 255, 0.15);
             background: transparent;
             color: var(--text-main);
             cursor: pointer;
-            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
             opacity: 0;
             transform: translateY(20px);
             animation: elegantFadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) forwards 0.5s;
             -webkit-tap-highlight-color: transparent;
-        }
-
-        /* --- FLUID VIEWPORT REVEALS --- */
-        .reveal {
-            opacity: 0;
-            transform: translateY(30px);
-            transition: opacity 1.2s cubic-bezier(0.16, 1, 0.3, 1), 
-                        transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
-            will-change: transform, opacity;
-        }
-
-        .reveal.active {
-            opacity: 1;
-            transform: translateY(0);
         }
 
         /* --- THE MASTER ARCHITECTURE FRAME --- */
@@ -135,16 +131,19 @@
         header {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 6rem 0;
+            padding: 6rem 0 4rem 0;
             display: flex;
             justify-content: space-between;
             align-items: baseline;
+            position: relative;
+            z-index: 10;
         }
 
         header h1 {
-            font-size: 0.85rem;
-            font-weight: 700;
-            letter-spacing: 0.3em;
+            font-family: var(--sans-chic);
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 0.35em;
             text-transform: uppercase;
             color: var(--text-main);
         }
@@ -154,35 +153,144 @@
             margin: 0 auto;
         }
 
-        /* --- THE HOME / WELCOME PANEL --- */
+        /* --- CHIC TAB NAVIGATION --- */
+        .tab-navigation {
+            max-width: 1200px;
+            margin: 0 auto 0 auto;
+            display: flex;
+            gap: 3rem;
+            border-bottom: 1px solid var(--line-color);
+            padding-bottom: 1.5rem;
+            position: relative;
+            z-index: 10;
+        }
+
+        .tab-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-family: var(--sans-chic);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            cursor: pointer;
+            padding: 0.5rem 0;
+            position: relative;
+            transition: color 0.4s ease;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .tab-btn::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 1px;
+            bottom: -1.6rem;
+            left: 0;
+            background-color: var(--accent-color);
+            transform: scaleX(0);
+            transform-origin: bottom right;
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .tab-btn.active-tab {
+            color: var(--text-main);
+        }
+
+        .tab-btn.active-tab::after {
+            transform: scaleX(1);
+            transform-origin: bottom left;
+        }
+
+        /* --- ISOLATED TABBED PANELS FRAMEWORKS --- */
+        .tab-panel {
+            display: none;
+            opacity: 0;
+            transform: translateY(15px);
+            transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            padding: 6rem 0 8rem 0;
+        }
+
+        .tab-panel.panel-visible {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* --- PARALLAX HERO SECTION (HOME ONLY) --- */
+        .parallax-container {
+            position: relative;
+            height: 75vh;
+            min-height: 500px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            margin-bottom: 6rem;
+            border-bottom: 1px solid var(--line-color);
+        }
+
+        .parallax-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 140%;
+            background: linear-gradient(135deg, #131517 0%, #0c0d0e 100%);
+            z-index: 1;
+            will-change: transform;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0.15;
+        }
+
+        .parallax-bg::before {
+            content: '';
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            background-image: linear-gradient(var(--line-color) 1px, transparent 1px),
+                              linear-gradient(90deg, var(--line-color) 1px, transparent 1px);
+            background-size: 100px 100px;
+            transform: rotate(-15deg);
+        }
+
+        .welcome-hero-content {
+            position: relative;
+            z-index: 2;
+            max-width: 800px;
+            will-change: transform, opacity;
+        }
+
+        .welcome-hero-content h2 {
+            font-family: var(--serif-chic);
+            font-size: 4.5rem;
+            font-weight: 400;
+            letter-spacing: -0.03em;
+            line-height: 1.1;
+            margin-bottom: 2rem;
+        }
+
+        .welcome-hero-content p {
+            color: var(--text-muted);
+            font-size: 1.2rem;
+            line-height: 1.8;
+            max-width: 600px;
+        }
+
+        /* --- HOME CONTENT SPLIT --- */
         .home-dashboard {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 1.1fr 0.9fr;
             gap: 6rem;
-            padding: 6rem 0 10rem 0;
-            border-top: none;
         }
 
-        .welcome-panel h2 {
-            font-size: 2.8rem;
-            font-weight: 700;
-            letter-spacing: -0.05em;
-            line-height: 1.2;
-            margin-bottom: 2.5rem;
-        }
-
-        .welcome-panel p {
-            color: var(--text-muted);
-            font-size: 1rem;
-            line-height: 1.8;
-            max-width: 500px;
-        }
-
-        /* Pure System Notification Feed */
-        .activity-feed-panel h3 {
-            font-size: 0.8rem;
-            font-weight: 700;
-            letter-spacing: 0.2em;
+        .activity-feed-panel h3, .contact-panel h3 {
+            font-family: var(--sans-chic);
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.25em;
             text-transform: uppercase;
             margin-bottom: 3rem;
             color: var(--accent-color);
@@ -195,42 +303,184 @@
         }
 
         .feed-node {
-            padding: 1.75rem;
+            padding: 2rem;
             background-color: var(--card-bg);
-            border-left: 2px solid var(--line-color);
+            border-left: 1px solid rgba(255, 255, 255, 0.05);
             transition: border-color 0.4s ease, background-color 0.4s ease;
         }
 
         .feed-node .timestamp {
-            font-size: 0.7rem;
-            font-weight: 700;
-            letter-spacing: 0.1em;
+            font-family: var(--sans-chic);
+            font-size: 0.65rem;
+            font-weight: 600;
+            letter-spacing: 0.2em;
             text-transform: uppercase;
             color: var(--text-muted);
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.75rem;
         }
 
         .feed-node h4 {
-            font-size: 1.05rem;
-            font-weight: 600;
-            margin-bottom: 0.25rem;
+            font-family: var(--serif-chic);
+            font-size: 1.3rem;
+            font-weight: 400;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.01em;
         }
 
         .feed-node p {
-            font-size: 0.85rem;
+            font-size: 0.9rem;
             color: var(--text-muted);
             line-height: 1.6;
+        }
+
+        /* Contact & Social Matrix */
+        .contact-panel {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .contact-intro-text {
+            font-size: 1.05rem;
+            color: var(--text-muted);
+            margin-bottom: 3rem;
+            line-height: 1.8;
+        }
+
+        .social-matrix {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .social-link {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 0;
+            border-bottom: 1px solid var(--line-color);
+            color: var(--text-main);
+            text-decoration: none;
+            font-family: var(--sans-chic);
+            font-size: 0.85rem;
+            font-weight: 400;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            transition: color 0.3s ease, border-color 0.3s ease;
+        }
+
+        .social-link .arrow {
+            font-size: 1.1rem;
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), color 0.3s ease;
+            color: var(--text-muted);
+        }
+
+        /* --- CONTENT TAB SHOWCASE GRIDS --- */
+        .project-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+            gap: 6rem 4.5rem;
+        }
+
+        .work-card {
+            background: transparent;
+            display: flex;
+            flex-direction: column;
+            transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .image-wrapper {
+            overflow: hidden;
+            background-color: #161619;
+            margin-bottom: 2rem;
+            width: 100%;
+        }
+
+        .work-card img {
+            width: 100%;
+            height: auto;
+            aspect-ratio: 3 / 4;
+            object-fit: cover;
+            display: block;
+            filter: grayscale(30%) brightness(85%);
+            transition: transform 1.5s cubic-bezier(0.16, 1, 0.3, 1), filter 1.5s ease;
+        }
+
+        .card-body h4 {
+            font-family: var(--serif-chic);
+            font-size: 1.8rem;
+            font-weight: 400;
+            letter-spacing: -0.02em;
+            margin-bottom: 0.5rem;
+            line-height: 1.2;
+        }
+
+        .card-body .meta {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--accent-color);
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-body p {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            line-height: 1.7;
+        }
+
+        audio {
+            width: 100%;
+            margin-top: 2rem;
+            display: block;
+            filter: invert(0.9) hue-rotate(180deg);
+        }
+
+        .text-list {
+            list-style: none;
+        }
+
+        .text-item {
+            margin-bottom: 4rem;
+            padding: 3rem;
+            background-color: var(--card-bg);
+            border-left: 1px solid rgba(255, 255, 255, 0.05);
+            max-width: 850px;
+            transition: border-color 0.4s ease;
+        }
+
+        .text-item h4 {
+            font-family: var(--serif-chic);
+            font-size: 2rem;
+            font-weight: 400;
+            letter-spacing: -0.02em;
+            margin-bottom: 0.75rem;
+        }
+
+        .text-item .meta {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--accent-color);
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            margin-bottom: 1.5rem;
+        }
+
+        .text-item p {
+            font-size: 1rem;
+            color: var(--text-muted);
+            line-height: 1.8;
         }
 
         footer {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 10rem 0 6rem 0;
+            padding: 6rem 0;
             border-top: 1px solid var(--line-color);
-            font-size: 0.75rem;
-            font-weight: 700;
-            letter-spacing: 0.2em;
-            color: #44444a;
+            font-size: 0.7rem;
+            font-weight: 400;
+            letter-spacing: 0.25em;
+            color: #4f555c;
             text-transform: uppercase;
         }
 
@@ -239,16 +489,36 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* --- THE DARK MECHANICAL HOVER ACTIONS --- */
+        /* --- THE DARK HOVER INTELLIGENCE --- */
         @media (hover: hover) {
             .enter-btn:hover {
                 background-color: var(--text-main);
                 color: var(--bg-color);
                 border-color: var(--text-main);
+                box-shadow: 0 20px 40px rgba(0,0,0,0.4);
             }
-            .feed-node:hover {
+            .tab-btn:hover {
+                color: var(--text-main);
+            }
+            .feed-node:hover,
+            .text-item:hover {
                 border-left-color: var(--accent-color);
-                background-color: rgba(255, 255, 255, 0.01);
+                background-color: rgba(255, 255, 255, 0.005);
+            }
+            .social-link:hover {
+                color: var(--accent-color);
+                border-bottom-color: var(--accent-color);
+            }
+            .social-link:hover .arrow {
+                transform: translateX(8px);
+                color: var(--accent-color);
+            }
+            .work-card:hover img {
+                transform: scale(1.025);
+                filter: grayscale(0%) brightness(100%);
+            }
+            .project-grid:hover .work-card:not(:hover) {
+                opacity: 0.35;
             }
         }
 
@@ -257,21 +527,28 @@
             html { scroll-behavior: auto; }
             #splash-screen { transform: none !important; transition: none !important; opacity: 1; }
             #splash-screen.fade-out { opacity: 0 !important; display: none !important; }
-            .reveal { transition: none !important; transform: none !important; opacity: 1 !important; }
+            .tab-panel, .parallax-bg, .welcome-hero-content { transition: none !important; transform: none !important; opacity: 1 !important; }
+            .work-card img { transform: none !important; filter: none !important; }
         }
 
         /* --- DYNAMIC RESPONSIVE CELL COMPILING --- */
         @media (max-width: 1000px) {
             .portfolio-content { padding: 0 4rem; }
             .home-dashboard { grid-template-columns: 1fr; gap: 5rem; }
-            .welcome-panel h2 { font-size: 2.4rem; }
+            .welcome-hero-content h2 { font-size: 3.5rem; }
+            .tab-navigation { gap: 2rem; }
         }
 
         @media (max-width: 600px) {
             .portfolio-content { padding: 0 1.5rem; }
-            header { flex-direction: column; gap: 2.5rem; text-align: left; align-items: flex-start; padding: 5rem 0; }
-            #splash-screen h2 { font-size: 2rem; text-align: center; }
-            .welcome-panel h2 { font-size: 2rem; }
+            header { padding: 5rem 0; }
+            #splash-screen h2 { font-size: 2.8rem; }
+            .parallax-container { height: 60vh; min-height: 400px; }
+            .welcome-hero-content h2 { font-size: 2.6rem; }
+            .tab-navigation { gap: 1.25rem; flex-wrap: wrap; }
+            .tab-btn { font-size: 0.65rem; }
+            .text-item { padding: 2rem; }
+            .text-item h4 { font-size: 1.6rem; }
         }
     </style>
 </head>
@@ -288,36 +565,151 @@
             <h1>SHADOW_METRIC // 2026</h1>
         </header>
 
+        <nav class="tab-navigation">
+            <button class="tab-btn active-tab" data-tab="home">00 / Welcome</button>
+            <button class="tab-btn" data-tab="music">01 / Music</button>
+            <button class="tab-btn" data-tab="writings">02 / Writings</button>
+            <button class="tab-btn" data-tab="art">03 / Visuals</button>
+        </nav>
+
         <main>
-            <section class="home-dashboard">
-                <div class="welcome-panel">
-                    <h2>An uncompromising dark environment for research.</h2>
-                    <p>Welcome. This is a private staging baseline containing spatial audio experiments, unreleased field recordings, and raw high-contrast geometric frames.</p>
-                </div>
+            <section id="panel-home" class="tab-panel panel-visible">
                 
-                <div class="activity-feed-panel">
-                    <h3>Recent Page Activity</h3>
-                    <div class="feed-stream">
-                        
-                        <div class="feed-node">
-                            <div class="timestamp">May 2026 // 02:14</div>
-                            <h4>Patched Algorithm 09 Array</h4>
-                            <p>Successfully integrated structural modular routing signals to the spatial deck core.</p>
-                        </div>
-
-                        <div class="feed-node">
-                            <div class="timestamp">April 2026 // 23:40</div>
-                            <h4>Exhibited Chromatic Geometric Frames</h4>
-                            <p>Published two highly classified portrait form matrices to the primary gallery.</p>
-                        </div>
-
-                        <div class="feed-node">
-                            <div class="timestamp">March 2026 // 11:05</div>
-                            <h4>Re-engineered Terminal Canvas</h4>
-                            <p>Stripped outer design elements down to structural dark charcoal line parameters.</p>
-                        </div>
-
+                <div class="parallax-container">
+                    <div class="parallax-bg" id="js-parallax-bg"></div>
+                    <div class="welcome-hero-content" id="js-parallax-text">
+                        <h2>An uncompromising dark environment for research.</h2>
+                        <p>Welcome to a private staging baseline containing spatial acoustics, experimental text records, and raw dynamic artwork matrices.</p>
                     </div>
+                </div>
+
+                <div class="home-dashboard">
+                    
+                    <div class="activity-feed-panel">
+                        <h3>Recent Activity</h3>
+                        <div class="feed-stream">
+                            
+                            <div class="feed-node">
+                                <div class="timestamp">May 2026 // 02:14</div>
+                                <h4>Patched Algorithm 09 Array</h4>
+                                <p>Successfully integrated structural modular routing signals to the spatial deck core.</p>
+                            </div>
+
+                            <div class="feed-node">
+                                <div class="timestamp">April 2026 // 23:40</div>
+                                <h4>Exhibited Chromatic Geometric Frames</h4>
+                                <p>Published two highly classified portrait form matrices to the primary gallery.</p>
+                            </div>
+
+                            <div class="feed-node">
+                                <div class="timestamp">March 2026 // 11:05</div>
+                                <h4>Re-engineered Terminal Canvas</h4>
+                                <p>Stripped outer design elements down to structural dark charcoal line parameters.</p>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <div class="contact-panel">
+                        <h3>Secure Comms</h3>
+                        <p class="contact-intro-text">For network collaborative integration, acquisition of secure physical asset releases, or system secure inquiries, reach out through the indexed channels below.</p>
+                        
+                        <div class="social-matrix">
+                            <a href="mailto:your-email@domain.com" class="social-link">
+                                <span>Encrypted Mail</span>
+                                <span class="arrow">&#8594;</span>
+                            </a>
+                            <a href="https://instagram.com/yourusername" target="_blank" rel="noopener" class="social-link">
+                                <span>Instagram // Feed</span>
+                                <span class="arrow">&#8594;</span>
+                            </a>
+                            <a href="https://twitter.com/yourusername" target="_blank" rel="noopener" class="social-link">
+                                <span>Twitter // Signal</span>
+                                <span class="arrow">&#8594;</span>
+                            </a>
+                            <a href="https://soundcloud.com/yourusername" target="_blank" rel="noopener" class="social-link">
+                                <span>SoundCloud</span>
+                                <span class="arrow">&#8594;</span>
+                            </a>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
+            <section id="panel-music" class="tab-panel">
+                <div class="project-grid">
+                    
+                    <div class="work-card">
+                        <div class="image-wrapper">
+                            <div style="width:100%; aspect-ratio: 3 / 4; background:#18181b;"></div>
+                        </div>
+                        <div class="card-body">
+                            <h4>Spatial Reverberation Profile</h4>
+                            <p class="meta">Acoustics / Phase Signal</p>
+                            <p>An intricate exploration charting phase reflection limits, physical sound cancellations, and extreme sub-bass minimalism.</p>
+                            <audio controls src="your-file-1.mp3"></audio> 
+                        </div>
+                    </div>
+
+                    <div class="work-card">
+                        <div class="image-wrapper">
+                            <div style="width:100%; aspect-ratio: 3 / 4; background:#151518;"></div>
+                        </div>
+                        <div class="card-body">
+                            <h4>Algorithmic Signal Matrix</h4>
+                            <p class="meta">Electronic // Signal Processing</p>
+                            <p>An uncompromising high-velocity performance sequence generated through physical analog synthesizer components.</p>
+                            <audio controls src="your-file-2.mp3"></audio>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
+            <section id="panel-writings" class="tab-panel">
+                <ul class="text-list">
+                    
+                    <li class="text-item">
+                        <h4>The Acceleration of Calculated Frictional Design</h4>
+                        <p class="meta">Critical Analysis // Doc 404</p>
+                        <p>An essential architectural inquiry concerning the deliberate integration of visual weight inside interface platforms. Forcing users away from thoughtless passive consumption tracks and back into conscious processing loops...</p>
+                    </li>
+
+                    <li class="text-item">
+                        <h4>Structural Subtractions & Spatial Absences</h4>
+                        <p class="meta">Prose Collection // Node Stack</p>
+                        <p>The total mastery of erasure rules. Allowing negative space configurations to confidently confront chaotic visual noise matrices. Serious design systems are realized entirely by what you choose to aggressively eliminate...</p>
+                    </li>
+
+                </ul>
+            </section>
+
+            <section id="panel-art" class="tab-panel">
+                <div class="project-grid">
+                    
+                    <div class="work-card">
+                        <div class="image-wrapper">
+                            <img src="image-path-1.jpg" alt="Dark portrait canvas art exhibition asset">
+                        </div>
+                        <div class="card-body">
+                            <h4>Asymmetric Dynamic Intervals</h4>
+                            <p class="meta">Form Study / Ink On Pressed Cotton</p>
+                            <p>A rigorous creative experiment mapping empty structural landscape sectors and bold physical balancing metrics.</p>
+                        </div>
+                    </div>
+
+                    <div class="work-card">
+                        <div class="image-wrapper">
+                            <img src="image-path-2.jpg" alt="Dark portrait canvas art exhibition asset">
+                        </div>
+                        <div class="card-body">
+                            <h4>Monochromatic High-Velocity Frame</h4>
+                            <p class="meta">Mixed Canvas // Graphite & Acrylic</p>
+                            <p>Investigating contemporary geometric grid alignment anomalies and intentional surface structural breaks.</p>
+                        </div>
+                    </div>
+
                 </div>
             </section>
         </main>
@@ -328,35 +720,73 @@
     </div>
 
     <script>
-        const revealElements = document.querySelectorAll('.reveal');
-
         // Cinematic curtain entry
         document.getElementById('enter-experience-btn').addEventListener('click', function() {
             document.getElementById('splash-screen').classList.add('fade-out');
             document.body.classList.add('active');
-            setTimeout(checkReveals, 400); 
         });
 
-        // High-performance lazy observer architecture
-        const revealObserver = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('active');
-                    revealObserver.unobserve(entry.target);
-                }
-            });
-        }, { root: null, threshold: 0.02, rootMargin: "0px 0px -20px 0px" });
-
-        revealElements.forEach(element => revealObserver.observe(element));
+        // --- HARDWARE ACCELERATED PARALLAX METRIC LOGIC ---
+        const parallaxBg = document.getElementById('js-parallax-bg');
+        const parallaxText = document.getElementById('js-parallax-text');
         
-        function checkReveals() {
-            revealElements.forEach(element => {
-                const elementTop = element.getBoundingClientRect().top;
-                if (elementTop < window.innerHeight - 10) {
-                    element.classList.add('active');
+        window.addEventListener('scroll', () => {
+            // Check if element nodes exist and home panel is active before processing styles
+            if (parallaxBg && parallaxText && document.getElementById('panel-home').classList.contains('panel-visible')) {
+                let scrollValue = window.scrollY;
+                
+                // Translate layers smoothly
+                parallaxBg.style.transform = `translateY(${scrollValue * 0.4}px)`;
+                parallaxText.style.transform = `translateY(${scrollValue * 0.15}px)`;
+                parallaxText.style.opacity = 1 - (scrollValue / 600);
+            }
+        }, { passive: true });
+
+        // --- CHIC TAB SWITCH INTERFACE EXECUTION ---
+        const tabButtons = document.querySelectorAll('.tab-btn');
+        const tabPanels = document.querySelectorAll('.tab-panel');
+
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const targetTab = button.getAttribute('data-tab');
+
+                // Bug fixed: Removed illegal nested .add() syntax loop
+                tabButtons.forEach(btn => btn.classList.remove('active-tab'));
+                button.classList.add('active-tab');
+
+                tabPanels.forEach(panel => {
+                    panel.classList.remove('panel-visible');
+                    
+                    // Stop tracks cleanly on tab change
+                    const tracks = panel.querySelectorAll('audio');
+                    tracks.forEach(track => {
+                        track.pause();
+                        track.currentTime = 0; 
+                    });
+                });
+
+                const targetPanel = document.getElementById(`panel-${targetTab}`);
+                if(targetPanel) {
+                    targetPanel.classList.add('panel-visible');
+                    window.scrollTo(0, 0);
                 }
             });
-        }
+        });
+
+        // Mutually exclusive audio execution loop
+        const allAudioPlayers = document.querySelectorAll('audio');
+        allAudioPlayers.forEach(player => {
+            player.addEventListener('play', () => {
+                allAudioPlayers.forEach(otherPlayer => {
+                    if (otherPlayer !== player) {
+                        otherPlayer.pause();
+                    }
+                });
+            });
+            player.addEventListener('keyup', (e) => { if(e.key === ' ') player.blur(); });
+            player.addEventListener('ended', () => { player.blur(); });
+            player.addEventListener('pause', () => { player.blur(); });
+        });
     </script>
 </body>
 </html>
