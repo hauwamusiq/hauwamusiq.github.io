@@ -2,7 +2,783 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>tilaelia's portfolio // integrated master engine</title>
+    <style>
+        /* --- SYSTEM VARIABLE ENGINE & RESETS --- */
+        :root {
+            --bg-primary: #060606;
+            --bg-secondary: #020202;
+            --bg-card: rgba(14, 14, 14, 0.45);
+            --accent-glow: rgba(255, 255, 255, 0.15);
+            --accent-active: #ffffff;
+            --text-main: #ffffff;
+            --text-muted: #a0a0a0;
+            --text-dim: #444444;
+            --font-mono: 'Courier New', Courier, monospace;
+            --current-theme-hue: #ff5722;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body, html {
+            width: 100%;
+            height: 100%;
+            background-color: var(--bg-primary);
+            color: var(--text-main);
+            font-family: var(--font-mono);
+            overflow: hidden;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* --- THREE.JS BACKGROUND CANVAS --- */
+        #webgl-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: auto;
+        }
+
+        /* --- UI COMPOSITOR VIEWPORTS --- */
+        #app-ui-wrapper {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            height: 100vh;
+            pointer-events: none;
+            overflow: hidden;
+            transition: opacity 1s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        body.ambient-mode #app-ui-wrapper { opacity: 0; }
+        .interactive-ui { pointer-events: auto; }
+
+        /* --- INTRO SPLASH LAYER --- */
+        #intro-page {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background-color: var(--bg-secondary);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: transform 1.2s cubic-bezier(0.76, 0, 0.24, 1), opacity 1.2s ease;
+        }
+
+        #intro-page.hidden {
+            transform: translateY(-100vh);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .enter-btn {
+            background: none;
+            border: 1px solid var(--text-main);
+            color: var(--text-main);
+            padding: 14px 40px;
+            font-size: 1rem;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            letter-spacing: 2px;
+            margin-top: 30px;
+            outline: none;
+        }
+        .enter-btn:hover, .enter-btn.kb-selected {
+            background-color: var(--text-main);
+            color: var(--bg-secondary);
+            box-shadow: 0 0 30px rgba(255, 255, 255, 0.2);
+        }
+
+        /* --- CAROUSEL SLIDER ENGINE --- */
+        .viewport-slider {
+            display: flex;
+            width: 400%; 
+            height: 100vh;
+            transition: transform 1s cubic-bezier(0.85, 0, 0.15, 1);
+            will-change: transform;
+        }
+
+        .slide-view {
+            width: 25%;
+            height: 100vh;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            overflow-y: auto;
+        }
+
+        .site-header {
+            text-align: center;
+            margin-bottom: 20px;
+            flex-shrink: 0;
+        }
+        .site-header h2 {
+            font-size: 1.5rem;
+            letter-spacing: 6px;
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+
+        .back-nav {
+            cursor: pointer;
+            color: var(--text-muted);
+            transition: all 0.3s ease;
+            font-size: 0.8rem;
+            letter-spacing: 2px;
+            display: inline-block;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+        }
+        .back-nav:hover, .back-nav.kb-selected { color: var(--text-main); transform: translateX(-5px); }
+
+        /* --- HOME GRID INTERFACE --- */
+        .portfolio-menu {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            max-width: 1200px;
+            margin: auto auto;
+            width: 100%;
+        }
+
+        .menu-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            padding: 50px 30px;
+            border-radius: 2px;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .menu-card::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 2px;
+            background: linear-gradient(90deg, transparent, var(--text-main), transparent);
+            transform: translateX(-100%); transition: transform 0.6s ease;
+        }
+        .menu-card:hover::before, .menu-card.kb-selected::before { transform: translateX(100%); }
+        .menu-card:hover, .menu-card.kb-selected {
+            background: rgba(255, 255, 255, 0.03);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+        }
+
+        .menu-card h3 { font-size: 1.4rem; font-weight: 300; margin-bottom: 15px; letter-spacing: 2px; }
+        .menu-card p { color: var(--text-muted); font-size: 0.85rem; line-height: 1.6; }
+
+        /* --- DIGITAL AUDIO CONTROLLER LAYER --- */
+        .music-grid-workspace {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            max-width: 1000px;
+            width: 100%;
+            margin: auto auto;
+        }
+
+        @media (max-width: 768px) {
+            .music-grid-workspace { grid-template-columns: 1fr; gap: 20px; }
+        }
+
+        .track-directory-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .directory-item {
+            background: rgba(10, 10, 10, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .directory-item.active-track {
+            border-color: var(--current-theme-hue);
+            background: rgba(255, 255, 255, 0.02);
+            box-shadow: inset 0 0 15px rgba(255, 255, 255, 0.02);
+        }
+        .directory-item h4 { font-size: 1rem; font-weight: 400; letter-spacing: 1px; margin-bottom: 4px; }
+        .directory-item p { font-size: 0.75rem; color: var(--text-muted); }
+
+        .music-3d-hud {
+            width: 100%;
+            background: rgba(10, 10, 10, 0.85);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 30px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.7);
+        }
+
+        /* --- WAVEFORM VISUALIZER COMPONENT --- */
+        .audio-eq-bars {
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            gap: 4px;
+            height: 40px;
+            margin: 25px auto;
+        }
+        .eq-bar {
+            width: 3px;
+            height: 5px;
+            background-color: var(--current-theme-hue);
+            transition: height 0.15s ease, background-color 0.5s ease;
+        }
+
+        .timeline-matrix { display: flex; align-items: center; gap: 15px; margin: 20px 0; }
+        .progress-bar { flex: 1; height: 2px; background: #1a1a1a; position: relative; cursor: pointer; }
+        #progressFilled { width: 0%; height: 100%; background: var(--current-theme-hue); transition: width 0.1s linear; }
+        #currentTime { font-size: 0.75rem; color: var(--text-muted); min-width: 40px; }
+
+        .play-pause-btn {
+            background: none; border: 1px solid rgba(255,255,255,0.2); color: var(--text-main);
+            width: 54px; height: 54px; border-radius: 50%; font-size: 1rem; cursor: pointer;
+            transition: all 0.3s ease; display: inline-flex; align-items: center; justify-content: center; outline: none;
+            margin: 0 auto;
+        }
+        .play-pause-btn:hover, .play-pause-btn.kb-selected { border-color: var(--text-main); background: rgba(255,255,255,0.05); transform: scale(1.05); }
+
+        /* --- METRICS PANEL --- */
+        .terminal-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            max-width: 1000px;
+            margin: auto auto;
+            width: 100%;
+        }
+        .terminal-node {
+            background: rgba(10, 10, 10, 0.85);
+            border: 1px dashed var(--text-dim);
+            padding: 20px;
+            font-size: 0.8rem;
+        }
+        .terminal-node.kb-selected { border-style: solid; border-color: var(--text-main); }
+        .terminal-node span { display: block; color: var(--text-muted); margin-bottom: 5px; }
+        .terminal-node div { font-size: 1.1rem; color: #ffaa00; font-weight: bold; }
+
+        /* --- GALLERY OVERLAYS --- */
+        .paintings-spatial-hud {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            max-width: 440px;
+            width: 100%;
+            margin: auto 0;
+            background: rgba(10, 10, 10, 0.75);
+            backdrop-filter: blur(20px);
+            padding: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .art-hud-card {
+            padding: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            transition: all 0.4s ease;
+        }
+        .art-hud-card:hover, .art-hud-card.kb-selected {
+            border-color: var(--text-main);
+            background: rgba(255, 255, 255, 0.03);
+            transform: translateX(5px);
+        }
+        .art-hud-card h4 { font-size: 0.95rem; font-weight: 400; margin-bottom: 5px; letter-spacing: 1px; }
+        .art-hud-card p { font-size: 0.75rem; color: var(--text-muted); line-height: 1.4; }
+
+        .music-instruction {
+            text-align: center; color: var(--text-muted); font-size: 0.75rem; letter-spacing: 2px; margin-top: 10px;
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+
+    <canvas id="webgl-canvas"></canvas>
+
+    <div id="intro-page" class="interactive-ui">
+        <h1 style="font-weight: 300; letter-spacing: 8px; font-size: 1.5rem;">TILAELIA</h1>
+        <button class="enter-btn mb-target" onclick="UIController.enterWebsite()">INITIALIZE SPACE</button>
+    </div>
+
+    <div id="app-ui-wrapper">
+        <div class="viewport-slider interactive-ui" id="viewContainer">
+            
+            <section class="slide-view" id="home-view">
+                <header class="site-header">
+                    <h2>TILAELIA</h2>
+                </header>
+                <div class="portfolio-menu">
+                    <div class="menu-card mb-target" onclick="UIController.switchView(1, 'music-view')">
+                        <h3>01 // MUSIC</h3>
+                        <p>Interact directly with generative background parameters and integrated studio nodes.</p>
+                    </div>
+                    <div class="menu-card mb-target" onclick="UIController.switchView(2, 'paintings-view')">
+                        <h3>02 // IMAGERY</h3>
+                        <p>Curated archival directory of fine art, layout parameters, and spatial studies.</p>
+                    </div>
+                    <div class="menu-card mb-target" onclick="UIController.switchView(3, 'etc-view')">
+                        <h3>03 // METRICS</h3>
+                        <p>Real-time gravitational lensing metrics tracking computational singularity conditions.</p>
+                    </div>
+                </div>
+                <div></div>
+            </section>
+
+            <section class="slide-view" id="music-view">
+                <div>
+                    <div class="back-nav mb-target" onclick="UIController.switchView(0, 'home-view')">◀ RETREAT TO BASE</div>
+                    <div class="music-instruction">SELECT A CORE OSCILLATOR ARCHITECTURE TERMINAL</div>
+                </div>
+                
+                <div class="music-grid-workspace">
+                    <div class="track-directory-list">
+                        <div class="directory-item mb-target active-track" id="track-0" onclick="switchActiveTrack(0)">
+                            <h4>01 // Lo-Fi Chill Ambient</h4>
+                            <p>DJ Code Vector — 114 BPM</p>
+                        </div>
+                        <div class="directory-item mb-target" id="track-1" onclick="switchActiveTrack(1)">
+                            <h4>02 // Synthwave Structural Drive</h4>
+                            <p>Neon Frame Architecture — 130 BPM</p>
+                        </div>
+                        <div class="directory-item mb-target" id="track-2" onclick="switchActiveTrack(2)">
+                            <h4>03 // Deep Space Field</h4>
+                            <p>Tilaelia Processing — 90 BPM</p>
+                        </div>
+                    </div>
+
+                    <div class="music-3d-hud">
+                        <h3 id="barTitle" style="font-weight: 300; letter-spacing: 2px; text-transform: uppercase;">Lo-Fi Chill Ambient</h3>
+                        <p id="barArtist" style="color: var(--text-muted); font-size: 0.8rem; margin-top: 4px;">DJ Code Vector</p>
+                        
+                        <div class="audio-eq-bars">
+                            <div class="eq-bar"></div><div class="eq-bar"></div><div class="eq-bar"></div>
+                            <div class="eq-bar"></div><div class="eq-bar"></div><div class="eq-bar"></div>
+                            <div class="eq-bar"></div><div class="eq-bar"></div><div class="eq-bar"></div>
+                        </div>
+
+                        <div class="timeline-matrix">
+                            <span id="currentTime">0:00</span>
+                            <div class="progress-bar" onclick="AudioSystemMock.scrub(event)"><div id="progressFilled"></div></div>
+                        </div>
+                        <button class="play-pause-btn mb-target" onclick="togglePlayback()">▶</button>
+                    </div>
+                </div>
+                <div></div>
+            </section>
+
+            <section class="slide-view" id="paintings-view">
+                <div class="back-nav mb-target" onclick="UIController.switchView(0, 'home-view')">◀ RETREAT TO BASE</div>
+                <div class="paintings-spatial-hud">
+                    <div class="art-hud-card mb-target" onclick="GalleryEngine.focusPainting(0)">
+                        <h4>01 // Spatial Weight Depth</h4>
+                        <p>An abstract geometric calculation exploring structural shadows and material occlusion.</p>
+                    </div>
+                    <div class="art-hud-card mb-target" onclick="GalleryEngine.focusPainting(1)">
+                        <h4>02 // Temporal Decay Vectors</h4>
+                        <p>High-contrast linear vectors tracking localized multi-dimensional boundaries.</p>
+                    </div>
+                </div>
+                <div></div>
+            </section>
+
+            <section class="slide-view" id="etc-view">
+                <div class="back-nav mb-target" onclick="UIController.switchView(0, 'home-view')">◀ RETREAT TO BASE</div>
+                <div class="terminal-grid">
+                    <div class="terminal-node mb-target">
+                        <span>SINGULARITY DRIFT</span>
+                        <div id="metric-drift">0.0000ms</div>
+                    </div>
+                    <div class="terminal-node mb-target">
+                        <span>SCHWARZSCHILD RADIUS (Rs)</span>
+                        <div id="metric-vectors">100.0000</div>
+                    </div>
+                    <div class="terminal-node mb-target">
+                        <span>ORBITING QUANTUM FIELD</span>
+                        <div id="metric-particles">0 / ACTIVE</div>
+                    </div>
+                </div>
+                <div></div>
+            </section>
+
+        </div>
+    </div>
+
+    <script>
+        const isMobile = window.innerWidth < 768;
+
+        let portfolioState = {
+            isIntro: true,
+            isPlaying: false,
+            loadedTrackIndex: 0,
+            activeView: 'home-view',
+            activeSlideIndex: 0,
+            keyboardIndex: 0,
+            particleSpeedMultiplier: 1.0,
+            particleDistributionMode: 'spread'
+        };
+
+        const tracks = [
+            { id: 0, title: 'Lo-Fi Chill Ambient', artist: 'DJ Code Vector', color: '#ff5722' },
+            { id: 1, title: 'Synthwave Structural Drive', artist: 'Neon Frame Architecture', color: '#e91e63' },
+            { id: 2, title: 'Deep Space Field', artist: 'Tilaelia Processing', color: '#9c27b0' }
+        ];
+
+        /* --- UI COMPOSITOR ENGINE --- */
+        const UIController = {
+            enterWebsite() {
+                portfolioState.isIntro = false;
+                document.getElementById('intro-page').classList.add('hidden');
+                InactivityEngine.init();
+                KeyboardEngine.updateVisualHighlights();
+            },
+            switchView(slideIndex, viewNameString) {
+                portfolioState.activeSlideIndex = slideIndex;
+                portfolioState.activeView = viewNameString;
+                portfolioState.keyboardIndex = 0;
+
+                document.getElementById('viewContainer').style.transform = `translate3d(${-slideIndex * 25}%, 0, 0)`;
+
+                if(viewNameString === 'music-view') {
+                    portfolioState.particleSpeedMultiplier = 0.4;
+                    portfolioState.particleDistributionMode = 'disk';
+                } else if(viewNameString === 'etc-view') {
+                    portfolioState.particleSpeedMultiplier = 1.8;
+                    portfolioState.particleDistributionMode = 'singularity';
+                } else {
+                    portfolioState.particleSpeedMultiplier = 1.0;
+                    portfolioState.particleDistributionMode = 'spread';
+                }
+
+                SpaceEngine.transitionCameraView(viewNameString);
+                KeyboardEngine.updateVisualHighlights();
+            }
+        };
+
+        function switchActiveTrack(index) {
+            portfolioState.loadedTrackIndex = index;
+            portfolioState.isPlaying = false;
+            document.querySelector('.play-pause-btn').innerText = "▶";
+            AudioSystemMock.reset();
+
+            const track = tracks[index];
+            document.documentElement.style.setProperty('--current-theme-hue', track.color);
+            document.getElementById('barTitle').innerText = track.title;
+            document.getElementById('barArtist').innerText = track.artist;
+
+            document.querySelectorAll('.directory-item').forEach(el => el.classList.remove('active-track'));
+            document.getElementById(`track-${index}`).classList.add('active-track');
+        }
+
+        const GalleryEngine = {
+            focusPainting(index) {
+                if(index === 0) {
+                    SpaceEngine.targetCamPos.set(-25, 3, -12);
+                    SpaceEngine.targetCamLook.set(-35, 3, -12);
+                } else if(index === 1) {
+                    SpaceEngine.targetCamPos.set(-25, 3, -4);
+                    SpaceEngine.targetCamLook.set(-35, 3, -4);
+                }
+            }
+        };
+
+        /* --- NAVIGATION INTERPOLATIONS --- */
+        const KeyboardEngine = {
+            init() { window.addEventListener('keydown', (e) => this.handleKeyPress(e)); },
+            getTargets() {
+                if (portfolioState.isIntro) return [document.querySelector('.enter-btn')];
+                return Array.from(document.querySelectorAll(`#${portfolioState.activeView} .mb-target`));
+            },
+            handleKeyPress(e) {
+                const targets = this.getTargets();
+                if (portfolioState.isIntro) {
+                    if (e.key === 'Enter') UIController.enterWebsite();
+                    return;
+                }
+                if (targets.length === 0) return;
+
+                if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+                    e.preventDefault();
+                    portfolioState.keyboardIndex = (portfolioState.keyboardIndex + 1) % targets.length;
+                    this.updateVisualHighlights();
+                } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+                    e.preventDefault();
+                    if (e.key === 'ArrowLeft' && portfolioState.activeView !== 'home-view') {
+                        UIController.switchView(0, 'home-view');
+                        return;
+                    }
+                    portfolioState.keyboardIndex = (portfolioState.keyboardIndex - 1 + targets.length) % targets.length;
+                    this.updateVisualHighlights();
+                } else if (e.key === 'Enter') {
+                    e.preventDefault();
+                    targets[portfolioState.keyboardIndex].click();
+                }
+            },
+            updateVisualHighlights() {
+                document.querySelectorAll('.kb-selected').forEach(el => el.classList.remove('kb-selected'));
+                const targets = this.getTargets();
+                if (targets[portfolioState.keyboardIndex]) targets[portfolioState.keyboardIndex].classList.add('kb-selected');
+            }
+        };
+        KeyboardEngine.init();
+
+        /* --- TIME PROCESSING CORE --- */
+        let playbackTime = 0;
+        const AudioSystemMock = {
+            tick() {
+                if (!portfolioState.isPlaying) return;
+                playbackTime++;
+                const currentStr = Math.floor(playbackTime / 60) + ":" + ((playbackTime % 60 < 10) ? "0" : "") + (playbackTime % 60);
+                document.getElementById('currentTime').innerText = currentStr;
+                document.getElementById('progressFilled').style.width = (playbackTime / 180 * 100) + "%";
+                if(playbackTime >= 180) { this.reset(); togglePlayback(); }
+
+                document.querySelectorAll('.eq-bar').forEach(bar => {
+                    bar.style.height = (Math.random() * 35 + 5) + 'px';
+                });
+            },
+            reset() { 
+                playbackTime = 0; 
+                document.getElementById('progressFilled').style.width = "0%"; 
+                document.getElementById('currentTime').innerText = "0:00"; 
+                document.querySelectorAll('.eq-bar').forEach(bar => bar.style.height = '5px');
+            },
+            scrub(e) {
+                const rect = e.currentTarget.getBoundingClientRect();
+                playbackTime = Math.floor(((e.clientX - rect.left) / rect.width) * 180);
+                this.tick();
+            }
+        };
+        setInterval(() => AudioSystemMock.tick(), 1000);
+
+        function togglePlayback() {
+            portfolioState.isPlaying = !portfolioState.isPlaying;
+            document.querySelector('.play-pause-btn').innerText = portfolioState.isPlaying ? "⏸" : "▶";
+            if (!portfolioState.isPlaying) {
+                document.querySelectorAll('.eq-bar').forEach(bar => bar.style.height = '5px');
+            }
+        }
+
+        const InactivityEngine = {
+            timeoutHandle: null,
+            init() { ['mousemove', 'keydown'].forEach(evt => window.addEventListener(evt, () => this.wake(), {passive:true})); this.start(); },
+            start() { this.timeoutHandle = setTimeout(() => document.body.classList.add('ambient-mode'), 30000); },
+            wake() { clearTimeout(this.timeoutHandle); document.body.classList.remove('ambient-mode'); this.start(); }
+        };
+
+        /* --- PURGED BACKGROUND ENGINE --- */
+        const SpaceEngine = {
+            scene: null, camera: null, renderer: null, basePositions: [],
+            galleryGroup: null, bhGroup: null, pointCloud: null,
+            targetCamPos: new THREE.Vector3(0, 15, 35), targetCamLook: new THREE.Vector3(0, 0, 0),
+            currentCamLook: new THREE.Vector3(0, 0, 0), bhDiskMat: null, bhPointsGeo: null,
+            bhPts: null, bhVel: null, bhN: 0, bhRs: 0, bhM: 50, bhG: 1, bhC: 1, globalTime: 0,
+
+            init() {
+                try {
+                    const canvas = document.getElementById('webgl-canvas');
+                    this.scene = new THREE.Scene();
+                    this.camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 2000);
+                    this.camera.position.set(0, 15, 35);
+
+                    this.renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: !isMobile, alpha: true });
+                    this.renderer.setSize(window.innerWidth, window.innerHeight);
+                    this.renderer.setPixelRatio(isMobile ? Math.min(window.devicePixelRatio, 1.5) : Math.min(window.devicePixelRatio, 2));
+
+                    this.scene.add(new THREE.AmbientLight(0x444444));
+                    const light = new THREE.DirectionalLight(0xffffff, 1.2);
+                    light.position.set(5, 20, 15);
+                    this.scene.add(light);
+
+                    // Re-add only the clean starscape particle grid, the dark art frame, and the blackhole
+                    this.buildStarscape();
+                    this.buildImmersive3DGallery();
+                    this.buildRelativisticBlackhole();
+
+                    window.addEventListener('resize', () => {
+                        this.camera.aspect = window.innerWidth / window.innerHeight;
+                        this.camera.updateProjectionMatrix();
+                        this.renderer.setSize(window.innerWidth, window.innerHeight);
+                        this.transitionCameraView(portfolioState.activeView);
+                    });
+
+                    this.renderLoop();
+                } catch(e) { console.error("Canvas matrix init fail:", e); }
+            },
+
+            buildStarscape() {
+                const count = 900;
+                const geometry = new THREE.BufferGeometry();
+                const positions = new Float32Array(count * 3);
+
+                for(let i=0; i<count; i++) {
+                    const u = Math.random(), v = Math.random();
+                    const theta = u * 2.0 * Math.PI, phi = Math.acos(2.0 * v - 1.0);
+                    const radius = 45 + Math.random() * 25;
+
+                    positions[i*3] = radius * Math.sin(phi) * Math.cos(theta);
+                    positions[i*3+1] = radius * Math.sin(phi) * Math.sin(theta);
+                    positions[i*3+2] = radius * Math.cos(phi);
+
+                    this.basePositions.push({
+                        x: positions[i*3], y: positions[i*3+1], z: positions[i*3+2],
+                        angle: Math.random() * Math.PI * 2, speed: 0.001 + Math.random() * 0.002
+                    });
+                }
+                geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+                this.pointCloud = new THREE.Points(geometry, new THREE.PointsMaterial({ color: 0xffffff, size: 0.07, transparent: true, opacity: 0.35 }));
+                this.scene.add(this.pointCloud);
+            },
+
+            buildImmersive3DGallery() {
+                this.galleryGroup = new THREE.Group();
+                this.galleryGroup.position.set(-35, 0, 0);
+                this.scene.add(this.galleryGroup);
+
+                const wall = new THREE.Mesh(new THREE.BoxGeometry(0.5, 12, 16), new THREE.MeshStandardMaterial({ color: 0x050507 }));
+                wall.position.set(0, 3, 0);
+                this.galleryGroup.add(wall);
+
+                const canvasMesh = new THREE.Mesh(new THREE.PlaneGeometry(4, 5), new THREE.MeshStandardMaterial({ color: 0x111115 }));
+                canvasMesh.position.set(0.3, 3, 0);
+                canvasMesh.rotation.y = Math.PI / 2;
+                this.galleryGroup.add(canvasMesh);
+                this.galleryGroup.visible = false;
+            },
+
+            buildRelativisticBlackhole() {
+                this.bhGroup = new THREE.Group();
+                this.bhGroup.position.set(35, 0, 0); 
+                this.scene.add(this.bhGroup);
+
+                this.bhRs = (2 * this.bhG * this.bhM) / (this.bhC * this.bhC); 
+                const diskGeometry = new THREE.PlaneGeometry(this.bhRs * 0.22, this.bhRs * 0.22, 64, 64);
+                
+                this.bhDiskMat = new THREE.ShaderMaterial({
+                    transparent: true,
+                    vertexShader: `varying vec2 vUv; varying float vDist; void main() { vUv = uv; vDist = length(position.xy); gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
+                    fragmentShader: `varying vec2 vUv; varying float vDist; uniform float time; uniform float Rs; void main() { float r = vDist * 8.0; float i = smoothstep(Rs*0.2, Rs*0.5, r) * (1.0 - smoothstep(Rs*0.5, Rs * 1.4, r)); float p = sin(r*1.5 - time*4.0)*0.5+0.5; gl_FragColor = vec4(vec3(1.0, 0.4, 0.1)*i*p, i*0.8); }`,
+                    uniforms: { time: { value: 0 }, Rs: { value: this.bhRs } },
+                    blending: THREE.AdditiveBlending, side: THREE.DoubleSide
+                });
+                
+                const diskMesh = new THREE.Mesh(diskGeometry, this.bhDiskMat);
+                diskMesh.rotation.x = Math.PI / 2.5;
+                this.bhGroup.add(diskMesh);
+
+                this.bhN = isMobile ? 800 : 3000;
+                this.bhPts = new Float32Array(this.bhN * 3);
+                this.bhVel = new Float32Array(this.bhN * 3);
+                this.bhPointsGeo = new THREE.BufferGeometry();
+                
+                for (let i = 0; i < this.bhN; i++) this.initQuantumParticle(i);
+                
+                this.bhPointsGeo.setAttribute('position', new THREE.BufferAttribute(this.bhPts, 3));
+                this.bhGroup.add(new THREE.Points(this.bhPointsGeo, new THREE.PointsMaterial({ size: 0.06, color: 0xff7700, transparent: true, opacity: 0.7, blending: THREE.AdditiveBlending })));
+                this.bhGroup.visible = false;
+            },
+
+            initQuantumParticle(i) {
+                const sf = 0.07;
+                const r = this.bhRs * (3.0 + Math.random() * 5.0) * sf;
+                const t = Math.random() * Math.PI * 2;
+                this.bhPts[i*3] = r * Math.cos(t);
+                this.bhPts[i*3+1] = (Math.random() - 0.5) * 0.4;
+                this.bhPts[i*3+2] = r * Math.sin(t);
+                const v = Math.sqrt((this.bhG * this.bhM) / (r / sf)) * 0.15;
+                this.bhVel[i*3] = -v * Math.sin(t); this.bhVel[i*3+1] = 0; this.bhVel[i*3+2] = v * Math.cos(t);
+            },
+
+            transitionCameraView(viewId) {
+                this.galleryGroup.visible = (viewId === 'paintings-view');
+                this.bhGroup.visible = (viewId === 'etc-view');
+
+                if (viewId === 'music-view') {
+                    this.targetCamPos.set(0, 0, 22); this.targetCamLook.set(0, 0, 0);
+                } else if (viewId === 'paintings-view') {
+                    this.targetCamPos.set(-23, 3, 0); this.targetCamLook.set(-35, 3, 0);
+                } else if (viewId === 'etc-view') {
+                    this.targetCamPos.set(35, 3, 12); this.targetCamLook.set(35, 0, 0);
+                } else {
+                    this.targetCamPos.set(0, 15, 35); this.targetCamLook.set(0, 0, 0);
+                }
+            },
+
+            renderLoop() {
+                requestAnimationFrame(() => this.renderLoop());
+                this.globalTime += 0.01;
+
+                if (this.bhGroup.visible && this.bhDiskMat) {
+                    this.bhDiskMat.uniforms.time.value = this.globalTime;
+                    const sf = 0.07;
+                    for (let i = 0; i < this.bhN; i++) {
+                        const j = i * 3;
+                        const x = this.bhPts[j]; const z = this.bhPts[j+2];
+                        const r = Math.sqrt(x*x + z*z);
+                        if (r < this.bhRs * 1.1 * sf) { this.initQuantumParticle(i); continue; }
+                        const pull = (this.bhG * this.bhM * 0.006) / (r * r);
+                        const angle = Math.atan2(z, x);
+                        this.bhVel[j]   += (-pull * Math.cos(angle));
+                        this.bhVel[j+2] += (-pull * Math.sin(angle));
+                        this.bhPts[j]   += this.bhVel[j]; this.bhPts[j+2] += this.bhVel[j+2];
+                    }
+                    this.bhPointsGeo.attributes.position.needsUpdate = true;
+                }
+
+                if (this.pointCloud) {
+                    const attr = this.pointCloud.geometry.attributes.position;
+                    for(let i=0; i<900; i++) {
+                        let pt = this.basePositions[i];
+                        pt.angle += pt.speed * portfolioState.particleSpeedMultiplier;
+                        let curY = pt.y;
+                        if (portfolioState.particleDistributionMode === 'disk') {
+                            curY = THREE.MathUtils.lerp(pt.y, Math.sin(pt.angle * 2) * 2, 0.05);
+                        }
+                        const cosRot = Math.cos(0.0004 * portfolioState.particleSpeedMultiplier);
+                        const sinRot = Math.sin(0.0004 * portfolioState.particleSpeedMultiplier);
+                        const rotatedX = pt.x * cosRot - pt.z * sinRot;
+                        const rotatedZ = pt.x * sinRot + pt.z * cosRot;
+                        pt.x = rotatedX; pt.z = rotatedZ;
+                        attr.setXYZ(i, rotatedX, curY, rotatedZ);
+                    }
+                    attr.needsUpdate = true;
+                }
+
+                this.camera.position.lerp(this.targetCamPos, 0.05);
+                this.currentCamLook.lerp(this.targetCamLook, 0.05);
+                this.camera.lookAt(this.currentCamLook);
+
+                this.renderer.render(this.scene, this.camera);
+            }
+        };
+
+        window.addEventListener('DOMContentLoaded', () => SpaceEngine.init());
+    </script>
+</body>
+</html>
+, initial-scale=1.0">
     <title>tilaelia's portfolio // integrated master engine</title>
     <style>
         /* --- SYSTEM VARIABLE ENGINE & RESETS --- */
