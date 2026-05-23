@@ -12,7 +12,6 @@
             --text-muted: #71717a;     /* Ash Gray */
             --accent-color: #00b4d8;   /* Cyber/Toxic Cyan */
             --line-color: #1f1f23;     /* Low-Visibility Grid Line */
-            /* UNIFIED FONTS: Completely integrated into a clean monospace profile */
             --mono-font: 'Courier New', Courier, monospace;
         }
 
@@ -38,8 +37,7 @@
 
         /* Sharp Technical Focus Rings for the Shadows */
         a:focus-visible, 
-        button:focus-visible, 
-        audio:focus-visible {
+        button:focus-visible {
             outline: 1px solid var(--accent-color);
             outline-offset: 4px;
         }
@@ -151,40 +149,9 @@
             color: var(--text-main);
         }
 
-        nav a {
-            color: var(--text-muted);
-            text-decoration: none;
-            margin-left: 3.5rem;
-            font-size: 0.75rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.15em;
-            position: relative;
-            transition: color 0.3s ease;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        nav a::after {
-            content: '';
-            position: absolute;
-            width: 100%;
-            height: 1px;
-            bottom: -4px;
-            left: 0;
-            background-color: var(--accent-color);
-            transform: scaleX(0);
-            transform-origin: bottom right;
-            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
         main {
             max-width: 1200px;
             margin: 0 auto;
-        }
-
-        section {
-            padding: 10rem 0;
-            border-top: 1px solid var(--line-color);
         }
 
         /* --- THE HOME / WELCOME PANEL --- */
@@ -255,77 +222,6 @@
             line-height: 1.6;
         }
 
-        /* Separate Section Headers */
-        .section-headline {
-            font-size: 0.8rem;
-            font-weight: 700;
-            letter-spacing: 0.3em;
-            text-transform: uppercase;
-            margin-bottom: 6rem;
-            color: var(--text-muted);
-        }
-
-        /* Isolated Showcase Layout Grid Systems */
-        .project-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
-            gap: 7rem 4.5rem;
-        }
-
-        .work-card {
-            background: transparent;
-            display: flex;
-            flex-direction: column;
-            transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        .image-wrapper {
-            overflow: hidden;
-            background-color: #161619;
-            margin-bottom: 2rem;
-            width: 100%;
-        }
-
-        .work-card img {
-            width: 100%;
-            height: auto;
-            aspect-ratio: 3 / 4; /* Editorial Portrait Format */
-            object-fit: cover;
-            display: block;
-            filter: grayscale(30%) brightness(85%);
-            transition: transform 1.5s cubic-bezier(0.16, 1, 0.3, 1), filter 1.5s ease;
-        }
-
-        .card-body h4 {
-            font-size: 1.4rem;
-            font-weight: 700;
-            letter-spacing: -0.03em;
-            margin-bottom: 0.5rem;
-            line-height: 1.3;
-        }
-
-        .card-body .meta {
-            font-size: 0.75rem;
-            font-weight: 700;
-            color: var(--accent-color);
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            margin-bottom: 1.5rem;
-        }
-
-        .card-body p {
-            font-size: 0.9rem;
-            color: var(--text-muted);
-            line-height: 1.7;
-        }
-
-        audio {
-            width: 100%;
-            margin-top: 2rem;
-            display: block;
-            filter: invert(0.9) hue-rotate(180deg); /* Dark-modes native browser audio panels safely */
-        }
-
         footer {
             max-width: 1200px;
             margin: 0 auto;
@@ -350,23 +246,9 @@
                 color: var(--bg-color);
                 border-color: var(--text-main);
             }
-            nav a:hover {
-                color: var(--text-main);
-            }
-            nav a:hover::after {
-                transform: scaleX(1);
-                transform-origin: bottom left;
-            }
             .feed-node:hover {
                 border-left-color: var(--accent-color);
                 background-color: rgba(255, 255, 255, 0.01);
-            }
-            .work-card:hover img {
-                transform: scale(1.025);
-                filter: grayscale(0%) brightness(100%);
-            }
-            .project-grid:hover .work-card:not(:hover) {
-                opacity: 0.35;
             }
         }
 
@@ -376,8 +258,6 @@
             #splash-screen { transform: none !important; transition: none !important; opacity: 1; }
             #splash-screen.fade-out { opacity: 0 !important; display: none !important; }
             .reveal { transition: none !important; transform: none !important; opacity: 1 !important; }
-            .work-card img { transform: none !important; filter: none !important; }
-            .project-grid:hover .work-card:not(:hover) { opacity: 1 !important; }
         }
 
         /* --- DYNAMIC RESPONSIVE CELL COMPILING --- */
@@ -390,11 +270,8 @@
         @media (max-width: 600px) {
             .portfolio-content { padding: 0 1.5rem; }
             header { flex-direction: column; gap: 2.5rem; text-align: left; align-items: flex-start; padding: 5rem 0; }
-            nav a { margin-left: 0; margin-right: 2rem; font-size: 0.75rem; }
             #splash-screen h2 { font-size: 2rem; text-align: center; }
             .welcome-panel h2 { font-size: 2rem; }
-            section { padding: 6rem 0; }
-            .project-grid { grid-template-columns: 1fr; gap: 5rem; }
         }
     </style>
 </head>
@@ -409,10 +286,6 @@
     <div class="portfolio-content">
         <header>
             <h1>SHADOW_METRIC // 2026</h1>
-            <nav id="main-nav">
-                <a href="#audio-works">Acoustics</a>
-                <a href="#visual-works">Visuals</a>
-            </nav>
         </header>
 
         <main>
@@ -447,66 +320,6 @@
                     </div>
                 </div>
             </section>
-
-            <section id="audio-works" class="reveal">
-                <h3 class="section-headline">01 / Acoustic Architecture</h3>
-                <div class="project-grid">
-                    
-                    <div class="work-card">
-                        <div class="image-wrapper">
-                            <div style="width:100%; aspect-ratio: 3 / 4; background:#18181b;"></div>
-                        </div>
-                        <div class="card-body">
-                            <h4>Spatial Reverberation Profile</h4>
-                            <p class="meta">Acoustics / Phase Signal</p>
-                            <p>An intricate exploration charting phase reflection limits, physical sound cancellations, and extreme sub-bass minimalism.</p>
-                            <audio controls src="your-file-1.mp3"></audio> 
-                        </div>
-                    </div>
-
-                    <div class="work-card">
-                        <div class="image-wrapper">
-                            <div style="width:100%; aspect-ratio: 3 / 4; background:#151518;"></div>
-                        </div>
-                        <div class="card-body">
-                            <h4>Algorithmic Signal Matrix</h4>
-                            <p class="meta">Electronic // Signal Processing</p>
-                            <p>An uncompromising high-velocity performance sequence generated through physical analog synthesizer components.</p>
-                            <audio controls src="your-file-2.mp3"></audio>
-                        </div>
-                    </div>
-
-                </div>
-            </section>
-
-            <section id="visual-works" class="reveal">
-                <h3 class="section-headline">02 / Geometric Frameworks</h3>
-                <div class="project-grid">
-                    
-                    <div class="work-card">
-                        <div class="image-wrapper">
-                            <img src="image-path-1.jpg" alt="Dark charcoal portrait art exhibition asset frame">
-                        </div>
-                        <div class="card-body">
-                            <h4>Asymmetric Dynamic Intervals</h4>
-                            <p class="meta">Vector Graphics / Form Matrix</p>
-                            <p>A rigorous study mapping out empty visual regions and stark compositional balance lines.</p>
-                        </div>
-                    </div>
-
-                    <div class="work-card">
-                        <div class="image-wrapper">
-                            <img src="image-path-2.jpg" alt="Dark charcoal portrait art exhibition asset frame">
-                        </div>
-                        <div class="card-body">
-                            <h4>Monochromatic High-Velocity Frame</h4>
-                            <p class="meta">Structural Canvas / Dark Medium</p>
-                            <p>Exploring high-contrast grid fallacies and deliberate vector fractures in dim environments.</p>
-                        </div>
-                    </div>
-
-                </div>
-            </section>
         </main>
 
         <footer>
@@ -522,21 +335,6 @@
             document.getElementById('splash-screen').classList.add('fade-out');
             document.body.classList.add('active');
             setTimeout(checkReveals, 400); 
-        });
-
-        // Mutually exclusive audio execution loop
-        const allAudioPlayers = document.querySelectorAll('audio');
-        allAudioPlayers.forEach(player => {
-            player.addEventListener('play', () => {
-                allAudioPlayers.forEach(otherPlayer => {
-                    if (otherPlayer !== player) {
-                        otherPlayer.pause();
-                    }
-                });
-            });
-            player.addEventListener('keyup', (e) => { if(e.key === ' ') player.blur(); });
-            player.addEventListener('ended', () => { player.blur(); });
-            player.addEventListener('pause', () => { player.blur(); });
         });
 
         // High-performance lazy observer architecture
@@ -559,13 +357,6 @@
                 }
             });
         }
-
-        document.querySelectorAll('#main-nav a').forEach(link => {
-            link.addEventListener('click', () => {
-                setTimeout(checkReveals, 300);
-                setTimeout(checkReveals, 600);
-            });
-        });
     </script>
 </body>
 </html>
