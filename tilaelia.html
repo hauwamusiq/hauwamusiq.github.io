@@ -179,3 +179,163 @@
             margin-bottom: 10px;
             border-radius: 4px;
             cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .vinyl-crate-item:hover { border-color: #444; background: #191919; }
+        .vinyl-crate-item.selected { border-color: var(--accent-green); box-shadow: 0 0 10px rgba(29, 185, 84, 0.2); }
+        .crate-track-info h4 { font-size: 1.1rem; margin-bottom: 4px; }
+        .crate-track-info p { font-size: 0.85rem; color: var(--text-muted); }
+
+        /* Physical Turntable Simulation Rendering Deck */
+        .turntable-deck {
+            background: #111;
+            border: 4px solid #222;
+            border-radius: 8px;
+            padding: 30px;
+            position: relative;
+            text-align: center;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
+        }
+
+        .vinyl-system-wrapper {
+            position: relative;
+            width: 220px;
+            height: 220px;
+            margin: 0 auto 30px auto;
+        }
+
+        .vinyl-disc {
+            width: 220px;
+            height: 220px;
+            background: radial-gradient(circle, #2c2c2c 2px, #000000 4px, #111 20px, #000 24px, #1a1a1a 80px, #000 100px);
+            border-radius: 50%;
+            position: relative;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            transition: transform 0.5s ease;
+        }
+
+        .vinyl-disc.spinning { animation: spin 2.2s linear infinite; }
+
+        #vinylLabel {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: var(--text-dim);
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 9px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #000;
+            font-weight: bold;
+            text-transform: uppercase;
+            padding: 8px;
+            text-align: center;
+            transition: background-color 0.4s ease;
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.3);
+        }
+
+        #tonearm {
+            width: 24px;
+            height: 140px;
+            background: transparent;
+            position: absolute;
+            top: -10px;
+            right: 10px;
+            transform-origin: 12px 15px;
+            transform: rotate(-25deg);
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 5;
+            pointer-events: none;
+        }
+        /* Structural Arm Assets Elements */
+        #tonearm::before {
+            content: '';
+            position: absolute;
+            top: 15px; left: 10px;
+            width: 4px; height: 110px;
+            background: #888;
+            border-radius: 2px;
+        }
+        #tonearm::after {
+            content: '';
+            position: absolute;
+            bottom: 5px; left: 5px;
+            width: 14px; height: 20px;
+            background: #333;
+            border-radius: 2px;
+        }
+
+        #tonearm.placed { transform: rotate(12deg); }
+
+        .playback-meta h3 { font-size: 1.4rem; margin-bottom: 5px; }
+        .playback-meta p { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px; }
+
+        /* Scannable Progress Monitor Systems */
+        .timeline-matrix {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+        .progress-bar { flex: 1; height: 4px; background: #222; border-radius: 2px; overflow: hidden; position: relative; }
+        #progressFilled { width: 0%; height: 100%; background: var(--accent-green); transition: width 0.2s linear; }
+        #currentTime { font-size: 0.85rem; color: var(--text-muted); min-width: 35px; }
+
+        .play-pause-btn {
+            background: none;
+            border: 2px solid var(--text-dim);
+            color: var(--text-main);
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            font-size: 1.4rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            outline: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .play-pause-btn:hover { border-color: var(--text-main); transform: scale(1.05); }
+
+        /* --- 5. PAINTINGS WORKSPACE GALLERIES --- */
+        .paintings-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+        }
+
+        .painting-frame {
+            background: var(--bg-card);
+            border: 1px solid #1c1c1c;
+            padding: 15px;
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        .image-placeholder {
+            width: 100%;
+            aspect-ratio: 4/5;
+            background: #1a1a1a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-dim);
+            margin-bottom: 15px;
+            border: 1px dashed #333;
+            border-radius: 2px;
+            font-size: 0.9rem;
+        }
+
+        .painting-frame h4 { font-size: 1.1rem; margin-bottom: 5px; }
+        .painting-frame p { color: var(--text-muted); font-size: 0.85rem; }
+
+        /* --- 6. ASYNCHRONOUS SYSTEM RUN
