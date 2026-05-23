@@ -20,6 +20,368 @@
             background-color: #0b0b0e;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             color: #f3f3f6;
+        }
+
+        /* Ambient Cosmic Particle Layer */
+        #starfield {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+            opacity: 0.3;
+        }
+
+        /* Gatekeeper Layer */
+        #gatekeeper {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, #16161f 0%, #0b0b0e 100%);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.8s cubic-bezier(0.25, 1, 0.5, 1), visibility 0.8s;
+        }
+
+        #gatekeeper.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .gatekeeper-content {
+            text-align: center;
+            max-width: 600px;
+            padding: 30px;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            font-weight: 300;
+            letter-spacing: 0.3em;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            background: linear-gradient(45deg, #f3f3f6, #a2a2b0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        p {
+            font-size: 0.95rem;
+            color: #8a8a9e;
+            letter-spacing: 0.1em;
+            margin-bottom: 40px;
+            line-height: 1.6;
+        }
+
+        .enter-btn {
+            background: transparent;
+            border: 1px solid rgba(243, 243, 243, 0.25);
+            padding: 16px 45px;
+            color: #f3f3f6;
+            font-size: 0.85rem;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            cursor: pointer;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+        }
+
+        .enter-btn:hover {
+            border-color: #f3f3f6;
+            box-shadow: 0 0 25px rgba(253, 253, 253, 0.12);
+            transform: translateY(-2px);
+        }
+
+        /* Responsive 3D Core Viewport */
+        #gallery-viewport {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 60px;
+            opacity: 0;
+            transform: scale(0.9) translateZ(-100px);
+            transition: all 1.2s cubic-bezier(0.25, 1, 0.5, 1);
+            z-index: 5;
+            perspective: 1200px;
+        }
+
+        #gallery-viewport.visible {
+            opacity: 1;
+            transform: scale(1) translateZ(0);
+        }
+
+        /* Interactive Spherical Art Pods */
+        .art-node {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            border: 1px dashed rgba(255, 255, 255, 0.15);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+            transform-style: preserve-3d;
+            animation: floatingDrift 5s ease-in-out infinite alternate;
+        }
+
+        .art-node:nth-child(2) { animation-delay: -1.5s; }
+        .art-node:nth-child(3) { animation-delay: -3.2s; }
+
+        .art-node:hover {
+            border-color: rgba(255, 255, 255, 0.8);
+            transform: translateY(-5px) scale(1.05);
+        }
+
+        .node-orb {
+            width: 60px;
+            height: 60px;
+            border-radius: 35%;
+            margin-bottom: 18px;
+            transition: transform 0.4s ease;
+        }
+
+        #node-atelier .node-orb { background: #d4af37; box-shadow: 0 0 25px rgba(212, 175, 55, 0.35); }
+        #node-music .node-orb { background: #4a90e2; box-shadow: 0 0 25px rgba(74, 144, 226, 0.35); }
+        #node-writings .node-orb { background: #e06d53; box-shadow: 0 0 25px rgba(224, 109, 83, 0.35); }
+
+        .node-label {
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.18em;
+            color: rgba(243, 243, 243, 0.9);
+            font-weight: 300;
+        }
+
+        /* Overlay Sliding Menu Panel */
+        #panel-container {
+            position: fixed;
+            right: 40px;
+            top: 50%;
+            transform: translateY(-50%) translateX(80px);
+            width: 370px;
+            background: rgba(11, 11, 14, 0.88);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 20px;
+            padding: 35px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+            z-index: 50;
+        }
+
+        #panel-container.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(-50%) translateX(0);
+        }
+
+        .close-panel {
+            position: absolute;
+            top: 25px;
+            right: 25px;
+            background: transparent;
+            border: none;
+            color: #8a8a9e;
+            font-size: 1.4rem;
+            cursor: pointer;
+        }
+
+        .panel-title {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            font-weight: 400;
+        }
+
+        .sub-navigation {
+            margin-top: 25px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .sub-nav-btn {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 14px 18px;
+            text-align: left;
+            color: #a2a2b0;
+            font-size: 0.9rem;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .sub-nav-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: #ffffff;
+            padding-left: 24px;
+        }
+
+        @keyframes floatingDrift {
+            from { transform: translateY(-8px) rotateY(-5deg); }
+            to { transform: translateY(8px) rotateY(5deg); }
+        }
+
+        @media(max-width: 768px) {
+            #gallery-viewport { flex-direction: column; gap: 25px; padding-top: 40px; }
+            #panel-container { bottom: 20px; top: auto; transform: translateY(50px); right: 20px; left: 20px; width: calc(100% - 40px); }
+            #panel-container.active { transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="starfield"></canvas>
+
+    <div id="gatekeeper">
+        <div class="gatekeeper-content">
+            <h1>The Creative Archive</h1>
+            <p>An immersive multi-disciplinary space showcasing fine arts, musical compositions, and written literature.</p>
+            <button class="enter-btn" id="trigger-btn">Enter Experience</button>
+        </div>
+    </div>
+
+    <div id="gallery-viewport">
+        <div class="art-node" id="node-atelier">
+            <div class="node-orb"></div>
+            <div class="node-label">Atelier</div>
+        </div>
+        <div class="art-node" id="node-music">
+            <div class="node-orb"></div>
+            <div class="node-label">Music</div>
+        </div>
+        <div class="art-node" id="node-writings">
+            <div class="node-orb"></div>
+            <div class="node-label">Writings</div>
+        </div>
+    </div>
+
+    <div id="panel-container">
+        <button class="close-panel" id="close-btn">×</button>
+        <div id="panel-content"></div>
+    </div>
+
+    <script>
+        const galleryData = {
+            atelier: {
+                title: "The Atelier",
+                desc: "A sanctuary dedicated to visual weight, texture, and thought captured on canvas.",
+                subcategories: ["Paintings", "Drawings", "Sketches"]
+            },
+            music: {
+                title: "Sonic Spaces",
+                desc: "Auditory environments, compositions, and soundscapes designed to evoke raw emotion.",
+                subcategories: ["Compositions", "Sound Design", "Live Sessions"]
+            },
+            writings: {
+                title: "The Scriptorium",
+                desc: "Curated collections of linguistic records spanning creative prose and concrete research.",
+                subcategories: ["Poetry", "Essays", "Academic Research", "Literature"]
+            }
+        };
+
+        // Fallback Native Particle Generator
+        const canvas = document.getElementById('starfield');
+        const ctx = canvas.getContext('2d');
+        let stars = [];
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        for(let i=0; i<80; i++) {
+            stars.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                r: Math.random() * 1.5,
+                d: Math.random() * 0.5
+            });
+        }
+
+        function drawStars() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "#8a8a9e";
+            stars.forEach(s => {
+                ctx.beginPath();
+                ctx.arc(s.x, s.y, s.r, 0, Math.PI*2);
+                ctx.fill();
+                s.y -= s.d;
+                if(s.y < 0) s.y = canvas.height;
+            });
+            requestAnimationFrame(drawStars);
+        }
+        drawStars();
+
+        // Safe Event Interface Assignments
+        document.getElementById('trigger-btn').addEventListener('click', () => {
+            document.getElementById('gatekeeper').classList.add('hidden');
+            document.getElementById('gallery-viewport').classList.add('visible');
+        });
+
+        ['atelier', 'music', 'writings'].forEach(key => {
+            document.getElementById(`node-${key}`).addEventListener('click', () => {
+                const data = galleryData[key];
+                let subNavHTML = data.subcategories.map(sub => `
+                    <button class="sub-nav-btn" onclick="console.log('Navigating to: ${sub}')">
+                        ${sub} &rarr;
+                    </button>
+                `).join('');
+
+                document.getElementById('panel-content').innerHTML = `
+                    <h3 class="panel-title">${data.title}</h3>
+                    <p style="margin-bottom:20px; font-size:0.9rem; color:#8a8a9e; line-height:1.5;">${data.desc}</p>
+                    <div class="sub-navigation">${subNavHTML}</div>
+                `;
+                document.getElementById('panel-container').classList.add('active');
+            });
+        });
+
+        document.getElementById('close-btn').addEventListener('click', () => {
+            document.getElementById('panel-container').classList.remove('active');
+        });
+    </script>
+</body>
+</html>
+" content="width=device-width, initial-scale=1.0">
+    <title>The Creative Archive</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #0b0b0e;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            color: #f3f3f6;
             perspective: 1000px;
         }
 
