@@ -10,7 +10,7 @@
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2 family=Fira+Code&family=Inter:wght@400;700;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Fira+Code&family=Inter:wght@400;700;900&display=swap');
         body { font-family: 'Inter', sans-serif; background: #0b0f19; color: #f3f4f6; }
         .glass { background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); }
     </style>
@@ -43,10 +43,11 @@
 
     <main class="flex-grow p-6 max-w-[1600px] w-full mx-auto">
         <section id="tab-encyclopedia" class="grid grid-cols-12 gap-6">
-            <div class="col-span-12 md:col-span-3 glass p-4 rounded-xl h-fit">
-                <select id="topic-selector" onchange="handleTopicSelect(this.value)" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm text-slate-200 focus:outline-none"></select>
+            <div class="col-span-12 md:col-span-4 glass p-4 rounded-xl h-fit">
+                <label class="block text-[10px] uppercase font-bold text-slate-400 tracking-wider mb-2">Select Core Paradigm</label>
+                <select id="topic-selector" onchange="handleTopicSelect(this.value)" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-xs text-slate-200 focus:outline-none"></select>
             </div>
-            <div class="col-span-12 md:col-span-9 glass p-6 rounded-xl min-h-[300px]" id="topic-container"></div>
+            <div class="col-span-12 md:col-span-8 glass p-6 rounded-xl min-h-[320px]" id="topic-container"></div>
         </section>
 
         <section id="tab-solver" class="hidden grid grid-cols-12 gap-6">
@@ -97,9 +98,15 @@
 
     <script>
         const data = [
-            { t: "Classical Mechanics", n: "Lagrangian Formulation", c: "An alternative to Newtonian vector mechanics, modeling frameworks based on scalar kinetic ($T$) and potential ($V$) systems.", m: "$$S = \\int_{t_1}^{t_2} L(q, \\dot{q}, t) \\, dt, \\quad L = T - V$$" },
-            { t: "Relativistic Mechanics", n: "Lorentz Invariance", c: "Calculates the fundamental modifications mapping space and time coordinates across relativistic velocity constraints.", m: "$$\\gamma = \\frac{1}{\\sqrt{1 - (v/c)^2}}$$" }
+            { t: "Classical Mechanics", n: "Lagrangian Formulation", c: "An optimization paradigm reformulating Newtonian vector mechanics into scalar kinetic ($T$) and potential ($V$) fields. It models systems along minimized action paths without explicit constraint calculations.", m: "$$L = T - V \\quad \\Rightarrow \\quad \\frac{d}{dt}\\left(\\frac{\\partial L}{\\partial \\dot{q}_i}\\right) - \\frac{\\partial L}{\\partial q_i} = 0$$" },
+            { t: "Classical Mechanics", n: "Hamiltonian Phase Space Mechanics", c: "Transforms configuration space coordinates into phase-space coordinates utilizing conjugate momentum ($p$). It represents the absolute foundation for statistical and quantum mechanical translation matrices.", m: "$$H(q, p, t) = \\sum p_i\\dot{q}_i - L \\quad \\Rightarrow \\quad \\dot{q}_i = \\frac{\\partial H}{\\partial p_i}, \\ \\dot{p}_i = -\\frac{\\partial H}{\\partial q_i}$$" },
+            { t: "Electrodynamics", n: "Maxwell Field Equations", c: "Unifies electricity, magnetism, and optics into a unified classical field architecture, describing how electromagnetic fields generate, propagate, and interface with matter dependencies.", m: "$$\\nabla \\cdot \\mathbf{E} = \\frac{\\rho}{\\varepsilon_0}, \\quad \\nabla \\cdot \\mathbf{B} = 0, \\quad \\nabla \\times \\mathbf{E} = -\\frac{\\partial \\mathbf{B}}{\\partial t}, \\quad \\nabla \\times \\mathbf{B} = \\mu_0\\mathbf{J} + \\mu_0\\varepsilon_0\\frac{\\partial \\mathbf{E}}{\\partial t}$$" },
+            { t: "Quantum Mechanics", n: "The Schrödinger Equation", c: "Dictates the non-relativistic dynamical spatial-temporal evolution of a quantum state's complex wave function ($\\Psi$), describing exact system probabilities rather than absolute Newtonian deterministic locations.", m: "$$i\\hbar\\frac{\\partial}{\partial t}\\Psi(\\mathbf{r},t) = \\hat{H}\\Psi(\\mathbf{r},t) = \\left[-\\frac{\\hbar^2}{2m}\\nabla^2 + V(\\mathbf{r},t)\\right]\\Psi(\\mathbf{r},t)$$" },
+            { t: "Thermodynamics", n: "Statistical Partition Function Engine", c: "The microscopic core bridging microstate configurations to macroscopic thermodynamic variables. It determines the configuration probabilities of ensembles under varying thermal environments.", m: "$$Z = \\sum_{s} e^{-\\beta E_s}, \\quad \\beta = \\frac{1}{k_B T}, \\quad F = -k_B T \\ln(Z)$$" },
+            { t: "Relativistic Mechanics", n: "Minkowski Metric & Lorentz Invariance", c: "Defines the fundamental absolute baseline transformation metric invariant for flat spacetime intervals across distinct relativistic reference fields, defining universal light speed speed constraints.", m: "$$ds^2 = -c^2dt^2 + dx^2 + dy^2 + dz^2, \\quad \\gamma = \\frac{1}{\\sqrt{1 - (v/c)^2}}$$" },
+            { t: "Mathematical Methods", n: "Fourier Transformation Analysis", c: "Transforms coordinate configurations from spatial/temporal data points cleanly into frequency domain spectrum distributions. It is critically useful for resolving differential linear operations.", m: "$$\\mathcal{F}\\{f(t)\\} = F(\\omega) = \\int_{-\\infty}^{\\infty} f(t)e^{-i\\omega t}\\,dt$$" }
         ];
+
         const defaultVars = () => [{s:'v', v:'0.8'}, {s:'m_0', v:'2.5'}];
         let vars = defaultVars(), simMode = '2d', parts = [], scene, camera, renderer, grid;
         const c2d = document.getElementById('canvas-2d');
@@ -115,7 +122,7 @@
 
         window.onload = () => {
             const sel = document.getElementById('topic-selector');
-            if (sel) data.forEach((d, i) => sel.add(new Option(`${d.t} — ${d.n}`, i)));
+            if (sel) data.forEach((d, i) => sel.add(new Option(`[${d.t}] — ${d.n}`, i)));
             loadTopic(0); renderVars(); audit(); init2D();
             window.onresize = resizeSimulation;
             resizeSimulation();
@@ -128,14 +135,25 @@
                 const btn = document.getElementById(`d-btn-${id}`);
                 if(btn) btn.className = id === t ? "px-4 py-2 text-sm font-medium rounded-lg bg-indigo-600 text-white shadow" : "px-4 py-2 text-sm font-medium rounded-lg text-slate-400 hover:text-white";
             });
-            setTimeout(resizeSimulation, 20);
+            
+            // Queue layout logic tracking directly after visibility updates clear layout context
+            setTimeout(() => {
+                resizeSimulation();
+                if(window.MathJax?.typesetPromise) {
+                    MathJax.typesetPromise();
+                }
+            }, 30);
         }
 
         function loadTopic(i) {
             const container = document.getElementById('topic-container');
             if (!container) return;
-            container.innerHTML = `<span class="text-xs font-bold text-indigo-400 uppercase tracking-widest">${data[i].t}</span><h2 class="text-2xl font-black text-white mt-1 mb-3">${data[i].n}</h2><p class="text-sm text-slate-300 leading-relaxed max-w-3xl">${data[i].c}</p><div class="bg-slate-900/40 border border-slate-800 p-4 rounded-xl font-mono text-sm mt-4 text-slate-200">${data[i].m}</div>`;
-            if(window.MathJax?.typesetPromise) MathJax.typesetPromise();
+            container.innerHTML = `<span class="text-xs font-bold text-indigo-400 uppercase tracking-widest">${data[i].t}</span><h2 class="text-xl font-black text-white mt-1 mb-3">${data[i].n}</h2><p class="text-xs text-slate-300 leading-relaxed max-w-3xl">${data[i].c}</p><div id="math-target" class="bg-slate-900/40 border border-slate-800 p-4 rounded-xl font-mono text-xs mt-4 text-slate-200 overflow-x-auto">${data[i].m}</div>`;
+            
+            if(window.MathJax?.typesetPromise) {
+                const target = document.getElementById('math-target');
+                MathJax.typesetPromise([target]).catch(err => console.log(err));
+            }
         }
         function handleTopicSelect(v) { loadTopic(parseInt(v)); }
 
@@ -156,13 +174,17 @@
             const chk = document.getElementById('chk-relativity');
             const err = chk && chk.checked && v >= 1.0;
             const consoleEl = document.getElementById('auditor-console');
-            if (consoleEl) consoleEl.innerHTML = err ? `<div class="text-rose-400 font-bold">⚠️ Logic Contradiction: Relative velocity calculation vector $v \\ge c$ detected.</div>` : `<div class="text-emerald-400">✓ System clean. Matrix math limits verified.</div>`;
+            if (consoleEl) consoleEl.innerHTML = err ? `<div id="audit-math-msg" class="text-rose-400 font-bold">⚠️ Logic Contradiction: Relative velocity calculation vector $v \\ge c$ detected.</div>` : `<div id="audit-math-msg" class="text-emerald-400">✓ System clean. Matrix math limits verified.</div>`;
             const g = err ? NaN : 1 / Math.sqrt(1 - v*v);
             const gammaEl = document.getElementById('val-gamma');
             const massEl = document.getElementById('val-rel-mass');
             if (gammaEl) gammaEl.innerText = isNaN(g) ? "Complex" : g.toFixed(4);
             if (massEl) massEl.innerText = isNaN(g) ? "--" : (m0 * g).toFixed(2) + " kg";
-            if(window.MathJax?.typesetPromise) MathJax.typesetPromise();
+            
+            if(window.MathJax?.typesetPromise) {
+                const msgTarget = document.getElementById('audit-math-msg');
+                if(msgTarget) MathJax.typesetPromise([msgTarget]).catch(err => console.log(err));
+            }
         }
 
         function init2D() {
