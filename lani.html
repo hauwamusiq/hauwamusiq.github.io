@@ -1,0 +1,309 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aletheia Physics Workspace</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- MathJax for rendering equations -->
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            },
+            options: {
+                ignoreHtmlClass: 'tex2jax_ignore',
+                processHtmlClass: 'tex2jax_process'
+            },
+            svg: {
+                fontCache: 'global'
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <!-- Three.js for 3D Visualizations -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Inter:wght@300;400;500;600;700;800&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0b0f19;
+            color: #f3f4f6;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        .code-font {
+            font-family: 'Fira Code', monospace;
+        }
+
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        /* Optimized Scrollbar for Mobile */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1e293b;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body class="min-h-screen overflow-x-hidden flex flex-col pb-16 md:pb-0">
+
+    <!-- TOP HEADER / NAV BAR -->
+    <header class="glass-panel sticky top-0 z-50 px-4 py-3 flex flex-col sm:flex-row items-center justify-between gap-3 border-b border-slate-800">
+        <div class="flex items-center space-x-3 w-full sm:w-auto">
+            <div class="h-9 w-9 rounded-lg bg-gradient-to-tr from-indigo-500 via-purple-500 to-cyan-500 flex items-center justify-center text-white font-bold shadow-lg">
+                <i class="fa-solid fa-atom text-lg animate-spin" style="animation-duration: 10s;"></i>
+            </div>
+            <div>
+                <h1 class="text-lg font-extrabold tracking-tight bg-gradient-to-r from-white via-indigo-200 to-cyan-400 bg-clip-text text-transparent">
+                    Aletheia Physics
+                </h1>
+                <p class="text-[10px] text-slate-400 font-medium">Theoretical Lab & Mobile Companion</p>
+            </div>
+        </div>
+        
+        <!-- Premium Status bar (Mobile-hidden, Tablet/Desktop visible) -->
+        <div class="hidden md:flex items-center space-x-3">
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-cyan-400/10 text-cyan-400 border border-cyan-400/20">
+                <span class="h-1.5 w-1.5 rounded-full bg-cyan-400 mr-1.5 animate-pulse"></span>
+                Auditor Engine Online
+            </span>
+        </div>
+    </header>
+
+    <!-- MAIN APP WRAPPER -->
+    <main class="flex-grow p-4 max-w-[1600px] w-full mx-auto grid grid-cols-1 gap-4 mb-20 md:mb-0">
+
+        <!-- TAB 1: INTERACTIVE ENCYCLOPEDIA -->
+        <section id="tab-encyclopedia" class="space-y-4">
+            <!-- Mobile Intro Banner -->
+            <div class="relative overflow-hidden rounded-xl bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 border border-indigo-500/15 p-5 shadow-xl">
+                <div class="relative z-10">
+                    <span class="text-[10px] uppercase tracking-widest text-indigo-400 font-bold">Curriculum Framework</span>
+                    <h2 class="text-xl font-bold mt-1 text-white">Your Path to Physical Discovery</h2>
+                    <p class="text-slate-300 mt-1.5 text-xs leading-relaxed">
+                        To construct your own physical paradigm, you must first master classical equations, quantum states, and relativistic bounds. Start by selecting a framework below.
+                    </p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-4 gap-4">
+                <!-- Mobile Dropdown Selector / Desktop Sidebar -->
+                <div class="lg:col-span-1 space-y-2">
+                    <div class="glass-panel p-3.5 rounded-xl border border-slate-800">
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Theoretical Domains</label>
+                        <!-- Mobile Category Selector (Shows only on mobile) -->
+                        <select id="mobile-topic-selector" onchange="handleMobileTopicSelect(this.value)" class="block lg:hidden w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-cyan-500">
+                            <!-- Dynamic Mobile Options go here -->
+                        </select>
+                        
+                        <!-- Desktop Category Selector Sidebar (hidden on mobile) -->
+                        <div class="hidden lg:block space-y-1" id="encyclopedia-categories">
+                            <!-- Dynamic Categories Inserted Here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Main Reading/Learning Deck -->
+                <div class="lg:col-span-3 space-y-4">
+                    <div class="glass-panel p-5 rounded-xl border border-slate-800" id="topic-container">
+                        <div class="flex flex-col items-center justify-center py-12 text-center text-slate-400">
+                            <i class="fa-solid fa-atom text-4xl mb-3 text-indigo-500 animate-pulse"></i>
+                            <h3 class="text-lg font-semibold text-white">Select a physical theory domain</h3>
+                            <p class="text-xs mt-1 max-w-xs">Use the selectors above to load structural breakdowns, physical proofs, and logical limits.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 2: PHYSICS SOLVER & CONTRADICTION AUDITOR -->
+        <section id="tab-solver" class="hidden space-y-4">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+                
+                <!-- Parameter Inputs -->
+                <div class="lg:col-span-5 flex flex-col space-y-4">
+                    <div class="glass-panel p-4 rounded-xl border border-slate-800 space-y-4">
+                        <div class="flex justify-between items-center border-b border-slate-800 pb-2.5">
+                            <h2 class="text-base font-bold text-white flex items-center gap-2">
+                                <i class="fa-solid fa-sliders text-cyan-400"></i> Environmental Settings
+                            </h2>
+                            <button onclick="resetSolver()" class="text-[10px] px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300">
+                                Reset
+                            </button>
+                        </div>
+
+                        <!-- Scenario Selectors -->
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Select Physical Setup</label>
+                            <select id="scenario-selector" onchange="loadScenarioPreset()" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-slate-200 focus:outline-none">
+                                <option value="custom">-- Create Custom Setup --</option>
+                                <option value="superluminal">Relativistic Superluminal Body (Contradiction Case)</option>
+                                <option value="thermo-violation">Entropy Decrease in Closed System (Thermodynamic Violation)</option>
+                                <option value="quantum-uncertainty">Uncertainty Principle Violator (Quantum Inconsistency)</option>
+                                <option value="orbital-mechanics">Classical Invariant Orbital Acceleration</option>
+                                <option value="special-relativity">Relativistic Time Dilation & Mass-Energy Configuration</option>
+                            </select>
+                        </div>
+
+                        <!-- Variables Configuration -->
+                        <div class="space-y-2">
+                            <h3 class="text-[10px] font-bold text-indigo-400 uppercase tracking-wider">Dynamic Constants & Values</h3>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2" id="variables-list">
+                                <!-- Dynamic Variables list -->
+                            </div>
+                            <button onclick="addCustomVariable()" class="w-full py-2 border border-dashed border-slate-700 hover:border-indigo-500 text-[10px] text-slate-400 rounded-lg flex items-center justify-center gap-2 transition-all">
+                                <i class="fa-solid fa-plus"></i> Add Custom Parameter
+                            </button>
+                        </div>
+
+                        <!-- Framework Toggles -->
+                        <div class="space-y-2 pt-1">
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Framework Guards</label>
+                            <div class="flex flex-col gap-2 bg-slate-950/50 p-2.5 rounded-lg border border-slate-800 text-xs">
+                                <label class="flex items-center space-x-2 text-slate-300 cursor-pointer">
+                                    <input type="checkbox" id="chk-relativity" onchange="runLogicVerification()" class="rounded border-slate-700 bg-slate-900 text-indigo-600 focus:ring-0" checked>
+                                    <span>Enforce Relativistic Speed Limit ($v < c$)</span>
+                                </label>
+                                <label class="flex items-center space-x-2 text-slate-300 cursor-pointer">
+                                    <input type="checkbox" id="chk-thermo" onchange="runLogicVerification()" class="rounded border-slate-700 bg-slate-900 text-indigo-600 focus:ring-0" checked>
+                                    <span>Enforce Thermodynamics (2nd Law: $dS \ge 0$)</span>
+                                </label>
+                                <label class="flex items-center space-x-2 text-slate-300 cursor-pointer">
+                                    <input type="checkbox" id="chk-quantum" onchange="runLogicVerification()" class="rounded border-slate-700 bg-slate-900 text-indigo-600 focus:ring-0" checked>
+                                    <span>Enforce Heisenberg Uncertainty ($\Delta x \cdot \Delta p \ge \frac{\hbar}{2}$)</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <button onclick="runLogicVerification()" class="w-full bg-gradient-to-r from-indigo-600 to-cyan-500 hover:from-indigo-500 hover:to-cyan-400 text-white font-bold py-2.5 px-4 rounded-lg shadow-lg transition-all text-xs flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-microchip"></i> Execute Mathematical & Logic Audit
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Auditor Feedback -->
+                <div class="lg:col-span-7 flex flex-col space-y-4">
+                    <div class="glass-panel rounded-xl border border-slate-800 overflow-hidden flex flex-col flex-grow min-h-[300px]">
+                        <div class="bg-slate-950 px-3.5 py-2.5 border-b border-slate-800 flex justify-between items-center">
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-cyan-400 flex items-center gap-1.5">
+                                <i class="fa-solid fa-terminal animate-pulse"></i> Consistency Audit Stream
+                            </span>
+                            <span class="text-[9px] text-slate-500 uppercase">Live Output</span>
+                        </div>
+                        
+                        <div class="p-4 flex-grow space-y-3 overflow-y-auto max-h-[400px] code-font text-xs" id="auditor-console">
+                            <div class="text-slate-400">System ready. Config parameters or load a scenario to start...</div>
+                        </div>
+                    </div>
+
+                    <!-- Computed Real-time properties -->
+                    <div class="glass-panel p-4 rounded-xl border border-slate-800 space-y-3">
+                        <h3 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Derived Theoretical Values</h3>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                            <div class="bg-slate-900/60 p-2.5 rounded-lg border border-slate-800 text-center">
+                                <div class="text-[9px] text-slate-500 font-semibold uppercase">Lorentz Factor ($\gamma$)</div>
+                                <div class="text-sm font-bold text-slate-200 mt-0.5" id="val-gamma">--</div>
+                            </div>
+                            <div class="bg-slate-900/60 p-2.5 rounded-lg border border-slate-800 text-center">
+                                <div class="text-[9px] text-slate-500 font-semibold uppercase">Rel. Mass ($M_{rel}$)</div>
+                                <div class="text-sm font-bold text-slate-200 mt-0.5" id="val-rel-mass">--</div>
+                            </div>
+                            <div class="bg-slate-900/60 p-2.5 rounded-lg border border-slate-800 text-center">
+                                <div class="text-[9px] text-slate-500 font-semibold uppercase">Quantum Action Product</div>
+                                <div class="text-sm font-bold text-slate-200 mt-0.5" id="val-quantum-act">--</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- TAB 3: VISUAL MODELING & SANDBOXES -->
+        <section id="tab-simulation" class="hidden space-y-4">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+                <!-- Control settings -->
+                <div class="lg:col-span-3 space-y-4">
+                    <div class="glass-panel p-4 rounded-xl border border-slate-800 space-y-4">
+                        <h3 class="text-xs font-bold text-white border-b border-slate-800 pb-2">Simulation Sandbox</h3>
+                        
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Engine Mode</label>
+                            <div class="grid grid-cols-2 gap-2">
+                                <button onclick="setSimMode('2d')" id="btn-sim-2d" class="py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 text-white transition-all">
+                                    2D Vector Fields
+                                </button>
+                                <button onclick="setSimMode('3d')" id="btn-sim-3d" class="py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-400 hover:text-white transition-all">
+                                    3D Quantum
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 2D settings -->
+                        <div id="controls-2d" class="space-y-3.5">
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Field Topology</label>
+                                <select id="field-type" onchange="update2DField()" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-slate-200">
+                                    <option value="gravity">Classical Gravitational Well</option>
+                                    <option value="magnetic">Dipole Magnetic Field</option>
+                                    <option value="electric">Coulomb Point Charge</option>
+                                    <option value="vortex">Fluid Vortex Vector Field</option>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 flex justify-between">
+                                    <span>Field Intensity:</span> <span id="lbl-field-strength" class="text-cyan-400 font-bold">1.0</span>
+                                </label>
+                                <input type="range" id="field-strength" min="0.1" max="5.0" step="0.1" value="1.0" oninput="update2DFieldParams()" class="w-full accent-cyan-400">
+                            </div>
+
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 flex justify-between">
+                                    <span>Launch Velocity:</span> <span id="lbl-p-vel" class="text-cyan-400 font-bold">150 px/s</span>
+                                </label>
+                                <input type="range" id="particle-velocity" min="50" max="400" step="10" value="150" oninput="update2DFieldParams()" class="w-full accent-cyan-400">
+                            </div>
+
+                            <button onclick="clearParticles()" class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 rounded-lg">
+                                Clear Particles
+                            </button>
+                        </div>
+
+                        <!-- 3D settings -->
+                        <div id="controls-3d" class="hidden space-y-3.5">
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Observation Target</label>
+                                <select id="3d-topic" onchange="update3DScene()" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-slate-200">
+                                    <option value="spacetime">Curved Spacetime Fabric (Einstein Gravity)</option>
+                                    <option value="orbital">Quantum Atomic Orbitals (Probability Clouds)</option>
+                                    <option value="wavepacket">Wavepacket Group Dispersion</option>
+                                </select>
+                            </div>
+
+                            <div id="spacetime-sliders" class="space-y-3">
+                                <div>
+                                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 flex justify-between">
+                                        <span>Mass ($M_{sun}$):</span> <span id="lbl-mass-3d" class="text-purple-400">2.0</span>
+                                    </label>
+                                    <input type="range" id="mass-3d" min="0.5" max="5.0" step="0.1" value="2.0" oninput="update3DParams()" class="w-full accent-purple-500">
+                                </div>
+  
