@@ -162,12 +162,72 @@
 
     <script>
         const data = [
-            { level: "Beginner", t: "Classical Mechanics", n: "Newtonian Laws & Gravitation", c: "The foundational pillars governing macroscopic bodies via forces.", m: "$$\\mathbf{F} = m\\mathbf{a}, \\quad \\mathbf{F}_G = G\\frac{m_1 m_2}{r^2}\\hat{\\mathbf{r}}$$", flashcards: [{q:"What happens to gravity if distance $r$ drops by half?", a:"The force increases by a factor of 4 due to inverse-square dependencies."}], quiz: [{q:"Which criterion arises if zero net external force intercepts a layout?", options:["Kinetic Energy Conservation","Linear Momentum Conservation","Entropy Decay"], correct:1, rationale:"Translation symmetry guarantees total linear momentum remains conserved over time."}] },
-            { level: "Beginner", t: "Thermodynamics", n: "The Work-Energy Theorem", c: "Establishes that distance-integrated net forces cleanly translate to translational kinetic modifications.", m: "$$W = \\int \\mathbf{F} \\cdot d\\mathbf{r} = \\Delta K = \\frac{1}{2}mv_f^2 - \\frac{1}{2}mv_i^2$$", flashcards: [{q:"Can an orthogonal force vector process geometric work?", a:"No. If the vector angle calculation hits 90 degrees, scalar dot products collapse to zero."}], quiz: [{q:"If an electrostatic path is maintained orthogonal to displacement, how much work is logged?", options:["Maximal Work","Zero Scalar Work","Negative Drag"], correct:1, rationale:"Orthogonal configuration trajectories mean displacements always track zero total work conversions."}] },
-            { level: "Intermediate", t: "Analytical Mechanics", n: "Lagrangian Path Formulations", c: "An optimization matrix modeling path dynamics through scalar energy variance fields.", m: "$$L = T - V \\quad \\Rightarrow \\quad \\frac{d}{dt}\\left(\\frac{\\partial L}{\\partial \\dot{q}_i}\\right) - \\frac{\\partial L}{\\partial q_i} = 0$$", flashcards: [{q:"What do $q_i$ symbols track?", a:"Generalized system tracking coordinates decoupled from physical restriction boundaries."}], quiz: [{q:"Differentiating the Lagrangian across velocity profiles ($\\partial L / \\partial \\dot{q}$) resolves to what?", options:["System Hamiltonian Matrix","Generalized Momentum ($p_i$)","Thermal Entropy Field"], correct:1, rationale:"Velocity derivations across configuration metrics extract localized conjugate momentum equations."}] },
-            { level: "Intermediate", t: "Electrodynamics", n: "Maxwell Field Constants", c: "Combines electricity, wave kinetics, and magnetic fluxes into a continuous field matrix.", m: "$$\\nabla \\cdot \\mathbf{E} = \\frac{\\rho}{\\varepsilon_0}, \\quad \\nabla \\times \\mathbf{B} = \\mu_0\\mathbf{J} + \\mu_0\\varepsilon_0\\frac{\\partial \\mathbf{E}}{\\partial t}$$", flashcards: [{q:"What does $\\nabla \\cdot \\mathbf{B} = 0$ physically explain?", a:"Isolated magnetic monopoles do not exist within free space paths."}], quiz: [{q:"Which specific factor handles wave propagation metrics across vacuum voids?", options:["Amperian Current ($\\mathbf{J}$)","Displacement Current ($\\mu_0\\varepsilon_0\\partial\\mathbf{E}/\\partial t$)","Coulomb Density Matrix"], correct:1, rationale:"The displacement current links variance equations to predict physical wave vectors in deep space."}] },
-            { level: "Advanced", t: "Quantum Mechanics", n: "The Schrödinger Equation", c: "Models non-relativistic probability states instead of absolute coordinate tracking.", m: "$$i\\hbar\\frac{\\partial}{\\partial t}\\Psi = \\left[-\\frac{\\hbar^2}{2m}\\nabla^2 + V\\right]\\Psi$$", flashcards: [{q:"What does the absolute configuration square ($|\\Psi|^2$) state?", a:"The exact positional probability density matrix of a given quantum observation."}], quiz: [{q:"If potential energy matrix states $V(\\mathbf{r})$ are time-independent, what occurs?", options:["Energy positions extract stable eigenvalues","System tracking hits infinite entropy","Superposition lines drop out"], correct:0, rationale:"Time-invariant boundaries allow clean physical variables separation, converting dynamics into stable energy eigenvalues."}] },
-            { level: "Advanced", t: "Relativity", n: "Minkowski Metric Space", c: "Forms absolute transformation rules defining structural invariance metrics for flat spacetime calculations.", m: "$$ds^2 = -c^2dt^2 + dx^2 + dy^2 + dz^2$$", flashcards: [{q:"What is an invariant spacetime profile?", a:"An integrated spacetime separation value evaluating identical parameters for all frames."}], quiz: [{q:"If space calculation structures output a negative balance interval vector $ds^2 < 0$, how is it defined?", options:["Space-like Profile","Time-like Profile","Light-like Geodesic Matrix"], correct:1, rationale:"Negative space indicators denote time-like boundaries, proving events hold causal contact paths."}] }
+            { 
+                id: "classical_mech",
+                level: "Beginner", 
+                t: "Classical Mechanics", 
+                n: "Newtonian Laws & Gravitation", 
+                prereqs: [],
+                c: "The foundational pillars governing macroscopic bodies via forces.", 
+                m: "$$\\mathbf{F} = m\\mathbf{a}, \\quad \\mathbf{F}_G = G\\frac{m_1 m_2}{r^2}\\hat{\\mathbf{r}}$$", 
+                flashcards: [{q:"What happens to gravity if distance $r$ drops by half?", a:"The force increases by a factor of 4 due to inverse-square dependencies."}], 
+                quiz: [{q:"Which criterion arises if zero net external force intercepts a layout?", options:["Kinetic Energy Conservation","Linear Momentum Conservation","Entropy Decay"], correct:1, rationale:"Translation symmetry guarantees total linear momentum remains conserved over time."}] 
+            },
+            { 
+                id: "thermo",
+                level: "Beginner", 
+                t: "Thermodynamics", 
+                n: "The Work-Energy Theorem", 
+                prereqs: ["classical_mech"],
+                c: "Establishes that distance-integrated net forces cleanly translate to translational kinetic modifications.", 
+                m: "$$W = \\int \\mathbf{F} \\cdot d\\mathbf{r} = \\Delta K = \\frac{1}{2}mv_f^2 - \\frac{1}{2}mv_i^2$$", 
+                flashcards: [{q:"Can an orthogonal force vector process geometric work?", a:"No. If the vector angle calculation hits 90 degrees, scalar dot products collapse to zero."}], 
+                quiz: [{q:"If an electrostatic path is maintained orthogonal to displacement, how much work is logged?", options:["Maximal Work","Zero Scalar Work","Negative Drag"], correct:1, rationale:"Orthogonal configuration trajectories mean displacements always track zero total work conversions."}] 
+            },
+            { 
+                id: "analytical_mech",
+                level: "Intermediate", 
+                t: "Analytical Mechanics", 
+                n: "Lagrangian Path Formulations", 
+                prereqs: ["classical_mech"],
+                c: "An optimization matrix modeling path dynamics through scalar energy variance fields.", 
+                m: "$$L = T - V \\quad \\Rightarrow \\quad \\frac{d}{dt}\\left(\\frac{\\partial L}{\\partial \\dot{q}_i}\\right) - \\frac{\\partial L}{\\partial q_i} = 0$$", 
+                flashcards: [{q:"What do $q_i$ symbols track?", a:"Generalized system tracking coordinates decoupled from physical restriction boundaries."}], 
+                quiz: [{q:"Differentiating the Lagrangian across velocity profiles ($\\partial L / \\partial \\dot{q}$) resolves to what?", options:["System Hamiltonian Matrix","Generalized Momentum ($p_i$)","Thermal Entropy Field"], correct:1, rationale:"Velocity derivations across configuration metrics extract localized conjugate momentum equations."}] 
+            },
+            { 
+                id: "electrodynamics",
+                level: "Intermediate", 
+                t: "Electrodynamics", 
+                n: "Maxwell Field Constants", 
+                prereqs: ["classical_mech"],
+                c: "Combines electricity, wave kinetics, and magnetic fluxes into a continuous field matrix.", 
+                m: "$$\\nabla \\cdot \\mathbf{E} = \\frac{\\rho}{\\varepsilon_0}, \\quad \\nabla \\times \\mathbf{B} = \\mu_0\\mathbf{J} + \\mu_0\\varepsilon_0\\frac{\\partial \\mathbf{E}}{\\partial t}$$", 
+                flashcards: [{q:"What does $\\nabla \\cdot \\mathbf{B} = 0$ physically explain?", a:"Isolated magnetic monopoles do not exist within free space paths."}], 
+                quiz: [{q:"Which specific factor handles wave propagation metrics across vacuum voids?", options:["Amperian Current ($\\mathbf{J}$)","Displacement Current ($\\mu_0\\varepsilon_0\\partial\\mathbf{E}/\\partial t$)","Coulomb Density Matrix"], correct:1, rationale:"The displacement current links variance equations to predict physical wave vectors in deep space."}] 
+            },
+            { 
+                id: "quantum",
+                level: "Advanced", 
+                t: "Quantum Mechanics", 
+                n: "The Schrödinger Equation", 
+                prereqs: ["analytical_mech", "electrodynamics"],
+                c: "Models non-relativistic probability states instead of absolute coordinate tracking.", 
+                m: "$$i\\hbar\\frac{\\partial}{\\partial t}\\Psi = \\left[-\\frac{\\hbar^2}{2m}\\nabla^2 + V\\right]\\Psi$$", 
+                flashcards: [{q:"What does the absolute configuration square ($|\\Psi|^2$) state?", a:"The exact positional probability density matrix of a given quantum observation."}], 
+                quiz: [{q:"If potential energy matrix states $V(\\mathbf{r})$ are time-independent, what occurs?", options:["Energy positions extract stable eigenvalues","System tracking hits infinite entropy","Superposition lines drop out"], correct:0, rationale:"Time-invariant boundaries allow clean physical variables separation, converting dynamics into stable energy eigenvalues."}] 
+            },
+            { 
+                id: "relativity",
+                level: "Advanced", 
+                t: "Relativity", 
+                n: "Minkowski Metric Space", 
+                prereqs: ["classical_mech", "electrodynamics"],
+                c: "Forms absolute transformation rules defining structural invariance metrics for flat spacetime calculations.", 
+                m: "$$ds^2 = -c^2dt^2 + dx^2 + dy^2 + dz^2$$", 
+                flashcards: [{q:"What is an invariant spacetime profile?", a:"An integrated spacetime separation value evaluating identical parameters for all frames."}], 
+                quiz: [{q:"If space calculation structures output a negative balance interval vector $ds^2 < 0$, how is it defined?", options:["Space-like Profile","Time-like Profile","Light-like Geodesic Matrix"], correct:1, rationale:"Negative space indicators denote time-like boundaries, proving events hold causal contact paths."}] 
+            }
         ];
 
         const diagnosticQuestions = [
@@ -180,7 +240,7 @@
         let vars = [{s:'v', v:'0.8', label:'Velocity (v/c)'}, {s:'m_0', v:'2.5', label:'Rest Mass (kg)'}];
         let simMode = '2d', scene, camera, renderer, gridMesh;
         let c2d = document.getElementById('canvas-2d'), ctx2d = c2d.getContext('2d'), animationId2d;
-        let progressData = { cleared: {}, accuracy: [] };
+        let progressData = { cleared: {}, accuracy: [], topicAccuracy: {} };
 
         window.onload = () => {
             initProgressStorage();
@@ -193,6 +253,7 @@
         function initProgressStorage() {
             let saved = localStorage.getItem('aletheia_progress');
             if (saved) progressData = JSON.parse(saved);
+            if (!progressData.topicAccuracy) progressData.topicAccuracy = {};
         }
 
         function renderDiagnosticQuestion() {
@@ -242,6 +303,10 @@
 
         function loadTopic(idx) {
             activeIdx = parseInt(idx);
+            
+            document.getElementById('topic-selector').value = activeIdx;
+            document.getElementById('recs-box').innerHTML = "Complete module quizzes to seed metrics.";
+            
             const t = data[activeIdx];
             document.getElementById('topic-container').innerHTML = `
                 <div class="space-y-1">
@@ -255,6 +320,8 @@
             flashFlipped = false;
             showFlashcard();
             setupQuiz();
+            
+            evaluateScaffoldingMetrics(false); 
             if (window.MathJax && MathJax.typesetPromise) MathJax.typesetPromise();
         }
 
@@ -328,12 +395,40 @@
             const isCorrect = (idx === q.correct);
             
             progressData.accuracy.push(isCorrect ? 100 : 0);
+            
+            if (!progressData.topicAccuracy[activeIdx]) progressData.topicAccuracy[activeIdx] = [];
+            progressData.topicAccuracy[activeIdx].push(isCorrect ? 100 : 0);
+            
             localStorage.setItem('aletheia_progress', JSON.stringify(progressData));
             updateTelemetry();
 
             feedback.className = `p-3 border rounded-lg text-xs font-mono block ${isCorrect ? 'bg-emerald-950/40 border-emerald-500/30 text-emerald-400' : 'bg-rose-950/40 border-rose-500/30 text-rose-400'}`;
             feedback.innerHTML = `<strong>${isCorrect ? '✓ Verification Passed' : '✕ Discrepancy Found'}</strong><p class="mt-1 text-slate-300">${q.rationale}</p>`;
+            
+            evaluateScaffoldingMetrics(true);
             if (window.MathJax && MathJax.typesetPromise) MathJax.typesetPromise();
+        }
+
+        function evaluateScaffoldingMetrics(isFromQuizSubmission = true) {
+            const activeTopic = data[activeIdx];
+            const scores = progressData.topicAccuracy[activeIdx] || [];
+            const rollingAvg = scores.length > 0 ? (scores.reduce((a,b)=>a+b, 0) / scores.length) : 100;
+            
+            if (rollingAvg < 70 && activeTopic.prereqs.length > 0 && (isFromQuizSubmission || scores.length > 0)) {
+                const parentId = activeTopic.prereqs[0]; 
+                const parentIdx = data.findIndex(t => t.id === parentId);
+                const parentName = data[parentIdx]?.t || "Foundational Physics";
+
+                document.getElementById('recs-box').innerHTML = `
+                    <div class="text-rose-400 font-bold mb-1">⚠️ Performance Deficit</div>
+                    <div class="text-slate-300 mb-2">Rolling topic baseline dropped to ${Math.round(rollingAvg)}%. Bridge routine generated.</div>
+                    <button onclick="loadTopic(${parentIdx})" class="w-full bg-rose-500/20 border border-rose-500/40 hover:bg-rose-500/40 text-rose-300 font-bold py-1 px-2 rounded text-[11px] transition">
+                        Jump to Dependency: ${parentName} →
+                    </button>
+                `;
+            } else {
+                updateTelemetry();
+            }
         }
 
         function updateTelemetry() {
@@ -506,7 +601,7 @@
         function clearProgress() {
             localStorage.removeItem('aletheia_progress');
             localStorage.removeItem('aletheia_aptitude');
-            progressData = { cleared: {}, accuracy: [] };
+            progressData = { cleared: {}, accuracy: [], topicAccuracy: {} };
             userAptitude = null;
             currentDiagIndex = 0;
             diagAnswers = [];
