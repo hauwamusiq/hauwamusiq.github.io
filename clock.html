@@ -11,16 +11,17 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Montserrat', sans-serif; }
         body, html { width: 100%; height: 100%; overflow: hidden; background: #0a0a12; color: #fff; }
         #canvas-container, #custom-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
-        #canvas-container { z-index: 1; pointer-events: none; transition: opacity 0.5s ease; }
-        #custom-bg { object-fit: cover; z-index: 0; display: none; background-size: cover; background-position: center; transition: opacity 0.5s ease; }
-        .ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; display: grid; grid-template-columns: 280px 1fr 300px; padding: 20px; gap: 20px; pointer-events: none; }
-        @media (max-width: 900px) { .ui-layer { grid-template-columns: 1fr; overflow-y: auto; pointer-events: auto; } }
-        .glass-panel { background: var(--bg-glass); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--border-glass); border-radius: 20px; padding: 20px; pointer-events: auto; box-shadow: 0 8px 32px rgba(0,0,0,0.3); margin-bottom: 15px; }
+        #canvas-container { z-index: 1; pointer-events: none; transition: opacity 0.5s; }
+        #custom-bg { object-fit: cover; z-index: 0; display: none; background-size: cover; background-position: center; }
+        .ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; display: grid; grid-template-columns: 280px 1fr 300px; padding: 20px; gap: 20px; pointer-events: none; transition: opacity 0.8s; }
+        .ui-panels { transition: 0.8s; pointer-events: auto; }
+        .ui-hidden .ui-panels { opacity: 0; transform: scale(0.98); pointer-events: none !important; }
+        .glass-panel { background: var(--bg-glass); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--border-glass); border-radius: 20px; padding: 20px; box-shadow: 0 8px 32px rgba(0,0,0,0.3); margin-bottom: 15px; }
         h3 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 12px; color: var(--accent); }
         .btn { width: 100%; background: rgba(255,255,255,0.08); border: 1px solid var(--border-glass); padding: 10px; border-radius: 10px; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.8rem; transition: 0.3s; margin-bottom: 8px; }
         .btn:hover { background: rgba(255,255,255,0.2); transform: translateY(-1px); }
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-        .center-col { display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
+        .center-col { display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; grid-column: 2; pointer-events: auto; }
         #time { font-size: 5.5rem; font-weight: 200; letter-spacing: -2px; text-shadow: 0 4px 12px rgba(0,0,0,0.5); }
         #date { font-size: 1rem; letter-spacing: 3px; text-transform: uppercase; color: rgba(255,255,255,0.6); }
         #region { font-size: 0.8rem; color: var(--accent); margin-top: 5px; }
@@ -29,12 +30,13 @@
         .rem-list { max-height: 140px; overflow-y: auto; font-size: 0.8rem; }
         .rem-item { background: rgba(255,255,255,0.04); padding: 8px 12px; border-radius: 8px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; }
         #notif-center { position: absolute; top: 15px; right: 15px; z-index: 100; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
-        .toast { width: 280px; background: rgba(255,255,255,0.88); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-radius: 14px; padding: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); display: flex; gap: 10px; color: #000; animation: sIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; pointer-events: auto; }
+        .toast { width: 280px; background: rgba(255,255,255,0.88); backdrop-filter: blur(20px); border-radius: 14px; padding: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); display: flex; gap: 10px; color: #000; animation: sIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; pointer-events: auto; }
         @keyframes sIn { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         .t-ico { width: 32px; height: 32px; background: #1d9bf0; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.9rem; }
         .t-head { display: flex; justify-content: space-between; font-size: 0.7rem; font-weight: 600; color: rgba(0,0,0,0.4); }
         .t-title { font-weight: 700; font-size: 0.8rem; }
         .t-body { font-size: 0.8rem; color: #333; }
+        @media (max-width: 900px) { .ui-layer { grid-template-columns: 1fr; overflow-y: auto; pointer-events: auto; } .center-col { grid-column: 1; order: -1; margin-bottom: 30px; } }
     </style>
 </head>
 <body>
@@ -42,16 +44,16 @@
     <div id="custom-bg"></div>
     <div id="notif-center"></div>
 
-    <div class="ui-layer">
-        <div class="left-col">
+    <div class="ui-layer" id="ui-wrapper">
+        <div class="left-col ui-panels">
             <div class="glass-panel">
                 <h3><i class="fa-solid fa-music"></i> Audio Engine</h3>
                 <button class="btn" onclick="document.getElementById('f-in').click()"><i class="fa-solid fa-upload"></i> Local File</button>
                 <input type="file" id="f-in" accept="audio/*" style="display:none;">
                 <audio id="player" controls style="width:100%; display:none; margin-top:8px;"></audio>
                 <div class="grid-2" style="margin-top:10px;">
-                    <button class="btn" onclick="msg('Spotify','Link API endpoints in script')"><i class="fa-brands fa-spotify"></i> Spotify</button>
-                    <button class="btn" onclick="msg('Apple','Link API endpoints in script')"><i class="fa-brands fa-apple"></i> Apple</button>
+                    <button class="btn" onclick="msg('Spotify','Link API endpoints')"><i class="fa-brands fa-spotify"></i> Spotify</button>
+                    <button class="btn" onclick="msg('Apple','Link API endpoints')"><i class="fa-brands fa-apple"></i> Apple</button>
                 </div>
             </div>
             <div class="glass-panel">
@@ -68,7 +70,7 @@
             <div id="region">Detecting...</div>
         </div>
 
-        <div class="right-col">
+        <div class="right-col ui-panels">
             <div class="glass-panel">
                 <h3><i class="fa-solid fa-bell"></i> Reminders</h3>
                 <div class="flex-in">
@@ -86,29 +88,32 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script>
-        let ctx, analyser, data, active = false, shouldRender = true;
+        let ctx, analyser, data, active = false, shouldRender = true, hideTimeout, lastX = 0, lastY = 0;
+        const uiWrapper = document.getElementById('ui-wrapper');
+
+        function showUI(e) {
+            if (e && e.type === 'mousemove') {
+                if (Math.abs(e.clientX - lastX) < 2 && Math.abs(e.clientY - lastY) < 2) return;
+                lastX = e.clientX; lastY = e.clientY;
+            }
+            uiWrapper.classList.remove('ui-hidden');
+            clearTimeout(hideTimeout);
+            hideTimeout = setTimeout(() => uiWrapper.classList.add('ui-hidden'), 120000);
+        }
+        window.addEventListener('mousemove', showUI); window.addEventListener('click', showUI); window.addEventListener('touchstart', showUI); showUI();
 
         function updateClock() {
             const now = new Date();
             document.getElementById('time').innerText = now.toTimeString().split(' ')[0];
             document.getElementById('date').innerText = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
         }
-        try {
-            const tz = Intl.DateTimeFormat().resolvedOptions().timeZone.split('/')[1] || "Local";
-            document.getElementById('region').innerText = `Zone: ${tz.replace('_', ' ')}`;
-        } catch(e) {}
+        try { document.getElementById('region').innerText = `Zone: ${(Intl.DateTimeFormat().resolvedOptions().timeZone.split('/')[1] || "Local").replace('_', ' ')}`; } catch(e) {}
         setInterval(updateClock, 1000); updateClock();
 
         function msg(title, text) {
-            const box = document.getElementById('notif-center');
-            const t = document.createElement('div');
-            t.className = 'toast';
-            t.innerHTML = `<div class="t-ico"><i class="fa-solid fa-comment"></i></div><div><div class="t-head"><span>ALERT</span><span>${new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</span></div><div class="t-title">${title}</div><div class="t-body">${text}</div></div>`;
-            box.appendChild(t);
-            setTimeout(() => {
-                t.style.opacity = '0';
-                setTimeout(() => t.remove(), 400);
-            }, 5000);
+            const box = document.getElementById('notif-center'), t = document.createElement('div');
+            t.className = 'toast'; t.innerHTML = `<div class="t-ico"><i class="fa-solid fa-comment"></i></div><div><div class="t-head"><span>ALERT</span><span>${new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</span></div><div class="t-title">${title}</div><div class="t-body">${text}</div></div>`;
+            box.appendChild(t); setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 400); }, 5000);
         }
 
         let rems = [{id:1, txt:"Hydrate beautifully"}];
@@ -116,109 +121,59 @@
             const b = document.getElementById('rem-box'); b.innerHTML = '';
             rems.forEach(r => {
                 const d = document.createElement('div'); d.className = 'rem-item';
-                d.innerHTML = `<span>${r.txt}</span><i class="fa-solid fa-circle-check" style="color:var(--accent);cursor:pointer;" onclick="delRem(${r.id})"></i>`;
-                b.appendChild(d);
+                d.innerHTML = `<span>${r.txt}</span><i class="fa-solid fa-circle-check" style="color:var(--accent);cursor:pointer;" onclick="delRem(${r.id})"></i>`; b.appendChild(d);
             });
         }
-        function addRem() {
-            const i = document.getElementById('rem-txt'); if(!i.value.trim()) return;
-            rems.push({id:Date.now(), txt:i.value.trim()}); msg("Reminders", "Added successfully"); i.value = ''; drawRems();
-        }
+        function addRem() { const i = document.getElementById('rem-txt'); if(!i.value.trim()) return; rems.push({id:Date.now(), txt:i.value.trim()}); msg("Reminders", "Added successfully"); i.value = ''; drawRems(); }
         function delRem(id) { rems = rems.filter(r => r.id !== id); msg("Reminders", "Completed"); drawRems(); }
         drawRems();
 
         let scene, camera, renderer, system;
         function init3D() {
-            scene = new THREE.Scene();
-            camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.1, 1000); camera.position.z = 40;
+            scene = new THREE.Scene(); camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.1, 1000); camera.position.z = 40;
             renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true }); renderer.setSize(window.innerWidth, window.innerHeight);
             document.getElementById('canvas-container').appendChild(renderer.domElement);
-            
             const geo = new THREE.BufferGeometry(), pos = new Float32Array(1500);
             for(let i=0; i<1500; i++) pos[i] = (Math.random() - 0.5) * 80;
             geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-            
-            system = new THREE.Points(geo, new THREE.PointsMaterial({ color: 0xe0aaff, size: 0.35, transparent: true, opacity: 0.8 }));
-            scene.add(system);
-            
-            window.addEventListener('resize', () => { 
-                camera.aspect = window.innerWidth/window.innerHeight; 
-                camera.updateProjectionMatrix(); 
-                renderer.setSize(window.innerWidth, window.innerHeight); 
-            });
+            system = new THREE.Points(geo, new THREE.PointsMaterial({ color: 0xe0aaff, size: 0.35, transparent: true, opacity: 0.8 })); scene.add(system);
+            window.addEventListener('resize', () => { camera.aspect = window.innerWidth/window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); });
             loop();
         }
-        
         function loop() {
-            requestAnimationFrame(loop);
-            if (!system || !shouldRender) return; 
-            
-            system.rotation.x += 0.001; 
-            system.rotation.y += 0.0015;
-            
+            requestAnimationFrame(loop); if (!system || !shouldRender) return;
+            system.rotation.x += 0.001; system.rotation.y += 0.0015;
             if(active && analyser) {
                 analyser.getByteFrequencyData(data);
                 let sum = 0; for(let i=0; i<data.length; i++) sum += data[i];
-                let val = 1 + ((sum/data.length) * 0.015);
-                system.scale.set(val, val, val);
+                let val = 1 + ((sum/data.length) * 0.015); system.scale.set(val, val, val);
             }
             renderer.render(scene, camera);
         }
 
         const fIn = document.getElementById('f-in'), p = document.getElementById('player');
         fIn.addEventListener('change', async (e) => {
-            if(!e.target.files[0]) return;
-            p.src = URL.createObjectURL(e.target.files[0]); p.style.display = 'block'; p.play();
-            
+            if(!e.target.files[0]) return; p.src = URL.createObjectURL(e.target.files[0]); p.style.display = 'block'; p.play();
             if (!ctx) {
-                ctx = new (window.AudioContext || window.webkitAudioContext)();
-                analyser = ctx.createAnalyser(); 
-                ctx.createMediaElementSource(p).connect(analyser); 
-                analyser.connect(ctx.destination);
-                analyser.fftSize = 64; 
-                data = new Uint8Array(analyser.frequencyBinCount);
+                ctx = new (window.AudioContext || window.webkitAudioContext)(); analyser = ctx.createAnalyser();
+                ctx.createMediaElementSource(p).connect(analyser); analyser.connect(ctx.destination);
+                analyser.fftSize = 64; data = new Uint8Array(analyser.frequencyBinCount);
             }
-            if (ctx.state === 'suspended') { await ctx.resume(); }
-            active = true;
-            msg("Audio Engine", "3D System sync active");
+            await ctx.resume(); active = true; msg("Audio Engine", "3D System sync active");
         });
 
         const bgIn = document.getElementById('bg-in'), cBg = document.getElementById('custom-bg'), cCon = document.getElementById('canvas-container');
         bgIn.addEventListener('change', (e) => {
-            const f = e.target.files[0]; if(!f) return;
-            const url = URL.createObjectURL(f); 
-            
-            if(f.type.startsWith('video')) { 
-                const video = document.createElement('video');
-                video.src = url; video.autoplay = true; video.loop = true; video.muted = true; video.playsInline = true;
-                video.style.width = '100%'; video.style.height = '100%'; video.style.objectFit = 'cover';
-                
-                video.onimagesready = video.onloadeddata = () => {
-                    cBg.innerHTML = '';
-                    cBg.appendChild(video);
-                    cBg.style.backgroundImage = 'none';
-                    cBg.style.display = 'block';
-                    cCon.style.opacity = '0.1';
-                    shouldRender = false; // Freeze 3D Engine to preserve phone resources
-                };
-            } else { 
-                cBg.innerHTML = '';
-                cBg.style.backgroundImage = `url(${url})`; 
-                cBg.style.display = 'block';
-                cCon.style.opacity = '0.2'; 
-                shouldRender = false;
-            }
+            const f = e.target.files[0]; if(!f) return; const url = URL.createObjectURL(f);
+            if(f.type.startsWith('video')) {
+                const video = document.createElement('video'); video.src = url;
+                video.autoplay = true; video.loop = true; video.muted = true; video.setAttribute('playsinline', 'true');
+                video.style.width = video.style.height = '100%'; video.style.objectFit = 'cover';
+                video.onloadeddata = () => { cBg.innerHTML = ''; cBg.appendChild(video); cBg.style.backgroundImage = 'none'; cBg.style.display = 'block'; cCon.style.opacity = '0.1'; shouldRender = false; };
+            } else { cBg.innerHTML = ''; cBg.style.backgroundImage = `url(${url})`; cBg.style.display = 'block'; cCon.style.opacity = '0.2'; shouldRender = false; }
             msg("Visuals", "Wallpaper updated");
         });
-        
-        function resetBg() { 
-            cBg.style.display = 'none'; 
-            cBg.innerHTML = ''; 
-            cBg.style.backgroundImage = 'none'; 
-            cCon.style.opacity = '1'; 
-            shouldRender = true; 
-        }
-        
+        function resetBg() { cBg.style.display = 'none'; cBg.innerHTML = ''; cBg.style.backgroundImage = 'none'; cCon.style.opacity = '1'; shouldRender = true; }
         init3D();
     </script>
 </body>
