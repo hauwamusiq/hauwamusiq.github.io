@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESP Trainer Pro</title>
+    <style>
+        :root { --bg: #09090d; --panel: #13131c; --border: #222230; --text: #f1f5f9; --success: #10b981; --error: #ef4444; }
+        body { font-family: system-ui, sans-serif; background: var(--bg); color: var(--text); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; user-select: none; touch-action: manipulation; }
+        .box { width: 100%; max-width: 440px; background: var(--panel); padding: 30px; border-radius: 24px; border: 1px solid var(--border); box-shadow: 0 20px 40px rgba(0,0,0,0.7); box-sizing: border-box; text-align: center; }
+        h2 { margin: 0; font-size: 1.5rem; }
+        p { color: #64748b; font-size: .85rem; margin: 5px 0 25px; }
+        #tgt { width: 120px; height: 120px; margin: 0 auto 20px; border: 2px dashed #334155; border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 2.75rem; background: #0d0d14; transition: .15s cubic-bezier(.175,.885,.32,1.275); }
+        #tgt.hit { transform: scale(1.08); border-color: var(--success); }
+        #tgt.miss { transform: scale(1.08); border-color: var(--error); }
+        #msg { height: 20px; font-size: .9rem; font-weight: 600; margin-bottom: 25px; }
+        .choices { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 30px; }
+        .btn { flex: 1; aspect-ratio: 1; border-radius: 16px; border: none; cursor: pointer; font-size: 1.8rem; transition: .1s; -webkit-tap-highlight-color: transparent; }
+        .btn:active:not(:disabled) { transform: scale(.9); }
+        .btn:disabled { opacity: .4; cursor: not-allowed; }
+        .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; background: #09090d; padding: 15px; border-radius: 16px; border: 1px solid #1e293b; }
+        .s-val { font-size: 1.15rem; font-weight: 700; }
+        .s-lbl { font-size: .65rem; color: #64748b; text-transform: uppercase; margin-top: 4px; }
+        .flex { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; font-size: .8rem; color: #64748b; }
+        #rst { background: transparent; border: 1px solid var(--border); color: #64748b; padding: 8px 16px; border-radius: 8px; cursor: pointer; }
+        #rst:hover { border-color: #475569; color: var(--text); }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h2>ESP Target Trainer</h2>
+        <p>Clear your mind. Tap a choice or press keys 1-4.</p>
+        <div id="tgt">?</div><div id="msg"></div>
+        <div class="choices">
+            <button class="btn" data-i="0" style="background:#ff4d6d">🔴</button>
+            <button class="btn" data-i="1" style="background:#3a86ff">🔵</button>
+            <button class="btn" data-i="2" style="background:#38b000">🟢</button>
+            <button class="btn" data-i="3" style="background:#ffbe0b">🟡</button>
+        </div>
+        <div class="grid">
+            <div><div class="s-val" id="t">0</div><div class="s-lbl">Trials</div></div>
+            <div><div class="s-val" id="h">0</div><div class="s-lbl">Hits</div></div>
+            <div><div class="s-val" id="a">0%</div><div class="s-lbl">Acc.</div></div>
+            <div><div class="s-val" id="s">0</div><div class="s-lbl">Streak</div></div>
+        </div>
+        <div class="flex"><button id="rst">Reset Session</button><span>Targ Pro Mini</span></div>
+    </div>
+    <script>
+        const SYM = ['🔴', '🔵', '🟢', '🟡'], $ = id => document.getElementById(id), btns = document.querySelectorAll('.btn');
+        let trials = 0, hits = 0, streak = 0, locked = false, cur = rng();
+
+        function rng() {
+            const buf = new Uint8Array(1);
+            while (true) { window.crypto.getRandomValues(buf); if (buf[0] <= 251) return buf[0] & 3; }
+        }
+
+        function guess(idx) {
+            if (locked) return; locked = true;
+            btns.forEach(b => b.disabled = true);
+            trials++;
+            
+            const hit = idx === cur;
+            $('tgt').innerHTML = SYM[cur];
+
+            if (hit) { hits++; streak++; $('msg').innerText = "Hit! Focus validated."; $('msg').style.color = "var(--success)"; $('tgt').className = 'hit'; } 
+            else { streak = 0; $('msg').innerText = "Miss. Release effort."; $('msg').style.color = "var(--error)"; $('tgt').className = 'miss'; }
+
+            $('t').innerText = trials; $('h').innerText = hits; $('s').innerText = streak;
+            $('a').innerText = Math.round((hits / trials) * 100) + '%';
+
+            const next = rng();
+            setTimeout(() => {
+                $('tgt').innerHTML = "?"; $('tgt').className = ""; $('msg').innerText = "";
+                cur = next; locked = false; btns.forEach(b => b.disabled = false);
+            }, 900);
+        }
+
+        btns.forEach(b => b.addEventListener('click', () => guess(parseInt(b.dataset.i, 10))));
+        $('rst').addEventListener('click', () => {
+            if (locked) return; trials = hits = streak = 0; cur = rng();
+            $('t').innerText = $('h').innerText = $('s').innerText = 0; $('a').innerText = '0%';
+            $('tgt').innerHTML = "?"; if($('tgt').className) $('tgt').className = ""; $('msg').innerText = "";
+        });
+
+        window.addEventListener('keydown', e => {
+            if (!locked && !e.repeat && ['1','2','3','4'].includes(e.key)) guess(parseInt(e.key, 10) - 1);
+        });
+    </script>
+</body>
+</html>
