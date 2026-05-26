@@ -6,7 +6,9 @@
     <title>Aletheia Physics Workspace</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script>window.MathJax = { tex: { inlineMath: [['$', '$']], displayMath: [['$$', '$$']] } };</script>
+    <script>
+        window.MathJax = { tex: { inlineMath: [['$', '$']], displayMath: [['$$', '$$']] } };
+    </script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
@@ -20,207 +22,498 @@
     <header class="glass sticky top-0 z-50 px-6 py-4 flex items-center justify-between border-b border-slate-800">
         <div class="flex items-center space-x-3">
             <div class="h-9 w-9 rounded-lg bg-gradient-to-tr from-indigo-500 to-cyan-500 flex items-center justify-center shadow-lg">
-                <i class="fa-solid fa-atom text-lg animate-spin" style="animation-duration: 10s;"></i>
+                <i class="fa-solid fa-atom text-lg animate-spin" style="animation-duration:10s;"></i>
             </div>
             <div>
                 <h1 class="text-xl font-black tracking-tight bg-gradient-to-r from-white to-cyan-400 bg-clip-text text-transparent">Aletheia Physics</h1>
-                <p class="text-[11px] text-slate-400">Theoretical Lab Workspace</p>
+                <p class="text-[11px] text-slate-400">Adaptive AI Pedagogical Workspace</p>
             </div>
         </div>
         <nav class="hidden md:flex items-center space-x-1 bg-slate-900/80 p-1 rounded-xl border border-slate-800">
-            <button onclick="switchTab('encyclopedia')" id="d-btn-encyclopedia" class="px-4 py-2 text-sm font-medium rounded-lg bg-indigo-600 text-white shadow">Encyclopedia</button>
-            <button onclick="switchTab('solver')" id="d-btn-solver" class="px-4 py-2 text-sm font-medium rounded-lg text-slate-400 hover:text-white">Auditor Engine</button>
-            <button onclick="switchTab('simulation')" id="d-btn-simulation" class="px-4 py-2 text-sm font-medium rounded-lg text-slate-400 hover:text-white">Visual Sandboxes</button>
+            <button onclick="switchTab('encyclopedia')" id="d-btn-encyclopedia" class="px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200">Learning Center</button>
+            <button onclick="switchTab('solver')" id="d-btn-solver" class="px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200">Auditor Engine</button>
+            <button onclick="switchTab('simulation')" id="d-btn-simulation" class="px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200">Visual Sandboxes</button>
         </nav>
-        <div class="block md:hidden">
-            <select onchange="switchTab(this.value)" class="bg-slate-900 border border-slate-700 text-xs text-slate-200 rounded-lg p-2 focus:outline-none">
-                <option value="encyclopedia">View: Encyclopedia</option>
-                <option value="solver">View: Auditor Engine</option>
-                <option value="simulation">View: Visual Sandboxes</option>
-            </select>
+        <div class="flex items-center space-x-3">
+            <div id="aptitude-badge" class="hidden text-[10px] uppercase font-bold tracking-wider px-2.5 py-1 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">Tier: Undetermined</div>
+            <button onclick="clearProgress()" class="text-xs text-slate-500 hover:text-rose-400 transition" title="Clear Workspace State"><i class="fa-solid fa-trash-can"></i></button>
         </div>
     </header>
 
     <main class="flex-grow p-6 max-w-[1600px] w-full mx-auto">
-        <section id="tab-encyclopedia" class="grid grid-cols-12 gap-6">
-            <div class="col-span-12 md:col-span-4 glass p-4 rounded-xl h-fit">
-                <label class="block text-[10px] uppercase font-bold text-slate-400 tracking-wider mb-2">Select Core Paradigm</label>
-                <select id="topic-selector" onchange="handleTopicSelect(this.value)" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-xs text-slate-200 focus:outline-none"></select>
+        <div id="diagnostic-screen" class="glass rounded-2xl p-8 max-w-2xl mx-auto space-y-6 shadow-xl border border-cyan-500/10">
+            <div class="text-center space-y-2">
+                <div class="text-xs font-bold text-cyan-400 uppercase tracking-widest">Initial Diagnostic Matrix</div>
+                <h2 class="text-2xl font-black text-white">Determine Your Physics Aptitude</h2>
+                <p class="text-xs text-slate-400 max-w-md mx-auto">This adaptive questionnaire calibrates the curriculum architecture to match your mechanical and mathematical baseline.</p>
             </div>
-            <div class="col-span-12 md:col-span-8 glass p-6 rounded-xl min-h-[320px]" id="topic-container"></div>
-        </section>
+            <hr class="border-slate-800">
+            <div id="diagnostic-question-box" class="space-y-4"></div>
+        </div>
 
-        <section id="tab-solver" class="hidden grid grid-cols-12 gap-6">
-            <div class="col-span-12 md:col-span-4 glass p-5 rounded-xl space-y-4 h-fit">
-                <div class="flex justify-between items-center border-b border-slate-800 pb-2">
-                    <h2 class="text-sm font-bold text-white"><i class="fa-solid fa-sliders text-cyan-400 mr-1"></i> Environmental Rules</h2>
-                    <button onclick="resetSolver()" class="text-xs px-2 py-1 rounded bg-slate-800 text-slate-300">Reset</button>
+        <div id="main-workspace" class="hidden grid grid-cols-12 gap-6">
+            <div class="col-span-12 lg:col-span-4 flex flex-col space-y-6">
+                <div class="glass p-4 rounded-xl space-y-3">
+                    <label class="block text-[10px] uppercase font-bold text-slate-400 tracking-wider">Active Learning Pathway</label>
+                    <select id="topic-selector" onchange="handleTopicSelect(this.value)" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-xs text-slate-200 focus:outline-none"></select>
                 </div>
-                <select id="scenario-selector" onchange="loadPreset(this.value)" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-slate-200">
-                    <option value="custom">-- Custom Setup --</option>
-                    <option value="superluminal">Relativistic Superluminal Body</option>
-                </select>
-                <div id="variables-list" class="grid grid-cols-1 sm:grid-cols-2 gap-2"></div>
-                <div class="p-3 bg-slate-950/50 rounded-xl border border-slate-850 text-xs text-slate-300">
-                    <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" id="chk-relativity" onchange="audit()" checked> <span>Enforce Relativity ($v < c$)</span></label>
-                </div>
-                <button onclick="audit()" class="w-full bg-gradient-to-r from-indigo-600 to-cyan-500 text-white font-bold py-2.5 rounded-lg text-xs">Execute Audit</button>
-            </div>
-            <div class="col-span-12 md:col-span-8 flex flex-col space-y-4">
-                <div class="glass rounded-xl overflow-hidden flex flex-col flex-grow min-h-[250px]">
-                    <div class="bg-slate-950 px-4 py-2 border-b border-slate-800 text-[10px] font-bold text-cyan-400 uppercase">Audit Stream</div>
-                    <div id="auditor-console" class="p-4 flex-grow font-mono text-xs space-y-2 overflow-y-auto"></div>
-                </div>
-                <div class="glass p-4 rounded-xl grid grid-cols-2 gap-4 text-center">
-                    <div class="bg-slate-900/60 p-3 rounded-lg border border-slate-800"><div class="text-[10px] text-slate-500 font-semibold">Lorentz Factor ($\gamma$)</div><div id="val-gamma" class="text-lg font-bold text-slate-200 mt-1">--</div></div>
-                    <div class="bg-slate-900/60 p-3 rounded-lg border border-slate-800"><div class="text-[10px] text-slate-500 font-semibold">Rel. Mass ($M_{rel}$)</div><div id="val-rel-mass" class="text-lg font-bold text-slate-200 mt-1">--</div></div>
+                <div class="glass p-5 rounded-xl space-y-4 flex-grow">
+                    <h3 class="text-xs font-bold text-white uppercase tracking-wider flex items-center"><i class="fa-solid fa-chart-line text-indigo-400 mr-2"></i> Progress Telemetry</h3>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="bg-slate-950/60 p-3 rounded-lg border border-slate-850"><span class="text-[10px] text-slate-500 font-bold block uppercase">Modules Cleared</span><span id="stat-cleared" class="text-xl font-black text-white">0%</span></div>
+                        <div class="bg-slate-950/60 p-3 rounded-lg border border-slate-850"><span class="text-[10px] text-slate-500 font-bold block uppercase">Quiz Accuracy</span><span id="stat-accuracy" class="text-xl font-black text-emerald-400">0%</span></div>
+                    </div>
+                    <div class="space-y-2">
+                        <span class="text-[10px] text-slate-400 font-bold block uppercase tracking-wide">Targeted Study Recommendations</span>
+                        <div id="recs-box" class="text-xs font-mono p-3 bg-slate-950/40 rounded-lg border border-slate-850/60 text-slate-400 space-y-1 max-h-[150px] overflow-y-auto">Complete module quizzes to seed metrics.</div>
+                    </div>
                 </div>
             </div>
-        </section>
 
-        <section id="tab-simulation" class="hidden grid grid-cols-12 gap-6">
-            <div class="col-span-12 md:col-span-3 glass p-5 rounded-xl space-y-4 h-fit">
-                <div class="grid grid-cols-2 gap-2">
-                    <button onclick="toggleSimMode('2d')" id="b-2d" class="py-2 rounded-lg bg-indigo-600 text-xs font-bold text-white">2D Fields</button>
-                    <button onclick="toggleSimMode('3d')" id="b-3d" class="py-2 rounded-lg bg-slate-800 text-xs font-bold text-slate-400">3D Space</button>
+            <div id="tab-encyclopedia" class="col-span-12 lg:col-span-8 space-y-6 hidden-tab">
+                <div class="glass p-6 rounded-xl space-y-4" id="topic-container"></div>
+                <div class="glass rounded-xl overflow-hidden">
+                    <div class="bg-slate-950 px-4 py-2.5 border-b border-slate-800 flex items-center justify-between">
+                        <span class="text-[10px] font-bold text-cyan-400 uppercase tracking-wider">Active Practice Engine</span>
+                        <div class="flex space-x-2">
+                            <button onclick="togglePracticeMode('flash')" id="p-btn-flash" class="text-xs px-3 py-1 rounded bg-indigo-600 text-white font-medium">Flashcards</button>
+                            <button onclick="togglePracticeMode('quiz')" id="p-btn-quiz" class="text-xs px-3 py-1 rounded bg-slate-800 text-slate-400 font-medium">Concept Quiz</button>
+                        </div>
+                    </div>
+                    <div id="practice-flash-box" class="p-6 text-center space-y-4">
+                        <div onclick="flipCard()" class="min-h-[140px] bg-slate-900/40 border border-slate-800 hover:border-slate-700 transition rounded-xl p-6 flex flex-col justify-center items-center cursor-pointer shadow-inner">
+                            <span id="flash-label" class="text-[10px] font-bold uppercase tracking-widest text-indigo-400 mb-2">Question (Click to flip)</span>
+                            <p id="flash-text" class="text-sm font-medium text-slate-200 max-w-xl"></p>
+                        </div>
+                        <div class="flex justify-center space-x-3">
+                            <button onclick="nextFlashcard(false)" class="px-4 py-1.5 bg-slate-800 hover:bg-slate-700 text-xs font-bold rounded-lg text-slate-300">Review Again</button>
+                            <button onclick="nextFlashcard(true)" class="px-4 py-1.5 bg-emerald-600/20 hover:bg-emerald-600 text-emerald-400 hover:text-white transition text-xs font-bold rounded-lg border border-emerald-500/30">Mastered ✓</button>
+                        </div>
+                    </div>
+                    <div id="practice-quiz-box" class="p-6 hidden space-y-4">
+                        <div class="text-xs font-bold text-slate-200" id="quiz-question-text"></div>
+                        <div id="quiz-options-box" class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs"></div>
+                        <div id="quiz-feedback" class="p-3 bg-slate-950/40 border border-slate-850 rounded-lg text-xs hidden font-mono"></div>
+                    </div>
                 </div>
-                <div id="ctrl-2d" class="text-xs"><label class="block text-[10px] text-slate-400 uppercase font-bold mb-1">Field Intensity</label><input type="range" id="f-strength" min="0.1" max="5" step="0.1" value="1" class="w-full accent-cyan-400"></div>
-                <div id="ctrl-3d" class="hidden text-xs"><label class="block text-[10px] text-slate-400 uppercase font-bold mb-1">Spacetime Mass ($M$)</label><input type="range" id="m-3d" min="0.5" max="5" step="0.1" value="2" oninput="update3DScene()" class="w-full accent-purple-500"></div>
             </div>
-            <div class="col-span-12 md:col-span-9 aspect-[16/10] max-h-[600px] bg-slate-950 rounded-2xl border border-slate-800 relative overflow-hidden shadow-2xl">
-                <canvas id="canvas-2d" class="w-full h-full block cursor-crosshair"></canvas>
-                <div id="container-3d" class="w-full h-full absolute inset-0 hidden"></div>
+
+            <div id="tab-solver" class="col-span-12 grid grid-cols-12 gap-6 w-full hidden-tab">
+                <div class="col-span-12 md:col-span-4 glass p-5 rounded-xl space-y-4 h-fit">
+                    <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+                        <h2 class="text-sm font-bold text-white"><i class="fa-solid fa-sliders text-cyan-400 mr-1"></i> Environmental Rules</h2>
+                        <button onclick="resetSolver()" class="text-xs px-2 py-1 rounded bg-slate-800 text-slate-300">Reset</button>
+                    </div>
+                    <select id="scenario-selector" onchange="loadPreset(this.value)" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-slate-200">
+                        <option value="custom">-- Custom Setup --</option>
+                        <option value="superluminal">Relativistic Superluminal Body</option>
+                    </select>
+                    <div id="variables-list" class="space-y-3"></div>
+                    <div class="p-3 bg-slate-950/50 rounded-xl border border-slate-850 text-xs text-slate-300">
+                        <label class="flex items-center space-x-2 cursor-pointer">
+                            <input type="checkbox" id="chk-relativity" onchange="audit()" checked>
+                            <span>Enforce Relativity ($v < c$)</span>
+                        </label>
+                    </div>
+                    <button onclick="audit()" class="w-full bg-gradient-to-r from-indigo-600 to-cyan-500 text-white font-bold py-2.5 rounded-lg text-xs">Execute Audit</button>
+                </div>
+                <div class="col-span-12 md:col-span-8 flex flex-col space-y-4">
+                    <div class="glass rounded-xl overflow-hidden flex flex-col flex-grow min-h-[250px]">
+                        <div class="bg-slate-950 px-4 py-2 border-b border-slate-800 text-[10px] font-bold text-cyan-400 uppercase">Audit Stream</div>
+                        <div id="auditor-console" class="p-4 flex-grow font-mono text-xs space-y-2 overflow-y-auto max-h-[300px]"></div>
+                    </div>
+                    <div class="glass p-4 rounded-xl grid grid-cols-2 gap-4 text-center">
+                        <div class="bg-slate-900/60 p-3 rounded-lg border border-slate-800">
+                            <div class="text-[10px] text-slate-500 font-semibold">Lorentz Factor ($\gamma$)</div>
+                            <div id="val-gamma" class="text-lg font-bold text-slate-200 mt-1">--</div>
+                        </div>
+                        <div class="bg-slate-900/60 p-3 rounded-lg border border-slate-800">
+                            <div class="text-[10px] text-slate-500 font-semibold">Rel. Mass ($M_{rel}$)</div>
+                            <div id="val-rel-mass" class="text-lg font-bold text-slate-200 mt-1">--</div>
+                        </div>
+                    </div>
+                </div>
             </div>
-        </section>
+
+            <div id="tab-simulation" class="col-span-12 grid grid-cols-12 gap-6 w-full hidden-tab">
+                <div class="col-span-12 md:col-span-3 glass p-5 rounded-xl space-y-4 h-fit">
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="toggleSimMode('2d')" id="b-2d" class="py-2 rounded-lg bg-indigo-600 text-xs font-bold text-white">2D Fields</button>
+                        <button onclick="toggleSimMode('3d')" id="b-3d" class="py-2 rounded-lg bg-slate-800 text-xs font-bold text-slate-400">3D Space</button>
+                    </div>
+                    <div id="ctrl-2d" class="text-xs">
+                        <label class="block text-[10px] text-slate-400 uppercase font-bold mb-1">Field Intensity</label>
+                        <input type="range" id="f-strength" min="0.1" max="5" step="0.1" value="1" class="w-full accent-cyan-400">
+                    </div>
+                    <div id="ctrl-3d" class="hidden text-xs">
+                        <label class="block text-[10px] text-slate-400 uppercase font-bold mb-1">Spacetime Mass ($M$)</label>
+                        <input type="range" id="m-3d" min="0.5" max="5" step="0.1" value="2" oninput="update3DScene()" class="w-full accent-purple-500">
+                    </div>
+                </div>
+                <div class="col-span-12 md:col-span-9 aspect-[16/10] max-h-[600px] bg-slate-950 rounded-2xl border border-slate-800 relative overflow-hidden shadow-2xl">
+                    <canvas id="canvas-2d" class="w-full h-full block cursor-crosshair"></canvas>
+                    <div id="container-3d" class="w-full h-full absolute inset-0 hidden"></div>
+                </div>
+            </div>
+        </div>
     </main>
 
-    <footer class="py-4 border-t border-slate-800/60 bg-slate-950/40 text-center text-[11px] text-slate-500">Aletheia Advanced Physics Platform. Desktop optimized & mobile responsive.</footer>
+    <footer class="py-4 border-t border-slate-800/60 bg-slate-950/40 text-center text-[11px] text-slate-500">Aletheia Physics Platform.</footer>
 
     <script>
         const data = [
-            { t: "Classical Mechanics", n: "Lagrangian Formulation", c: "An optimization paradigm reformulating Newtonian vector mechanics into scalar kinetic ($T$) and potential ($V$) fields. It models systems along minimized action paths without explicit constraint calculations.", m: "$$L = T - V \\quad \\Rightarrow \\quad \\frac{d}{dt}\\left(\\frac{\\partial L}{\\partial \\dot{q}_i}\\right) - \\frac{\\partial L}{\\partial q_i} = 0$$" },
-            { t: "Classical Mechanics", n: "Hamiltonian Phase Space Mechanics", c: "Transforms configuration space coordinates into phase-space coordinates utilizing conjugate momentum ($p$). It represents the absolute foundation for statistical and quantum mechanical translation matrices.", m: "$$H(q, p, t) = \\sum p_i\\dot{q}_i - L \\quad \\Rightarrow \\quad \\dot{q}_i = \\frac{\\partial H}{\\partial p_i}, \\ \\dot{p}_i = -\\frac{\\partial H}{\\partial q_i}$$" },
-            { t: "Electrodynamics", n: "Maxwell Field Equations", c: "Unifies electricity, magnetism, and optics into a unified classical field architecture, describing how electromagnetic fields generate, propagate, and interface with matter dependencies.", m: "$$\\nabla \\cdot \\mathbf{E} = \\frac{\\rho}{\\varepsilon_0}, \\quad \\nabla \\cdot \\mathbf{B} = 0, \\quad \\nabla \\times \\mathbf{E} = -\\frac{\\partial \\mathbf{B}}{\\partial t}, \\quad \\nabla \\times \\mathbf{B} = \\mu_0\\mathbf{J} + \\mu_0\\varepsilon_0\\frac{\\partial \\mathbf{E}}{\\partial t}$$" },
-            { t: "Quantum Mechanics", n: "The Schrödinger Equation", c: "Dictates the non-relativistic dynamical spatial-temporal evolution of a quantum state's complex wave function ($\\Psi$), describing exact system probabilities rather than absolute Newtonian deterministic locations.", m: "$$i\\hbar\\frac{\\partial}{\partial t}\\Psi(\\mathbf{r},t) = \\hat{H}\\Psi(\\mathbf{r},t) = \\left[-\\frac{\\hbar^2}{2m}\\nabla^2 + V(\\mathbf{r},t)\\right]\\Psi(\\mathbf{r},t)$$" },
-            { t: "Thermodynamics", n: "Statistical Partition Function Engine", c: "The microscopic core bridging microstate configurations to macroscopic thermodynamic variables. It determines the configuration probabilities of ensembles under varying thermal environments.", m: "$$Z = \\sum_{s} e^{-\\beta E_s}, \\quad \\beta = \\frac{1}{k_B T}, \\quad F = -k_B T \\ln(Z)$$" },
-            { t: "Relativistic Mechanics", n: "Minkowski Metric & Lorentz Invariance", c: "Defines the fundamental absolute baseline transformation metric invariant for flat spacetime intervals across distinct relativistic reference fields, defining universal light speed speed constraints.", m: "$$ds^2 = -c^2dt^2 + dx^2 + dy^2 + dz^2, \\quad \\gamma = \\frac{1}{\\sqrt{1 - (v/c)^2}}$$" },
-            { t: "Mathematical Methods", n: "Fourier Transformation Analysis", c: "Transforms coordinate configurations from spatial/temporal data points cleanly into frequency domain spectrum distributions. It is critically useful for resolving differential linear operations.", m: "$$\\mathcal{F}\\{f(t)\\} = F(\\omega) = \\int_{-\\infty}^{\\infty} f(t)e^{-i\\omega t}\\,dt$$" }
+            { level: "Beginner", t: "Classical Mechanics", n: "Newtonian Laws & Gravitation", c: "The foundational pillars governing macroscopic bodies via forces.", m: "$$\\mathbf{F} = m\\mathbf{a}, \\quad \\mathbf{F}_G = G\\frac{m_1 m_2}{r^2}\\hat{\\mathbf{r}}$$", flashcards: [{q:"What happens to gravity if distance $r$ drops by half?", a:"The force increases by a factor of 4 due to inverse-square dependencies."}], quiz: [{q:"Which criterion arises if zero net external force intercepts a layout?", options:["Kinetic Energy Conservation","Linear Momentum Conservation","Entropy Decay"], correct:1, rationale:"Translation symmetry guarantees total linear momentum remains conserved over time."}] },
+            { level: "Beginner", t: "Thermodynamics", n: "The Work-Energy Theorem", c: "Establishes that distance-integrated net forces cleanly translate to translational kinetic modifications.", m: "$$W = \\int \\mathbf{F} \\cdot d\\mathbf{r} = \\Delta K = \\frac{1}{2}mv_f^2 - \\frac{1}{2}mv_i^2$$", flashcards: [{q:"Can an orthogonal force vector process geometric work?", a:"No. If the vector angle calculation hits 90 degrees, scalar dot products collapse to zero."}], quiz: [{q:"If an electrostatic path is maintained orthogonal to displacement, how much work is logged?", options:["Maximal Work","Zero Scalar Work","Negative Drag"], correct:1, rationale:"Orthogonal configuration trajectories mean displacements always track zero total work conversions."}] },
+            { level: "Intermediate", t: "Analytical Mechanics", n: "Lagrangian Path Formulations", c: "An optimization matrix modeling path dynamics through scalar energy variance fields.", m: "$$L = T - V \\quad \\Rightarrow \\quad \\frac{d}{dt}\\left(\\frac{\\partial L}{\\partial \\dot{q}_i}\\right) - \\frac{\\partial L}{\\partial q_i} = 0$$", flashcards: [{q:"What do $q_i$ symbols track?", a:"Generalized system tracking coordinates decoupled from physical restriction boundaries."}], quiz: [{q:"Differentiating the Lagrangian across velocity profiles ($\\partial L / \\partial \\dot{q}$) resolves to what?", options:["System Hamiltonian Matrix","Generalized Momentum ($p_i$)","Thermal Entropy Field"], correct:1, rationale:"Velocity derivations across configuration metrics extract localized conjugate momentum equations."}] },
+            { level: "Intermediate", t: "Electrodynamics", n: "Maxwell Field Constants", c: "Combines electricity, wave kinetics, and magnetic fluxes into a continuous field matrix.", m: "$$\\nabla \\cdot \\mathbf{E} = \\frac{\\rho}{\\varepsilon_0}, \\quad \\nabla \\times \\mathbf{B} = \\mu_0\\mathbf{J} + \\mu_0\\varepsilon_0\\frac{\\partial \\mathbf{E}}{\\partial t}$$", flashcards: [{q:"What does $\\nabla \\cdot \\mathbf{B} = 0$ physically explain?", a:"Isolated magnetic monopoles do not exist within free space paths."}], quiz: [{q:"Which specific factor handles wave propagation metrics across vacuum voids?", options:["Amperian Current ($\\mathbf{J}$)","Displacement Current ($\\mu_0\\varepsilon_0\\partial\\mathbf{E}/\\partial t$)","Coulomb Density Matrix"], correct:1, rationale:"The displacement current links variance equations to predict physical wave vectors in deep space."}] },
+            { level: "Advanced", t: "Quantum Mechanics", n: "The Schrödinger Equation", c: "Models non-relativistic probability states instead of absolute coordinate tracking.", m: "$$i\\hbar\\frac{\\partial}{\\partial t}\\Psi = \\left[-\\frac{\\hbar^2}{2m}\\nabla^2 + V\\right]\\Psi$$", flashcards: [{q:"What does the absolute configuration square ($|\\Psi|^2$) state?", a:"The exact positional probability density matrix of a given quantum observation."}], quiz: [{q:"If potential energy matrix states $V(\\mathbf{r})$ are time-independent, what occurs?", options:["Energy positions extract stable eigenvalues","System tracking hits infinite entropy","Superposition lines drop out"], correct:0, rationale:"Time-invariant boundaries allow clean physical variables separation, converting dynamics into stable energy eigenvalues."}] },
+            { level: "Advanced", t: "Relativity", n: "Minkowski Metric Space", c: "Forms absolute transformation rules defining structural invariance metrics for flat spacetime calculations.", m: "$$ds^2 = -c^2dt^2 + dx^2 + dy^2 + dz^2$$", flashcards: [{q:"What is an invariant spacetime profile?", a:"An integrated spacetime separation value evaluating identical parameters for all frames."}], quiz: [{q:"If space calculation structures output a negative balance interval vector $ds^2 < 0$, how is it defined?", options:["Space-like Profile","Time-like Profile","Light-like Geodesic Matrix"], correct:1, rationale:"Negative space indicators denote time-like boundaries, proving events hold causal contact paths."}] }
         ];
 
-        const defaultVars = () => [{s:'v', v:'0.8'}, {s:'m_0', v:'2.5'}];
-        let vars = defaultVars(), simMode = '2d', parts = [], scene, camera, renderer, grid;
-        const c2d = document.getElementById('canvas-2d');
+        const diagnosticQuestions = [
+            { q: "Identify your tracking mathematical proficiency level:", options: ["Algebra & Trigonometry structures", "Calculus and Vector fields", "Differential Matrices & Tensor variables"], scores: ["Beginner", "Intermediate", "Advanced"] },
+            { q: "If a moving mass doubles its velocity calculation vector, its Kinetic Energy scales by:", options: ["It doubles ($2x$ metrics)", "It quadruples ($4x$ structural metrics)", "Requires Lorentz adjustments to resolve"], scores: ["Beginner", "Intermediate", "Advanced"] }
+        ];
 
-        function resizeSimulation() {
-            if (!c2d) return;
-            const box = c2d.closest('.aspect-\\[16\\/10\\]') || c2d.parentElement;
-            const r = box.getBoundingClientRect();
-            const w = r.width || 800, h = r.height || 500;
-            c2d.width = w; c2d.height = h;
-            if(renderer) { renderer.setSize(w, h); camera.aspect = w/h; camera.updateProjectionMatrix(); }
-        }
+        let currentDiagIndex = 0, diagAnswers = [], userAptitude = localStorage.getItem('aletheia_aptitude') || null;
+        let activeIdx = 0, flashFlipped = false, practiceMode = 'flash', currentFlashIdx = 0;
+        let vars = [{s:'v', v:'0.8', label:'Velocity (v/c)'}, {s:'m_0', v:'2.5', label:'Rest Mass (kg)'}];
+        let simMode = '2d', scene, camera, renderer, gridMesh;
+        let c2d = document.getElementById('canvas-2d'), ctx2d = c2d.getContext('2d'), animationId2d;
+        let progressData = { cleared: {}, accuracy: [] };
 
         window.onload = () => {
-            const sel = document.getElementById('topic-selector');
-            if (sel) data.forEach((d, i) => sel.add(new Option(`[${d.t}] — ${d.n}`, i)));
-            loadTopic(0); renderVars(); audit(); init2D();
-            window.onresize = resizeSimulation;
-            resizeSimulation();
+            initProgressStorage();
+            userAptitude ? bootstrapWorkspace() : renderDiagnosticQuestion();
+            init2D();
+            window.addEventListener('resize', resizeSimulation);
+            setupSolverInputs();
         };
 
-        function switchTab(t) {
-            ['encyclopedia','solver','simulation'].forEach(id => {
-                const el = document.getElementById(`tab-${id}`);
-                if (el) el.classList.toggle('hidden', id !== t);
-                const btn = document.getElementById(`d-btn-${id}`);
-                if(btn) btn.className = id === t ? "px-4 py-2 text-sm font-medium rounded-lg bg-indigo-600 text-white shadow" : "px-4 py-2 text-sm font-medium rounded-lg text-slate-400 hover:text-white";
-            });
-            
-            // Queue layout logic tracking directly after visibility updates clear layout context
-            setTimeout(() => {
-                resizeSimulation();
-                if(window.MathJax?.typesetPromise) {
-                    MathJax.typesetPromise();
-                }
-            }, 30);
+        function initProgressStorage() {
+            let saved = localStorage.getItem('aletheia_progress');
+            if (saved) progressData = JSON.parse(saved);
         }
 
-        function loadTopic(i) {
-            const container = document.getElementById('topic-container');
-            if (!container) return;
-            container.innerHTML = `<span class="text-xs font-bold text-indigo-400 uppercase tracking-widest">${data[i].t}</span><h2 class="text-xl font-black text-white mt-1 mb-3">${data[i].n}</h2><p class="text-xs text-slate-300 leading-relaxed max-w-3xl">${data[i].c}</p><div id="math-target" class="bg-slate-900/40 border border-slate-800 p-4 rounded-xl font-mono text-xs mt-4 text-slate-200 overflow-x-auto">${data[i].m}</div>`;
+        function renderDiagnosticQuestion() {
+            const container = document.getElementById('diagnostic-question-box');
+            if(currentDiagIndex >= diagnosticQuestions.length) { evaluateAptitude(); return; }
+            const q = diagnosticQuestions[currentDiagIndex];
+            container.innerHTML = `
+                <div class="text-sm font-semibold text-slate-200 bg-slate-900/60 p-4 rounded-xl border border-slate-800">${q.q}</div>
+                <div class="grid grid-cols-1 gap-2 pt-2">
+                    ${q.options.map((opt, i) => `<button onclick="handleDiagSelect(${i})" class="w-full text-left p-3 rounded-lg bg-slate-800/50 hover:bg-indigo-600/20 text-xs border border-slate-700/60 transition text-slate-300 hover:text-white">${opt}</button>`).join('')}
+                </div>`;
+            if (window.MathJax && MathJax.typesetPromise) MathJax.typesetPromise();
+        }
+
+        function handleDiagSelect(idx) {
+            diagAnswers.push(diagnosticQuestions[currentDiagIndex].scores[idx]);
+            currentDiagIndex++;
+            renderDiagnosticQuestion();
+        }
+
+        function evaluateAptitude() {
+            const counts = {}; let maxScore = "Beginner";
+            diagAnswers.forEach(val => { counts[val] = (counts[val] || 0) + 1; if(counts[val] > (counts[maxScore] || 0)) maxScore = val; });
+            userAptitude = maxScore;
+            localStorage.setItem('aletheia_aptitude', userAptitude);
+            bootstrapWorkspace();
+        }
+
+        function bootstrapWorkspace() {
+            document.getElementById('diagnostic-screen').classList.add('hidden');
+            document.getElementById('main-workspace').classList.remove('hidden');
+            const badge = document.getElementById('aptitude-badge');
+            badge.innerText = `Tier: ${userAptitude}`;
+            badge.classList.remove('hidden');
+
+            const selector = document.getElementById('topic-selector');
+            selector.innerHTML = data.map((topic, i) => `<option value="${i}">${topic.level} - ${topic.t}</option>`).join('');
             
-            if(window.MathJax?.typesetPromise) {
-                const target = document.getElementById('math-target');
-                MathJax.typesetPromise([target]).catch(err => console.log(err));
+            const firstMatch = data.findIndex(t => t.level === userAptitude);
+            activeIdx = firstMatch !== -1 ? firstMatch : 0;
+            selector.value = activeIdx;
+
+            updateTelemetry();
+            loadTopic(activeIdx);
+            switchTab('encyclopedia');
+        }
+
+        function loadTopic(idx) {
+            activeIdx = parseInt(idx);
+            const t = data[activeIdx];
+            document.getElementById('topic-container').innerHTML = `
+                <div class="space-y-1">
+                    <span class="text-[10px] font-bold text-indigo-400 uppercase tracking-widest">${t.level} • ${t.t}</span>
+                    <h2 class="text-xl font-extrabold text-white">${t.n}</h2>
+                </div>
+                <p class="text-xs text-slate-300 leading-relaxed">${t.c}</p>
+                <div class="p-4 bg-slate-950/60 rounded-xl border border-slate-850 overflow-x-auto text-sm my-2 flex justify-center">${t.m}</div>
+            `;
+            currentFlashIdx = 0;
+            flashFlipped = false;
+            showFlashcard();
+            setupQuiz();
+            if (window.MathJax && MathJax.typesetPromise) MathJax.typesetPromise();
+        }
+
+        function handleTopicSelect(val) { loadTopic(val); }
+
+        function switchTab(tabId) {
+            ['encyclopedia', 'solver', 'simulation'].forEach(id => {
+                const el = document.getElementById(`tab-${id}`);
+                const btn = document.getElementById(`d-btn-${id}`);
+                if (id === tabId) {
+                    el.classList.remove('hidden');
+                    if(id === 'solver' || id === 'simulation') el.classList.add('grid');
+                    btn.className = "px-4 py-2 text-sm font-medium rounded-lg bg-indigo-600 text-white shadow";
+                } else {
+                    el.classList.add('hidden');
+                    el.classList.remove('grid');
+                    btn.className = "px-4 py-2 text-sm font-medium rounded-lg text-slate-400 hover:text-white";
+                }
+            });
+            if (tabId === 'simulation') resizeSimulation();
+        }
+
+        function togglePracticeMode(mode) {
+            practiceMode = mode;
+            if(mode === 'flash') {
+                document.getElementById('practice-flash-box').classList.remove('hidden');
+                document.getElementById('practice-quiz-box').classList.add('hidden');
+                document.getElementById('p-btn-flash').className = "text-xs px-3 py-1 rounded bg-indigo-600 text-white font-medium";
+                document.getElementById('p-btn-quiz').className = "text-xs px-3 py-1 rounded bg-slate-800 text-slate-400 font-medium";
+            } else {
+                document.getElementById('practice-flash-box').classList.add('hidden');
+                document.getElementById('practice-quiz-box').classList.remove('hidden');
+                document.getElementById('p-btn-flash').className = "text-xs px-3 py-1 rounded bg-slate-800 text-slate-400 font-medium";
+                document.getElementById('p-btn-quiz').className = "text-xs px-3 py-1 rounded bg-indigo-600 text-white font-medium";
+            }
+            if (window.MathJax && MathJax.typesetPromise) MathJax.typesetPromise();
+        }
+
+        function showFlashcard() {
+            const card = data[activeIdx].flashcards[currentFlashIdx];
+            document.getElementById('flash-label').innerText = flashFlipped ? "Answer (Click to flip back)" : "Question (Click to flip)";
+            document.getElementById('flash-text').innerHTML = flashFlipped ? card.a : card.q;
+            if (window.MathJax && MathJax.typesetPromise) MathJax.typesetPromise();
+        }
+
+        function flipCard() { flashFlipped = !flashFlipped; showFlashcard(); }
+        
+        function nextFlashcard(mastered) {
+            if(mastered) {
+                progressData.cleared[activeIdx] = true;
+                localStorage.setItem('aletheia_progress', JSON.stringify(progressData));
+                updateTelemetry();
+            }
+            flashFlipped = false;
+            currentFlashIdx = (currentFlashIdx + 1) % data[activeIdx].flashcards.length;
+            showFlashcard();
+        }
+
+        function setupQuiz() {
+            const q = data[activeIdx].quiz[0];
+            document.getElementById('quiz-question-text').innerHTML = q.q;
+            document.getElementById('quiz-options-box').innerHTML = q.options.map((opt, i) => `
+                <button onclick="submitAnswer(${i})" class="w-full text-left p-3 rounded-lg bg-slate-900/60 border border-slate-800 hover:border-indigo-500/40 text-slate-300 transition duration-150">${opt}</button>
+            `).join('');
+            document.getElementById('quiz-feedback').classList.add('hidden');
+        }
+
+        function submitAnswer(idx) {
+            const q = data[activeIdx].quiz[0];
+            const feedback = document.getElementById('quiz-feedback');
+            const isCorrect = (idx === q.correct);
+            
+            progressData.accuracy.push(isCorrect ? 100 : 0);
+            localStorage.setItem('aletheia_progress', JSON.stringify(progressData));
+            updateTelemetry();
+
+            feedback.className = `p-3 border rounded-lg text-xs font-mono block ${isCorrect ? 'bg-emerald-950/40 border-emerald-500/30 text-emerald-400' : 'bg-rose-950/40 border-rose-500/30 text-rose-400'}`;
+            feedback.innerHTML = `<strong>${isCorrect ? '✓ Verification Passed' : '✕ Discrepancy Found'}</strong><p class="mt-1 text-slate-300">${q.rationale}</p>`;
+            if (window.MathJax && MathJax.typesetPromise) MathJax.typesetPromise();
+        }
+
+        function updateTelemetry() {
+            const totalModules = data.length;
+            const clearedCount = Object.keys(progressData.cleared).length;
+            const clearedPct = totalModules > 0 ? Math.round((clearedCount / totalModules) * 100) : 0;
+            document.getElementById('stat-cleared').innerText = `${clearedPct}%`;
+
+            const accArray = progressData.accuracy;
+            const accuracyPct = accArray.length > 0 ? Math.round(accArray.reduce((a,b)=>a+b, 0) / accArray.length) : 0;
+            document.getElementById('stat-accuracy').innerText = `${accuracyPct}%`;
+
+            const recs = document.getElementById('recs-box');
+            if(accArray.length === 0) {
+                recs.innerText = "Complete module quizzes to seed metrics.";
+            } else if(accuracyPct < 70) {
+                recs.innerText = "Review underlying vector mechanics and foundational classical fields.";
+            } else {
+                recs.innerText = "Performance baseline nominal. Proceed toward advanced coordinate transformations.";
             }
         }
-        function handleTopicSelect(v) { loadTopic(parseInt(v)); }
 
-        function renderVars() {
-            const el = document.getElementById('variables-list'); 
-            if (!el) return;
-            el.innerHTML = '';
-            vars.forEach((v, i) => {
-                el.innerHTML += `<div class="bg-slate-900/50 p-2.5 rounded-lg border border-slate-800 text-xs"><label class="font-bold text-indigo-300 block mb-1">${v.s}</label>
-                <input type="text" value="${v.v}" onchange="vars[${i}].v=this.value; audit()" class="w-full bg-slate-950 border border-slate-800 rounded p-1 text-white font-mono text-xs focus:outline-none"></div>`;
-            });
+        function setupSolverInputs() {
+            const box = document.getElementById('variables-list');
+            box.innerHTML = vars.map((v, i) => `
+                <div class="bg-slate-900/40 p-2 rounded-lg border border-slate-800">
+                    <label class="block text-[10px] text-slate-500 font-bold uppercase mb-1">${v.label}</label>
+                    <input type="number" step="0.01" id="solver-var-${v.s}" value="${v.v}" class="w-full bg-slate-950 border border-slate-800 rounded p-1 text-xs text-white focus:outline-none">
+                </div>
+            `).join('');
         }
-        function loadPreset(p) { vars = p==='superluminal' ? [{s:'v',v:'1.2'},{s:'m_0',v:'15'}] : defaultVars(); renderVars(); audit(); }
-        const resetSolver = () => { const sel = document.getElementById('scenario-selector'); if(sel) sel.value = 'custom'; loadPreset('default'); };
+
+        function loadPreset(val) {
+            if(val === 'superluminal') {
+                document.getElementById('solver-var-v').value = '1.2';
+                document.getElementById('solver-var-m_0').value = '5.0';
+                document.getElementById('chk-relativity').checked = false;
+            } else {
+                document.getElementById('solver-var-v').value = '0.8';
+                document.getElementById('solver-var-m_0').value = '2.5';
+                document.getElementById('chk-relativity').checked = true;
+            }
+        }
+
+        function resetSolver() {
+            document.getElementById('scenario-selector').value = 'custom';
+            loadPreset('custom');
+            document.getElementById('auditor-console').innerHTML = '';
+            document.getElementById('val-gamma').innerText = '--';
+            document.getElementById('val-rel-mass').innerText = '--';
+        }
 
         function audit() {
-            const v = parseFloat(vars.find(x=>x.s==='v').v), m0 = parseFloat(vars.find(x=>x.s==='m_0').v);
-            const chk = document.getElementById('chk-relativity');
-            const err = chk && chk.checked && v >= 1.0;
+            const v = parseFloat(document.getElementById('solver-var-v').value);
+            const m0 = parseFloat(document.getElementById('solver-var-m_0').value);
+            const enforceRel = document.getElementById('chk-relativity').checked;
             const consoleEl = document.getElementById('auditor-console');
-            if (consoleEl) consoleEl.innerHTML = err ? `<div id="audit-math-msg" class="text-rose-400 font-bold">⚠️ Logic Contradiction: Relative velocity calculation vector $v \\ge c$ detected.</div>` : `<div id="audit-math-msg" class="text-emerald-400">✓ System clean. Matrix math limits verified.</div>`;
-            const g = err ? NaN : 1 / Math.sqrt(1 - v*v);
-            const gammaEl = document.getElementById('val-gamma');
-            const massEl = document.getElementById('val-rel-mass');
-            if (gammaEl) gammaEl.innerText = isNaN(g) ? "Complex" : g.toFixed(4);
-            if (massEl) massEl.innerText = isNaN(g) ? "--" : (m0 * g).toFixed(2) + " kg";
             
-            if(window.MathJax?.typesetPromise) {
-                const msgTarget = document.getElementById('audit-math-msg');
-                if(msgTarget) MathJax.typesetPromise([msgTarget]).catch(err => console.log(err));
+            consoleEl.innerHTML = `<div class="text-cyan-400">// Commencing algorithmic safety routine...</div>`;
+            
+            if(enforceRel && v >= 1.0) {
+                consoleEl.innerHTML += `<div class="text-rose-400">[CRITICAL ERROR] Causality violation detected: velocity matches or exceeds light limit (v/c = ${v}). Verification aborted.</div>`;
+                document.getElementById('val-gamma').innerText = 'NaN';
+                document.getElementById('val-rel-mass').innerText = '∞';
+                return;
             }
+
+            const gamma = 1 / Math.sqrt(Math.abs(1 - v*v));
+            const relMass = m0 * gamma;
+
+            document.getElementById('val-gamma').innerText = gamma.toFixed(4);
+            document.getElementById('val-rel-mass').innerText = `${relMass.toFixed(2)} kg`;
+
+            consoleEl.innerHTML += `<div class="text-slate-400">-> Input parameters validation succeeded.</div>`;
+            consoleEl.innerHTML += `<div class="text-emerald-400">[SUCCESS] Lorentz framework processed nominally without scalar divergence.</div>`;
         }
 
         function init2D() {
-            if (!c2d) return;
-            const ctx = c2d.getContext('2d');
-            c2d.onclick = (e) => { const r = c2d.getBoundingClientRect(); parts.push({x: e.clientX-r.left, y: e.clientY-r.top, vx: (Math.random()-0.5)*120, vy: (Math.random()-0.5)*120}); };
-            setInterval(() => {
-                if(simMode !== '2d') return;
-                ctx.fillStyle = '#0b0f19'; ctx.fillRect(0,0,c2d.width,c2d.height); ctx.fillStyle = '#22d3ee';
-                parts.forEach(p => { p.x += p.vx*0.016; p.y += p.vy*0.016; ctx.beginPath(); ctx.arc(p.x, p.y, 3, 0, Math.PI*2); ctx.fill(); });
-            }, 16);
+            resizeSimulation();
+            function render() {
+                if(simMode === '2d') {
+                    const intensity = parseFloat(document.getElementById('f-strength').value);
+                    const time = Date.now() * 0.002;
+                    ctx2d.clearRect(0,0,c2d.width,c2d.height);
+                    ctx2d.strokeStyle = 'rgba(6, 182, 212, 0.4)';
+                    ctx2d.lineWidth = 1;
+                    
+                    const step = 25;
+                    for(let x=0; x<c2d.width; x+=step) {
+                        ctx2d.beginPath();
+                        for(let y=0; y<c2d.height; y+=5) {
+                            const offset = Math.sin(y*0.02 + time) * 10 * intensity;
+                            if(y===0) ctx2d.moveTo(x+offset, y); else ctx2d.lineTo(x+offset, y);
+                        }
+                        ctx2d.stroke();
+                    }
+                }
+                animationId2d = requestAnimationFrame(render);
+            }
+            render();
         }
 
-        function toggleSimMode(m) {
-            simMode = m;
-            document.getElementById('ctrl-2d').classList.toggle('hidden', m==='3d');
-            document.getElementById('ctrl-3d').classList.toggle('hidden', m==='2d');
-            c2d.classList.toggle('hidden', m==='3d');
-            document.getElementById('container-3d').classList.toggle('hidden', m==='2d');
-            document.getElementById('b-2d').className = m==='2d' ? 'py-2 rounded-lg bg-indigo-600 text-xs font-bold text-white shadow' : 'py-2 rounded-lg bg-slate-800 text-xs font-bold text-slate-400';
-            document.getElementById('b-3d').className = m==='3d' ? 'py-2 rounded-lg bg-indigo-600 text-xs font-bold text-white shadow' : 'py-2 rounded-lg bg-slate-800 text-xs font-bold text-slate-400';
-            if(m === '3d' && !scene) {
-                const con = document.getElementById('container-3d');
-                scene = new THREE.Scene(); camera = new THREE.PerspectiveCamera(60, con.clientWidth/con.clientHeight, 0.1, 100);
-                camera.position.set(0, 12, 20); camera.lookAt(0,0,0);
-                renderer = new THREE.WebGLRenderer({ antialias: true }); renderer.setSize(con.clientWidth, con.clientHeight);
-                con.appendChild(renderer.domElement); update3DScene();
-                (function anim3D() { requestAnimationFrame(anim3D); if(simMode==='3d' && grid) { grid.rotation.z += 0.004; renderer.render(scene, camera); } })();
+        function toggleSimMode(mode) {
+            simMode = mode;
+            if(mode === '2d') {
+                document.getElementById('canvas-2d').classList.remove('hidden');
+                document.getElementById('container-3d').classList.add('hidden');
+                document.getElementById('ctrl-2d').classList.remove('hidden');
+                document.getElementById('ctrl-3d').classList.add('hidden');
+                document.getElementById('b-2d').className = "py-2 rounded-lg bg-indigo-600 text-xs font-bold text-white";
+                document.getElementById('b-3d').className = "py-2 rounded-lg bg-slate-800 text-xs font-bold text-slate-400";
+            } else {
+                document.getElementById('canvas-2d').classList.add('hidden');
+                document.getElementById('container-3d').classList.remove('hidden');
+                document.getElementById('ctrl-2d').classList.add('hidden');
+                document.getElementById('ctrl-3d').classList.remove('hidden');
+                document.getElementById('b-2d').className = "py-2 rounded-lg bg-slate-800 text-xs font-bold text-slate-400";
+                document.getElementById('b-3d').className = "py-2 rounded-lg bg-indigo-600 text-xs font-bold text-white";
+                if(!scene) init3D();
             }
-            setTimeout(resizeSimulation, 10);
+        }
+
+        function init3D() {
+            const container = document.getElementById('container-3d');
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 100);
+            camera.position.set(0, 5, 8);
+            camera.lookAt(0, 0, 0);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            container.appendChild(renderer.domElement);
+
+            const gridHelper = new THREE.GridHelper(10, 20, 0x4f46e5, 0x334155);
+            scene.add(gridHelper);
+
+            const geo = new THREE.SphereGeometry(0.6, 32, 32);
+            const mat = new THREE.MeshBasicMaterial({ color: 0xa855f7, wireframe: true });
+            gridMesh = new THREE.Mesh(geo, mat);
+            scene.add(gridMesh);
+
+            function animate() {
+                if(simMode === '3d' && renderer) {
+                    requestAnimationFrame(animate);
+                    gridMesh.rotation.y += 0.01;
+                    renderer.render(scene, camera);
+                }
+            }
+            animate();
         }
 
         function update3DScene() {
-            if(!scene) return; if(grid) scene.remove(grid);
-            grid = new THREE.Mesh(new THREE.PlaneGeometry(24, 24, 14, 14), new THREE.MeshBasicMaterial({ color: 0x818cf8, wireframe: true }));
-            grid.rotation.x = -Math.PI/2; scene.add(grid);
+            if(!gridMesh) return;
+            const m = parseFloat(document.getElementById('m-3d').value);
+            gridMesh.scale.set(m*0.5, m*0.5, m*0.5);
+        }
+
+        function resizeSimulation() {
+            const p2d = c2d.parentElement;
+            c2d.width = p2d.clientWidth;
+            c2d.height = p2d.clientHeight;
+            if(renderer && camera && simMode === '3d') {
+                const container = document.getElementById('container-3d');
+                camera.aspect = container.clientWidth / container.clientHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(container.clientWidth, container.clientHeight);
+            }
+        }
+
+        function clearProgress() {
+            localStorage.removeItem('aletheia_progress');
+            localStorage.removeItem('aletheia_aptitude');
+            progressData = { cleared: {}, accuracy: [] };
+            userAptitude = null;
+            currentDiagIndex = 0;
+            diagAnswers = [];
+            document.getElementById('main-workspace').classList.add('hidden');
+            document.getElementById('aptitude-badge').classList.add('hidden');
+            document.getElementById('diagnostic-screen').classList.remove('hidden');
+            renderDiagnosticQuestion();
         }
     </script>
 </body>
