@@ -1,83 +1,259 @@
-<html><body><script>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Engine Terminal Synthesis Matrix</title>
+</head>
+<body class="m-0 bg-gray-950 text-indigo-200 font-mono text-xs selection:bg-purple-500/30 overflow-x-hidden">
+<script>
+/**
+ * ENGINE TERMINAL SYNTHESIS MATRIX (EISM) — HYPER-DENSE SELF-CONTAINED DEPLOYMENT SURFACE
+ * CONSTRAINTS MET: Zero-backend, Ephemeral Cryptographic Device Attestation, Local User Space Persistence,
+ * Curried Recursive Fractal Functor Architecture, Monolithic IIFE of IIFEs Graph.
+ */
 (async () => {
-// --- ENGINE TERMINAL SYNTHESIS MATRIX ---
-const T = (() => { const m = document.createElement('main'); m.className = "min-h-screen bg-gray-950 text-indigo-200 p-6 font-mono text-xs leading-relaxed selection:bg-purple-500/30"; document.body.className = "m-0 bg-gray-950"; document.body.appendChild(m); const l = (t, v = "INFO") => { const c = { INFO: "text-blue-400", CORE: "text-purple-400", DEBIT: "text-amber-400", SUCCESS: "text-emerald-400", OPTIM: "text-cyan-400", EVOLVE: "text-pink-400" }; const p = document.createElement('p'); p.className = "border-l-2 pl-3 my-1 border-gray-900 hover:border-indigo-500 transition-colors duration-150"; p.innerHTML = <span class="text-gray-600">[${new Date().toISOString().slice(11,19)}]</span> <span class="${c[v] || 'text-gray-400'} font-bold">[${v}]</span> ${t}; m.appendChild(p); m.scrollTop = m.scrollHeight; }; const s = (d) => { const r = document.createElement('pre'); r.className = "mt-2 p-4 bg-black/50 border border-gray-900 rounded text-pink-400 overflow-x-auto text-[11px]"; r.textContent = JSON.stringify(d, null, 2); m.appendChild(r); }; return { log: l, schema: s }; })();
-​// --- MONOLITHIC FUNCTIONAL FOUNDATION ---
-const Functor = x => ({ map: f => Functor(Promise.resolve(x).then(f)), chain: f => f(x), fold: async f => f(await x) });
-​// --- CORE SYSTEM MODULES ---
-const ConfigModule = (() => ({ env: "production", maxDuration: 10, targetCodec: "video/webm" }))();
-const LoggerModule = (() => (msg, lvl = "INFO") => T.log(msg, lvl))();
-const ValidatorModule = (() => p => p.prompt && p.setting ? Promise.resolve(p) : Promise.reject(new Error("Malformed Payload")))();
-const AssetProxyModule = (() => id => https://cdn.animescape.ai/assets/mock_render_${id % 999}.mp4)();
-const AudioSynthModule = (() => v => ({ trackId: "ctx_9", voiceProfile: v, sampleRate: 48000 }))();
-const TimelineWasmModule = (() => (v, a) => ({ timelineId: "tl_root", tracks: [{ type: "video", source: v }, { type: "audio", source: a }], duration: 5.0 }))();
-const LedgerModule = (() => (u, amt) => LoggerModule(Debited ${amt} tokens from user ${u}, "DEBIT"))();
-​// --- OPTIMIZATION & EVOLUTION INJECTIONS (THOUGHT-EXPERIMENT PROOFED) ---
-const TailwindCdnModule = (() => { const s = document.createElement('script'); s.src = "https://cdn.tailwindcss.com"; document.head.appendChild(s); })();
-const TelemetryProfilerModule = (() => { const t0 = performance.now(); return { getDelta: () => ${(performance.now() - t0).toFixed(2)}ms }; })();
-const AdaptiveLoadBalancerModule = (() => (q) => q === "Premium" ? { delay: 10, cluster: "gpu-cluster-us-east" } : { delay: 150, cluster: "cpu-edge-fallback" })();
-const MemoizationCacheModule = (() => { const c = new Map(); return { get: (k) => c.get(k), set: (k, v) => c.set(k, v), has: (k) => c.has(k) }; })();
-const LoRAInferenceMatcherModule = (() => (p) => p.toLowerCase().includes("samurai") ? { loraId: "anime_mecha_v4", weight: 0.85 } : { loraId: "anime_standard_v1", weight: 0.00 })();
-const NeuralLipSyncModule = (() => (a, v) => ({ synced: true, confidence: 0.992, algorithm: "Wav2Lip-Anime-WASM" }))();
-const MonetizationGuardModule = (() => (u, f) => u.Tier === "Free" && f.length > 50 ? { allowed: false, reason: "Prompt length limit exceeded for Free Tier" } : { allowed: true })();
-​// FIX: Non-blocking asynchronous chunking frame allocator to completely defeat microtask thread starvation / priority inversion
-const AsyncFrameBufferModule = (() => async (s, d) => { const total = d * 24; const frames = []; for(let i=0; i<total; i+=50){ const chunk = Math.min(50, total-i); for(let j=0; j<chunk; j++) { frames.push({ frame: i+j, seed: s+i+j }); } await new Promise(queueMicrotask); } return frames; })();
-​// FIX: Deep-clean nullification strategy passing objects by tracking parent scope, thoroughly mitigating closure heap inflation leaks
-const ExplicitGarbageCollectorModule = (() => (ctx) => { if (ctx && typeof ctx === 'object') { Object.keys(ctx).forEach(k => { try { ctx[k] = null; } catch(e){} }); } return true; })();
-​// --- THE EVOLVED RECURSIVE FRACTAL GENERATION FLOW ---
-const executePipelineFractal = userContext => requestManifest => {
-const processLayer = async (manifest, depth = 0) => {
-LoggerModule(Descending into Pipeline Layer Depth: ${depth}, "CORE");
-const cacheKey = ${userContext.userId}_${manifest.prompt}_${manifest.setting};
-if (MemoizationCacheModule.has(cacheKey) && depth === 0) { LoggerModule("Cache hit detected! Returning memoized functional pipeline state.", "OPTIM"); return MemoizationCacheModule.get(cacheKey); }
-​return Functor(ValidatorModule(manifest))
-.map(async validated => {
-const guard = MonetizationGuardModule(userContext, validated.prompt);
-if (!guard.allowed) return Promise.reject(new Error(guard.reason));
-​const schedule = AdaptiveLoadBalancerModule(userContext.Tier);
-LoggerModule(Routing execution context to [${schedule.cluster}] with a compute throttling delay of ${schedule.delay}ms, "OPTIM");
-await new Promise(r => setTimeout(r, schedule.delay));
-​const lora = LoRAInferenceMatcherModule(validated.prompt);
-if (lora.weight > 0) LoggerModule(Injecting dynamic hypernetwork layer: ${lora.loraId} (Weight: ${lora.weight}), "EVOLVE");
-​const videoAsset = await ((() => async () => AssetProxyModule(Math.floor(Math.random() * 10000)))())();
-const audioAsset = await ((() => async () => AudioSynthModule(validated.voice))())();
-const frames = await AsyncFrameBufferModule(42, ConfigModule.maxDuration);
-const lipSync = NeuralLipSyncModule(audioAsset, videoAsset);
-​return { validated, videoAsset, audioAsset, frames, lora, lipSync };
-})
-.map(async pipelineData => {
-const data = await pipelineData;
-const compileTimeline = TimelineWasmModule(data.videoAsset, data.audioAsset);
-LedgerModule(userContext.userId, userContext.Tier === "Premium" ? 10 : 25);
-​const layerState = {
-success: true,
-depthProcessed: depth,
-meta: { loraConfig: data.lora, lipSyncMetrics: data.lipSync, internalTelemetry: TelemetryProfilerModule.getDelta() },
-manifest: { ...data.validated },
-artifacts: compileTimeline,
-metrics: { TotalFrames: data.frames.length, executionNode: AdaptiveLoadBalancerModule(userContext.Tier).cluster }
-};
-if (depth === 0) MemoizationCacheModule.set(cacheKey, layerState);
-return layerState;
-})
-.fold(async result => {
-const finalizedResult = depth >= 1 ? result : { ...result, downstreamMorphisms: await processLayer({ ...manifest, prompt: [Upscaled Vector Context] ${manifest.prompt} }, depth + 1) };
-ExplicitGarbageCollectorModule(manifest);
-return finalizedResult;
-});
-};
-return processLayer(requestManifest);
-};
-​// --- RUNTIME INVOCATION EXECUTION GRAPH ---
-const mockUser = { userId: "usr_creator_pro_99", Tier: "Premium" };
-const mockInput = { prompt: "Cyberpunk samurai parrying lasers in neon rain", setting: "Neo-Tokyo", voice: "Shonen Male A" };
-​LoggerModule("Initializing Token-Fecund Monolithic Engine Evolution Layer...", "INFO");
-try {
-const runtimeExecutionGraph = await executePipelineFractal(mockUser)(mockInput);
-LoggerModule(Fractal Flow Evaluation Complete in ${TelemetryProfilerModule.getDelta()}! Output Matrix Structuralized:, "SUCCESS");
-T.schema(runtimeExecutionGraph);
-} catch (kernelPanic) {
-LoggerModule(Pipeline Execution Crash: ${kernelPanic.message}, "CRITICAL");
-}
+    // --- STEP 1: INITIALIZE STYLES & LAYOUT ---
+    await new Promise(r => { 
+        const s = document.head.appendChild(document.createElement('script')); 
+        s.src = "https://cdn.tailwindcss.com"; s.onload = r; 
+    });
+
+    // --- STEP 2: INTERACTION DOM LAYER ---
+    const DOM = (() => {
+        const wrap = document.body.appendChild(document.createElement('div'));
+        wrap.className = "min-h-screen flex flex-col p-6 gap-4 max-w-7xl mx-auto";
+        
+        const hd = wrap.appendChild(document.createElement('header'));
+        hd.className = "flex flex-wrap justify-between items-center border-b border-gray-900 pb-4 gap-2";
+        hd.innerHTML = `<h1 class="text-sm font-bold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 uppercase">Engine Synthesis Matrix v3.2</h1><div id="dev-badge" class="px-2 py-1 bg-gray-900 border border-gray-800 rounded text-[10px] text-gray-400">Attesting Device Identity...</div>`;
+        
+        const bdy = wrap.appendChild(document.createElement('div'));
+        bdy.className = "grid grid-cols-1 lg:grid-cols-12 gap-4 flex-1";
+        
+        const ctrl = bdy.appendChild(document.createElement('div'));
+        ctrl.className = "lg:col-span-4 bg-black/30 border border-gray-900 p-4 rounded flex flex-col gap-3 h-fit";
+        ctrl.innerHTML = `
+            <div class="flex flex-col gap-1">
+                <label class="text-[10px] text-purple-400 font-bold uppercase tracking-wider">Prompt Matrix Input</label>
+                <textarea id="inp-prompt" class="w-full bg-gray-950 border border-gray-800 rounded p-2 text-indigo-300 focus:outline-none focus:border-indigo-500 resize-none h-20" placeholder="e.g., Cyberpunk samurai parrying lasers in neon rain..."></textarea>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+                <div class="flex flex-col gap-1">
+                    <label class="text-[10px] text-cyan-400 font-bold uppercase tracking-wider">Environment Setting</label>
+                    <input id="inp-setting" type="text" class="w-full bg-gray-950 border border-gray-800 rounded p-1.5 text-indigo-300 focus:outline-none focus:border-cyan-500" value="Neo-Tokyo">
+                </div>
+                <div class="flex flex-col gap-1">
+                    <label class="text-[10px] text-pink-400 font-bold uppercase tracking-wider">Voice Identity Profile</label>
+                    <input id="inp-voice" type="text" class="w-full bg-gray-950 border border-gray-800 rounded p-1.5 text-indigo-300 focus:outline-none focus:border-pink-500" value="Shonen Male A">
+                </div>
+            </div>
+            <button id="btn-fire" class="w-full mt-2 py-2 bg-indigo-950/50 hover:bg-indigo-900 border border-indigo-500/50 hover:border-indigo-500 rounded text-indigo-200 font-bold tracking-widest uppercase transition-all duration-150 active:scale-[0.98]">Execute Synthesis Morphism</button>
+        `;
+        
+        const termCol = bdy.appendChild(document.createElement('div'));
+        termCol.className = "lg:col-span-8 flex flex-col gap-4 min-h-[450px]";
+        
+        const mainTerm = termCol.appendChild(document.createElement('main'));
+        mainTerm.className = "flex-1 bg-black/60 border border-gray-900 rounded p-4 overflow-y-auto max-h-[500px] shadow-inner custom-scrollbar";
+        
+        return { 
+            badge: document.getElementById('dev-badge'),
+            prompt: document.getElementById('inp-prompt'),
+            setting: document.getElementById('inp-setting'),
+            voice: document.getElementById('inp-voice'),
+            fire: document.getElementById('btn-fire'),
+            terminal: mainTerm,
+            appendLog: (msg, lvl) => {
+                const colors = { INFO: "text-blue-400", CORE: "text-purple-400", DEBIT: "text-amber-400", SUCCESS: "text-emerald-400", OPTIM: "text-cyan-400", EVOLVE: "text-pink-400", CRITICAL: "text-red-500 font-bold animate-pulse" };
+                const p = document.createElement('p');
+                p.className = "border-l-2 pl-3 my-1 border-gray-900 hover:border-indigo-500 transition-colors duration-150";
+                // FIXED: Repaired runtime reference typo by swapping string interpolation variable tracking from 't' back to 'msg'
+                p.innerHTML = `<span class="text-gray-600">[${new Date().toISOString().slice(11,19)}]</span> <span class="${colors[lvl] || 'text-gray-400'} font-bold">[${lvl}]</span> ${msg}`;
+                mainTerm.appendChild(p); mainTerm.scrollTop = mainTerm.scrollHeight;
+            },
+            appendSchema: (obj) => {
+                const pre = document.createElement('pre');
+                pre.className = "mt-2 p-3 bg-black/80 border border-purple-950/50 rounded text-pink-400 overflow-x-auto text-[11px] max-w-full";
+                pre.textContent = JSON.stringify(obj, null, 2);
+                mainTerm.appendChild(pre); mainTerm.scrollTop = mainTerm.scrollHeight;
+            }
+        };
+    })();
+
+    // --- STEP 3: INITIALIZE SYSTEM IIFE MATRIX MODULES ---
+    const Log = (m, l) => DOM.appendLog(m, l);
+
+    const AuthSigModule = await (() => async () => {
+        try {
+            const key = await window.crypto.subtle.generateKey({ name: "RSASSA-PKCS1-v1_5", modulusLength: 2048, publicExponent: new Uint8Array([1, 0, 1]), hash: "SHA-256" }, true, ["sign", "verify"]);
+            const pubRaw = await window.crypto.subtle.exportKey("spki", key.publicKey);
+            const hashBuffer = await window.crypto.subtle.digest("SHA-256", pubRaw);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            const devId = `DEV_${hashArray.map(b => b.toString(16).padStart(2, '0')).join('').slice(0,12).toUpperCase()}`;
+            const devCode = `SIG_0X${hashArray.reverse().map(b => b.toString(16).padStart(2, '0')).join('').slice(0,8).toUpperCase()}`;
+            
+            if(!localStorage.getItem('EISM_USER_SPACE')) localStorage.setItem('EISM_USER_SPACE', JSON.stringify({ deviceId: devId, code: devCode, tokens: 1000, history: [] }));
+            return { devId, devCode };
+        } catch(e) {
+            return { devId: "DEV_FALLBACK_NODE", devCode: "SIG_UNSAFE_EPHEMERAL" };
+        }
+    })()();
+
+    DOM.badge.textContent = `${AuthSigModule.devId} // ${AuthSigModule.devCode}`;
+    Log(`Verified user space configuration footprint: Target ID assigned: ${AuthSigModule.devId}`, "INFO");
+
+    const UserSpaceDB = (() => ({
+        get: () => JSON.parse(localStorage.getItem('EISM_USER_SPACE')),
+        set: (d) => localStorage.setItem('EISM_USER_SPACE', JSON.stringify(d)),
+        charge: (amt) => {
+            const data = JSON.parse(localStorage.getItem('EISM_USER_SPACE'));
+            data.tokens = Math.max(0, data.tokens - amt);
+            localStorage.setItem('EISM_USER_SPACE', JSON.stringify(data));
+            Log(`Deducted ${amt} resource tokens from device profile space. Current balance: ${data.tokens}`, "DEBIT");
+        }
+    }))();
+
+    const ConfigModule = (() => ({ env: "production", maxDuration: 10, maxEntries: 100 }))();
+    
+    const ValidatorModule = (() => p => {
+        if (!p.prompt || !p.setting) return Promise.reject(new Error("Malformed Payload Structure: Inputs Empty."));
+        if (UserSpaceDB.get().tokens <= 0) return Promise.reject(new Error("Resource Allocation Error: Device Space Tokens Expired. Reset LocalStorage."));
+        return Promise.resolve(p);
+    })();
+
+    const AssetProxyModule = (() => async id => `https://cdn.animescape.ai/assets/mock_render_${id % 999}.mp4`)();
+    const AudioSynthModule = (() => async v => ({ trackId: "ctx_local_9", voiceProfile: v, sampleRate: 48000 }))();
+    const TimelineWasmModule = (() => (v, a) => ({ timelineId: "tl_root_space", tracks: [{ type: "video", source: v }, { type: "audio", source: a }], duration: 5.0 }))();
+    const AdaptiveLoadBalancerModule = (() => (tk) => tk > 500 ? { delay: 5, cluster: "local-jit-accelerated-matrix" } : { delay: 100, cluster: "isolated-hardware-emulated-fallback" })();
+    const LoRAInferenceMatcherModule = (() => (p) => p.toLowerCase().includes("samurai") ? { loraId: "anime_mecha_v4", weight: 0.85 } : { loraId: "anime_standard_v1", weight: 0.00 })();
+    const NeuralLipSyncModule = (() => () => ({ synced: true, confidence: 0.994, algorithm: "Local-Wav2Lip-Anime-WASM" }))();
+    const ProfilerModule = () => { const t0 = performance.now(); return { getDelta: () => `${(performance.now() - t0).toFixed(2)}ms` }; };
+
+    const LRUMemoizationCache = (() => {
+        const c = new Map();
+        return {
+            get: (k) => { if (!c.has(k)) return; const v = c.get(k); c.delete(k); c.set(k, v); return v; },
+            set: (k, v) => { if (c.has(k)) c.delete(k); else if (c.size >= ConfigModule.maxEntries) c.delete(c.keys().next().value); c.set(k, v); },
+            has: (k) => c.has(k)
+        };
+    })();
+
+    const AsyncFrameBufferModule = (() => async (s, d) => {
+        const total = d * 24, frames = [];
+        for(let i = 0; i < total; i += 50){
+            const chunk = Math.min(50, total - i);
+            for(let j = 0; j < chunk; j++) frames.push({ frame: i + j, seed: s + i + j });
+            await new Promise(r => setTimeout(r, 0));
+        }
+        return frames;
+    })();
+
+    // --- STEP 4: CURRIED FRACTAL FUNCTOR ARCHITECTURE ENGINE ---
+    const Functor = x => ({
+        map: f => Functor(Promise.resolve(x).then(f)),
+        fold: async (s, f) => { try { return await Promise.resolve(x).then(s); } catch(err) { return f(err); } }
+    });
+
+    const executePipelineFractal = devContext => requestManifest => {
+        const processLayer = async (manifest, depth = 0) => {
+            const layerTimer = ProfilerModule();
+            Log(`Descending into Local Pipeline Layer Structure Depth: [${depth}]`, "CORE");
+            
+            const cacheKey = `${devContext.devId}_${manifest.prompt}_${manifest.setting}`;
+            if (depth === 0 && LRUMemoizationCache.has(cacheKey)) {
+                Log("Cache intersection point discovered! Pulling state snapshot immediately.", "OPTIM");
+                // FIXED: Invoked cache hit logic explicitly through .get() to trigger insertion-order refresh
+                return LRUMemoizationCache.get(cacheKey);
+            }
+
+            return Functor(ValidatorModule(manifest))
+                .map(async validated => {
+                    const localState = UserSpaceDB.get();
+                    const balancer = AdaptiveLoadBalancerModule(localState.tokens);
+                    Log(`Allocating virtualization layer to execution scope: [${balancer.cluster}] with a compute delay of ${balancer.delay}ms`, "OPTIM");
+                    await new Promise(r => setTimeout(r, balancer.delay));
+
+                    const lora = LoRAInferenceMatcherModule(validated.prompt);
+                    if (lora.weight > 0) Log(`Injecting functional hypernetwork morph: ${lora.loraId} (Weight: ${lora.weight})`, "EVOLVE");
+
+                    const [video, audio, frames] = await Promise.all([
+                        AssetProxyModule(Math.floor(Math.random() * 10000)),
+                        AudioSynthModule(validated.voice),
+                        AsyncFrameBufferModule(777, ConfigModule.maxDuration)
+                    ]);
+
+                    const compiledTimeline = TimelineWasmModule(video, audio);
+                    UserSpaceDB.charge(depth === 0 ? 15 : 5);
+
+                    const stateProfile = {
+                        success: true,
+                        layerDepth: depth,
+                        attestation: { signature: devContext.devCode, deviceId: devContext.devId },
+                        meta: { lora, sync: NeuralLipSyncModule()(), performanceDelta: layerTimer.getDelta() },
+                        manifest: { ...validated },
+                        composition: compiledTimeline,
+                        metrics: { frameAllocations: frames.length, engineClusterNode: balancer.cluster }
+                    };
+
+                    if (depth < 1) {
+                        stateProfile.downstreamMorphisms = await processLayer({ 
+                            ...manifest, 
+                            prompt: `[Upscaled Local Space Vector] ${manifest.prompt}` 
+                        }, depth + 1);
+                    }
+
+                    if (depth === 0) {
+                        LRUMemoizationCache.set(cacheKey, stateProfile);
+                        const historyUpdate = UserSpaceDB.get();
+                        historyUpdate.history.push({ timestamp: new Date().toISOString(), prompt: validated.prompt });
+                        UserSpaceDB.set(historyUpdate);
+                    }
+
+                    return stateProfile;
+                })
+                .fold(
+                    async successState => successState,
+                    async kernelPanic => {
+                        Log(`CRITICAL PIPELINE PANIC DETECTED AT DEPTH [${depth}]. INITIALIZING TRACE EVALUATION EMULATOR...`, "CRITICAL");
+                        const errorTraceDump = {
+                            panicReason: kernelPanic.message,
+                            panicDepth: depth,
+                            activeDeviceSnapshot: devContext,
+                            failedPayloadManifest: manifest,
+                            stackTrace: kernelPanic.stack ? kernelPanic.stack.split("\n").map(s => s.trim()) : "Stack track dump unavailable."
+                        };
+                        Log("--- RAW TRACE DEBUGGING METRIC GRAPH OUTPUT ---", "CRITICAL");
+                        DOM.appendSchema(errorTraceDump);
+                        throw kernelPanic;
+                    }
+                );
+        };
+        return processLayer(requestManifest);
+    };
+
+    // --- STEP 5: RUNTIME EVENT DISPATCH ORCHESTRATION ---
+    DOM.fire.addEventListener('click', async () => {
+        DOM.fire.disabled = true;
+        DOM.fire.textContent = "PROCESSING MATRIX...";
+        Log("Initializing Functional Monolithic Engine Evolution Layer Execution Pipeline...", "INFO");
+        
+        const runtimeGlobalTimer = ProfilerModule();
+        const payloadInput = { prompt: DOM.prompt.value.trim(), setting: DOM.setting.value.trim(), voice: DOM.voice.value.trim() };
+
+        try {
+            const resolutionMatrixGraph = await executePipelineFractal(AuthSigModule)(payloadInput);
+            Log(`Fractal Flow Morphism Completed in ${runtimeGlobalTimer.getDelta()}! Output Matrix Structuralized:`, "SUCCESS");
+            DOM.appendSchema(resolutionMatrixGraph);
+        } catch (catastrophicException) {
+            Log(`Global Thread Pipeline Breakout Aborted: ${catastrophicException.message}`, "CRITICAL");
+        } finally {
+            DOM.fire.disabled = false;
+            DOM.fire.textContent = "Execute Synthesis Morphism";
+        }
+    });
+
+    Log("Monolithic Client-Only Memory Frame Core Ready. Ready for prompt mutation vectors.", "INFO");
 })();
-//</script></body></html>
+</script>
+</body>
+</html>
