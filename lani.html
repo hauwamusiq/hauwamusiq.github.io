@@ -1,96 +1,205 @@
-const data = [
-    { t: "Classical Mechanics", n: "Lagrangian Formulation", c: "An alternative to Newtonian vector mechanics, modeling frameworks based on scalar kinetic ($T$) and potential ($V$) systems.", m: "$$S = \\int_{t_1}^{t_2} L(q, \\dot{q}, t) \\, dt, \\quad L = T - V$$" },
-    { t: "Relativistic Mechanics", n: "Lorentz Invariance", c: "Calculates the fundamental modifications mapping space and time coordinates across relativistic velocity constraints.", m: "$$\\gamma = \\frac{1}{\\sqrt{1 - (v/c)^2}}$$" }
-];
-// Master initialization state
-const defaultVars = () => [{s:'v', v:'0.8'}, {s:'m_0', v:'2.5'}];
-let vars = defaultVars(), simMode = '2d', parts = [], scene, camera, renderer, grid;
-const c2d = document.getElementById('canvas-2d');
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aletheia Physics Workspace</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>window.MathJax = { tex: { inlineMath: [['$', '$']], displayMath: [['$$', '$$']] } };</script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2 family=Fira+Code&family=Inter:wght@400;700;900&display=swap');
+        body { font-family: 'Inter', sans-serif; background: #0b0f19; color: #f3f4f6; }
+        .glass { background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between">
 
-// Safe sizing calculator that ignores collapsed hidden parent containers
-function resizeSimulation() {
-    const box = c2d.closest('.aspect-\\[16\\/10\\]') || c2d.parentElement;
-    const r = box.getBoundingClientRect();
-    const w = r.width || 800, h = r.height || 500; // Fallback to safe base aspect limits if hidden
-    c2d.width = w; c2d.height = h;
-    if(renderer) { renderer.setSize(w, h); camera.aspect = w/h; camera.updateProjectionMatrix(); }
-}
+    <header class="glass sticky top-0 z-50 px-6 py-4 flex items-center justify-between border-b border-slate-800">
+        <div class="flex items-center space-x-3">
+            <div class="h-9 w-9 rounded-lg bg-gradient-to-tr from-indigo-500 to-cyan-500 flex items-center justify-center shadow-lg">
+                <i class="fa-solid fa-atom text-lg animate-spin" style="animation-duration: 10s;"></i>
+            </div>
+            <div>
+                <h1 class="text-xl font-black tracking-tight bg-gradient-to-r from-white to-cyan-400 bg-clip-text text-transparent">Aletheia Physics</h1>
+                <p class="text-[11px] text-slate-400">Theoretical Lab Workspace</p>
+            </div>
+        </div>
+        <nav class="hidden md:flex items-center space-x-1 bg-slate-900/80 p-1 rounded-xl border border-slate-800">
+            <button onclick="switchTab('encyclopedia')" id="d-btn-encyclopedia" class="px-4 py-2 text-sm font-medium rounded-lg bg-indigo-600 text-white shadow">Encyclopedia</button>
+            <button onclick="switchTab('solver')" id="d-btn-solver" class="px-4 py-2 text-sm font-medium rounded-lg text-slate-400 hover:text-white">Auditor Engine</button>
+            <button onclick="switchTab('simulation')" id="d-btn-simulation" class="px-4 py-2 text-sm font-medium rounded-lg text-slate-400 hover:text-white">Visual Sandboxes</button>
+        </nav>
+        <div class="block md:hidden">
+            <select onchange="switchTab(this.value)" class="bg-slate-900 border border-slate-700 text-xs text-slate-200 rounded-lg p-2 focus:outline-none">
+                <option value="encyclopedia">View: Encyclopedia</option>
+                <option value="solver">View: Auditor Engine</option>
+                <option value="simulation">View: Visual Sandboxes</option>
+            </select>
+        </div>
+    </header>
 
-window.onload = () => {
-    const sel = document.getElementById('topic-selector');
-    data.forEach((d, i) => sel.add(new Option(`${d.t} — ${d.n}`, i)));
-    loadTopic(0); renderVars(); audit(); init2D();
-    window.onresize = resizeSimulation;
-    resizeSimulation();
-};
+    <main class="flex-grow p-6 max-w-[1600px] w-full mx-auto">
+        <section id="tab-encyclopedia" class="grid grid-cols-12 gap-6">
+            <div class="col-span-12 md:col-span-3 glass p-4 rounded-xl h-fit">
+                <select id="topic-selector" onchange="handleTopicSelect(this.value)" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm text-slate-200 focus:outline-none"></select>
+            </div>
+            <div class="col-span-12 md:col-span-9 glass p-6 rounded-xl min-h-[300px]" id="topic-container"></div>
+        </section>
 
-function switchTab(t) {
-    ['encyclopedia','solver','simulation'].forEach(id => {
-        document.getElementById(`tab-${id}`).classList.toggle('hidden', id !== t);
-        const btn = document.getElementById(`d-btn-${id}`);
-        if(btn) btn.className = id === t ? "px-4 py-2 text-sm font-medium rounded-lg bg-indigo-600 text-white shadow" : "px-4 py-2 text-sm font-medium rounded-lg text-slate-400 hover:text-white";
-    });
-    // Force structural recount once container display:none is lifted
-    setTimeout(resizeSimulation, 20);
-}
+        <section id="tab-solver" class="hidden grid grid-cols-12 gap-6">
+            <div class="col-span-12 md:col-span-4 glass p-5 rounded-xl space-y-4 h-fit">
+                <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+                    <h2 class="text-sm font-bold text-white"><i class="fa-solid fa-sliders text-cyan-400 mr-1"></i> Environmental Rules</h2>
+                    <button onclick="resetSolver()" class="text-xs px-2 py-1 rounded bg-slate-800 text-slate-300">Reset</button>
+                </div>
+                <select id="scenario-selector" onchange="loadPreset(this.value)" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-slate-200">
+                    <option value="custom">-- Custom Setup --</option>
+                    <option value="superluminal">Relativistic Superluminal Body</option>
+                </select>
+                <div id="variables-list" class="grid grid-cols-1 sm:grid-cols-2 gap-2"></div>
+                <div class="p-3 bg-slate-950/50 rounded-xl border border-slate-850 text-xs text-slate-300">
+                    <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" id="chk-relativity" onchange="audit()" checked> <span>Enforce Relativity ($v < c$)</span></label>
+                </div>
+                <button onclick="audit()" class="w-full bg-gradient-to-r from-indigo-600 to-cyan-500 text-white font-bold py-2.5 rounded-lg text-xs">Execute Audit</button>
+            </div>
+            <div class="col-span-12 md:col-span-8 flex flex-col space-y-4">
+                <div class="glass rounded-xl overflow-hidden flex flex-col flex-grow min-h-[250px]">
+                    <div class="bg-slate-950 px-4 py-2 border-b border-slate-800 text-[10px] font-bold text-cyan-400 uppercase">Audit Stream</div>
+                    <div id="auditor-console" class="p-4 flex-grow font-mono text-xs space-y-2 overflow-y-auto"></div>
+                </div>
+                <div class="glass p-4 rounded-xl grid grid-cols-2 gap-4 text-center">
+                    <div class="bg-slate-900/60 p-3 rounded-lg border border-slate-800"><div class="text-[10px] text-slate-500 font-semibold">Lorentz Factor ($\gamma$)</div><div id="val-gamma" class="text-lg font-bold text-slate-200 mt-1">--</div></div>
+                    <div class="bg-slate-900/60 p-3 rounded-lg border border-slate-800"><div class="text-[10px] text-slate-500 font-semibold">Rel. Mass ($M_{rel}$)</div><div id="val-rel-mass" class="text-lg font-bold text-slate-200 mt-1">--</div></div>
+                </div>
+            </div>
+        </section>
 
-function loadTopic(i) {
-    document.getElementById('topic-container').innerHTML = `<span class="text-xs font-bold text-indigo-400 uppercase tracking-widest">${data[i].t}</span><h2 class="text-2xl font-black text-white mt-1 mb-3">${data[i].n}</h2><p class="text-sm text-slate-300 leading-relaxed max-w-3xl">${data[i].c}</p><div class="bg-slate-900/40 border border-slate-800 p-4 rounded-xl font-mono text-sm mt-4 text-slate-200">${data[i].m}</div>`;
-    if(window.MathJax?.typesetPromise) MathJax.typesetPromise();
-}
-function handleTopicSelect(v) { loadTopic(parseInt(v)); }
+        <section id="tab-simulation" class="hidden grid grid-cols-12 gap-6">
+            <div class="col-span-12 md:col-span-3 glass p-5 rounded-xl space-y-4 h-fit">
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="toggleSimMode('2d')" id="b-2d" class="py-2 rounded-lg bg-indigo-600 text-xs font-bold text-white">2D Fields</button>
+                    <button onclick="toggleSimMode('3d')" id="b-3d" class="py-2 rounded-lg bg-slate-800 text-xs font-bold text-slate-400">3D Space</button>
+                </div>
+                <div id="ctrl-2d" class="text-xs"><label class="block text-[10px] text-slate-400 uppercase font-bold mb-1">Field Intensity</label><input type="range" id="f-strength" min="0.1" max="5" step="0.1" value="1" class="w-full accent-cyan-400"></div>
+                <div id="ctrl-3d" class="hidden text-xs"><label class="block text-[10px] text-slate-400 uppercase font-bold mb-1">Spacetime Mass ($M$)</label><input type="range" id="m-3d" min="0.5" max="5" step="0.1" value="2" oninput="update3DScene()" class="w-full accent-purple-500"></div>
+            </div>
+            <div class="col-span-12 md:col-span-9 aspect-[16/10] max-h-[600px] bg-slate-950 rounded-2xl border border-slate-800 relative overflow-hidden shadow-2xl">
+                <canvas id="canvas-2d" class="w-full h-full block cursor-crosshair"></canvas>
+                <div id="container-3d" class="w-full h-full absolute inset-0 hidden"></div>
+            </div>
+        </section>
+    </main>
 
-function renderVars() {
-    const el = document.getElementById('variables-list'); el.innerHTML = '';
-    vars.forEach((v, i) => {
-        el.innerHTML += `<div class="bg-slate-900/50 p-2.5 rounded-lg border border-slate-800 text-xs"><label class="font-bold text-indigo-300 block mb-1">${v.s}</label>
-        <input type="text" value="${v.v}" onchange="vars[${i}].v=this.value; audit()" class="w-full bg-slate-950 border border-slate-800 rounded p-1 text-white font-mono text-xs focus:outline-none"></div>`;
-    });
-}
-function loadPreset(p) { vars = p==='superluminal' ? [{s:'v',v:'1.2'},{s:'m_0',v:'15'}] : defaultVars(); renderVars(); audit(); }
-const resetSolver = () => { document.getElementById('scenario-selector').value = 'custom'; loadPreset('default'); };
+    <footer class="py-4 border-t border-slate-800/60 bg-slate-950/40 text-center text-[11px] text-slate-500">Aletheia Advanced Physics Platform. Desktop optimized & mobile responsive.</footer>
 
-function audit() {
-    const v = parseFloat(vars.find(x=>x.s==='v').v), m0 = parseFloat(vars.find(x=>x.s==='m_0').v);
-    const err = document.getElementById('chk-relativity').checked && v >= 1.0;
-    document.getElementById('auditor-console').innerHTML = err ? `<div class="text-rose-400 font-bold">⚠️ Logic Contradiction: Relative velocity calculation vector $v \\ge c$ detected.</div>` : `<div class="text-emerald-400">✓ System clean. Matrix math limits verified.</div>`;
-    const g = err ? NaN : 1 / Math.sqrt(1 - v*v);
-    document.getElementById('val-gamma').innerText = isNaN(g) ? "Complex" : g.toFixed(4);
-    document.getElementById('val-rel-mass').innerText = isNaN(g) ? "--" : (m0 * g).toFixed(2) + " kg";
-    if(window.MathJax?.typesetPromise) MathJax.typesetPromise();
-}
+    <script>
+        const data = [
+            { t: "Classical Mechanics", n: "Lagrangian Formulation", c: "An alternative to Newtonian vector mechanics, modeling frameworks based on scalar kinetic ($T$) and potential ($V$) systems.", m: "$$S = \\int_{t_1}^{t_2} L(q, \\dot{q}, t) \\, dt, \\quad L = T - V$$" },
+            { t: "Relativistic Mechanics", n: "Lorentz Invariance", c: "Calculates the fundamental modifications mapping space and time coordinates across relativistic velocity constraints.", m: "$$\\gamma = \\frac{1}{\\sqrt{1 - (v/c)^2}}$$" }
+        ];
+        const defaultVars = () => [{s:'v', v:'0.8'}, {s:'m_0', v:'2.5'}];
+        let vars = defaultVars(), simMode = '2d', parts = [], scene, camera, renderer, grid;
+        const c2d = document.getElementById('canvas-2d');
 
-function init2D() {
-    const ctx = c2d.getContext('2d');
-    c2d.onclick = (e) => { const r = c2d.getBoundingClientRect(); parts.push({x: e.clientX-r.left, y: e.clientY-r.top, vx: (Math.random()-0.5)*120, vy: (Math.random()-0.5)*120}); };
-    setInterval(() => {
-        if(simMode !== '2d') return;
-        ctx.fillStyle = '#0b0f19'; ctx.fillRect(0,0,c2d.width,c2d.height); ctx.fillStyle = '#22d3ee';
-        parts.forEach(p => { p.x += p.vx*0.016; p.y += p.vy*0.016; ctx.beginPath(); ctx.arc(p.x, p.y, 3, 0, Math.PI*2); ctx.fill(); });
-    }, 16);
-}
+        function resizeSimulation() {
+            if (!c2d) return;
+            const box = c2d.closest('.aspect-\\[16\\/10\\]') || c2d.parentElement;
+            const r = box.getBoundingClientRect();
+            const w = r.width || 800, h = r.height || 500;
+            c2d.width = w; c2d.height = h;
+            if(renderer) { renderer.setSize(w, h); camera.aspect = w/h; camera.updateProjectionMatrix(); }
+        }
 
-function toggleSimMode(m) {
-    simMode = m;
-    document.getElementById('ctrl-2d').classList.toggle('hidden', m==='3d');
-    document.getElementById('ctrl-3d').classList.toggle('hidden', m==='2d');
-    c2d.classList.toggle('hidden', m==='3d');
-    document.getElementById('container-3d').classList.toggle('hidden', m==='2d');
-    document.getElementById('b-2d').className = m==='2d' ? 'py-2 rounded-lg bg-indigo-600 text-xs font-bold text-white shadow' : 'py-2 rounded-lg bg-slate-800 text-xs font-bold text-slate-400';
-    document.getElementById('b-3d').className = m==='3d' ? 'py-2 rounded-lg bg-indigo-600 text-xs font-bold text-white shadow' : 'py-2 rounded-lg bg-slate-800 text-xs font-bold text-slate-400';
-    if(m === '3d' && !scene) {
-        const con = document.getElementById('container-3d');
-        scene = new THREE.Scene(); camera = new THREE.PerspectiveCamera(60, con.clientWidth/con.clientHeight, 0.1, 100);
-        camera.position.set(0, 12, 20); camera.lookAt(0,0,0);
-        renderer = new THREE.WebGLRenderer({ antialias: true }); renderer.setSize(con.clientWidth, con.clientHeight);
-        con.appendChild(renderer.domElement); update3DScene();
-        (function anim3D() { requestAnimationFrame(anim3D); if(simMode==='3d' && grid) { grid.rotation.z += 0.004; renderer.render(scene, camera); } })();
-    }
-    setTimeout(resizeSimulation, 10);
-}
+        window.onload = () => {
+            const sel = document.getElementById('topic-selector');
+            if (sel) data.forEach((d, i) => sel.add(new Option(`${d.t} — ${d.n}`, i)));
+            loadTopic(0); renderVars(); audit(); init2D();
+            window.onresize = resizeSimulation;
+            resizeSimulation();
+        };
 
-function update3DScene() {
-    if(!scene) return; if(grid) scene.remove(grid);
-    grid = new THREE.Mesh(new THREE.PlaneGeometry(24, 24, 14, 14), new THREE.MeshBasicMaterial({ color: 0x818cf8, wireframe: true }));
-    grid.rotation.x = -Math.PI/2; scene.add(grid);
-}
+        function switchTab(t) {
+            ['encyclopedia','solver','simulation'].forEach(id => {
+                const el = document.getElementById(`tab-${id}`);
+                if (el) el.classList.toggle('hidden', id !== t);
+                const btn = document.getElementById(`d-btn-${id}`);
+                if(btn) btn.className = id === t ? "px-4 py-2 text-sm font-medium rounded-lg bg-indigo-600 text-white shadow" : "px-4 py-2 text-sm font-medium rounded-lg text-slate-400 hover:text-white";
+            });
+            setTimeout(resizeSimulation, 20);
+        }
+
+        function loadTopic(i) {
+            const container = document.getElementById('topic-container');
+            if (!container) return;
+            container.innerHTML = `<span class="text-xs font-bold text-indigo-400 uppercase tracking-widest">${data[i].t}</span><h2 class="text-2xl font-black text-white mt-1 mb-3">${data[i].n}</h2><p class="text-sm text-slate-300 leading-relaxed max-w-3xl">${data[i].c}</p><div class="bg-slate-900/40 border border-slate-800 p-4 rounded-xl font-mono text-sm mt-4 text-slate-200">${data[i].m}</div>`;
+            if(window.MathJax?.typesetPromise) MathJax.typesetPromise();
+        }
+        function handleTopicSelect(v) { loadTopic(parseInt(v)); }
+
+        function renderVars() {
+            const el = document.getElementById('variables-list'); 
+            if (!el) return;
+            el.innerHTML = '';
+            vars.forEach((v, i) => {
+                el.innerHTML += `<div class="bg-slate-900/50 p-2.5 rounded-lg border border-slate-800 text-xs"><label class="font-bold text-indigo-300 block mb-1">${v.s}</label>
+                <input type="text" value="${v.v}" onchange="vars[${i}].v=this.value; audit()" class="w-full bg-slate-950 border border-slate-800 rounded p-1 text-white font-mono text-xs focus:outline-none"></div>`;
+            });
+        }
+        function loadPreset(p) { vars = p==='superluminal' ? [{s:'v',v:'1.2'},{s:'m_0',v:'15'}] : defaultVars(); renderVars(); audit(); }
+        const resetSolver = () => { const sel = document.getElementById('scenario-selector'); if(sel) sel.value = 'custom'; loadPreset('default'); };
+
+        function audit() {
+            const v = parseFloat(vars.find(x=>x.s==='v').v), m0 = parseFloat(vars.find(x=>x.s==='m_0').v);
+            const chk = document.getElementById('chk-relativity');
+            const err = chk && chk.checked && v >= 1.0;
+            const consoleEl = document.getElementById('auditor-console');
+            if (consoleEl) consoleEl.innerHTML = err ? `<div class="text-rose-400 font-bold">⚠️ Logic Contradiction: Relative velocity calculation vector $v \\ge c$ detected.</div>` : `<div class="text-emerald-400">✓ System clean. Matrix math limits verified.</div>`;
+            const g = err ? NaN : 1 / Math.sqrt(1 - v*v);
+            const gammaEl = document.getElementById('val-gamma');
+            const massEl = document.getElementById('val-rel-mass');
+            if (gammaEl) gammaEl.innerText = isNaN(g) ? "Complex" : g.toFixed(4);
+            if (massEl) massEl.innerText = isNaN(g) ? "--" : (m0 * g).toFixed(2) + " kg";
+            if(window.MathJax?.typesetPromise) MathJax.typesetPromise();
+        }
+
+        function init2D() {
+            if (!c2d) return;
+            const ctx = c2d.getContext('2d');
+            c2d.onclick = (e) => { const r = c2d.getBoundingClientRect(); parts.push({x: e.clientX-r.left, y: e.clientY-r.top, vx: (Math.random()-0.5)*120, vy: (Math.random()-0.5)*120}); };
+            setInterval(() => {
+                if(simMode !== '2d') return;
+                ctx.fillStyle = '#0b0f19'; ctx.fillRect(0,0,c2d.width,c2d.height); ctx.fillStyle = '#22d3ee';
+                parts.forEach(p => { p.x += p.vx*0.016; p.y += p.vy*0.016; ctx.beginPath(); ctx.arc(p.x, p.y, 3, 0, Math.PI*2); ctx.fill(); });
+            }, 16);
+        }
+
+        function toggleSimMode(m) {
+            simMode = m;
+            document.getElementById('ctrl-2d').classList.toggle('hidden', m==='3d');
+            document.getElementById('ctrl-3d').classList.toggle('hidden', m==='2d');
+            c2d.classList.toggle('hidden', m==='3d');
+            document.getElementById('container-3d').classList.toggle('hidden', m==='2d');
+            document.getElementById('b-2d').className = m==='2d' ? 'py-2 rounded-lg bg-indigo-600 text-xs font-bold text-white shadow' : 'py-2 rounded-lg bg-slate-800 text-xs font-bold text-slate-400';
+            document.getElementById('b-3d').className = m==='3d' ? 'py-2 rounded-lg bg-indigo-600 text-xs font-bold text-white shadow' : 'py-2 rounded-lg bg-slate-800 text-xs font-bold text-slate-400';
+            if(m === '3d' && !scene) {
+                const con = document.getElementById('container-3d');
+                scene = new THREE.Scene(); camera = new THREE.PerspectiveCamera(60, con.clientWidth/con.clientHeight, 0.1, 100);
+                camera.position.set(0, 12, 20); camera.lookAt(0,0,0);
+                renderer = new THREE.WebGLRenderer({ antialias: true }); renderer.setSize(con.clientWidth, con.clientHeight);
+                con.appendChild(renderer.domElement); update3DScene();
+                (function anim3D() { requestAnimationFrame(anim3D); if(simMode==='3d' && grid) { grid.rotation.z += 0.004; renderer.render(scene, camera); } })();
+            }
+            setTimeout(resizeSimulation, 10);
+        }
+
+        function update3DScene() {
+            if(!scene) return; if(grid) scene.remove(grid);
+            grid = new THREE.Mesh(new THREE.PlaneGeometry(24, 24, 14, 14), new THREE.MeshBasicMaterial({ color: 0x818cf8, wireframe: true }));
+            grid.rotation.x = -Math.PI/2; scene.add(grid);
+        }
+    </script>
+</body>
+</html>
