@@ -1,76 +1,101 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Chic Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@200;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --bg-glass: rgba(255,255,255,0.06); --border-glass: rgba(255,255,255,0.12); --accent: #e0aaff; }
+        :root { --bg-glass: rgba(20, 10, 35, 0.4); --border-glass: rgba(255, 0, 255, 0.25); --accent: #ff00ff; --accent-bright: #00ffff; --success: #00ff88; }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Montserrat', sans-serif; }
-        body, html { width: 100%; height: 100%; overflow: hidden; background: #0a0a12; color: #fff; }
+        body, html { width: 100%; height: 100%; overflow: hidden; background: #040209; color: #fff; position: fixed; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
+        ::-webkit-scrollbar-thumb { background: var(--border-glass); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
         #canvas-container, #custom-bg, #bday-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
         #canvas-container { z-index: 1; pointer-events: none; transition: opacity 0.5s; }
-        #custom-bg { object-fit: cover; z-index: 0; display: none; background-size: cover; background-position: center; }
+        #custom-bg { object-fit: cover; z-index: 0; display: none; pointer-events: auto; background-position: center; }
         #bday-canvas { z-index: 2; pointer-events: none; display: none; }
-        .ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; display: grid; grid-template-columns: 280px 1fr 300px; padding: 20px; gap: 20px; pointer-events: none; transition: opacity 0.8s; }
-        .ui-panels { transition: 0.8s; pointer-events: auto; }
-        .ui-hidden .ui-panels { opacity: 0; transform: scale(0.98); pointer-events: none !important; }
-        .glass-panel { background: var(--bg-glass); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--border-glass); border-radius: 20px; padding: 20px; box-shadow: 0 8px 32px rgba(0,0,0,0.3); margin-bottom: 15px; }
-        h3 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 12px; color: var(--accent); }
-        .btn { width: 100%; background: rgba(255,255,255,0.08); border: 1px solid var(--border-glass); padding: 10px; border-radius: 10px; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.8rem; transition: 0.3s; margin-bottom: 8px; }
-        .btn:hover { background: rgba(255,255,255,0.2); transform: translateY(-1px); }
+        .ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; display: grid; grid-template-columns: 290px 1fr 310px; padding: 25px; gap: 25px; pointer-events: none; transition: opacity 0.8s; }
+        .ui-panels { transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); pointer-events: auto; }
+        .ui-hidden .ui-panels, .ui-hidden #mobile-menu-btn { opacity: 0; transform: scale(0.97); pointer-events: none !important; }
+        .glass-panel { background: var(--bg-glass); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px); border: 1px solid var(--border-glass); border-radius: 24px; padding: 22px; box-shadow: 0 8px 32px rgba(255,0,255,0.05); margin-bottom: 20px; transition: border-color 0.3s; }
+        .glass-panel:hover { border-color: rgba(255, 0, 255, 0.4); }
+        h3 { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 14px; color: var(--accent-bright); text-shadow: 0 0 10px rgba(0,255,255,0.3); display: flex; align-items: center; gap: 8px; }
+        .btn { width: 100%; background: rgba(255, 0, 255, 0.08); border: 1px solid var(--border-glass); padding: 12px; border-radius: 12px; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.8rem; font-weight: 600; transition: all 0.3s; margin-bottom: 8px; }
+        .btn:hover { background: rgba(255, 0, 255, 0.2); box-shadow: 0 0 15px rgba(255, 0, 255, 0.4); transform: translateY(-1px); }
+        .btn.secondary { background: rgba(0, 255, 255, 0.05); border-color: rgba(0, 255, 255, 0.2); }
+        .btn.secondary:hover { background: rgba(0, 255, 255, 0.15); box-shadow: 0 0 15px rgba(0, 255, 255, 0.3); }
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-        .center-col { display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; grid-column: 2; height: 100%; pointer-events: auto; }
-        #greeting { font-size: 1.5rem; font-weight: 200; letter-spacing: 2px; margin-bottom: -10px; color: rgba(255,255,255,0.9); text-shadow: 0 2px 8px rgba(0,0,0,0.3); }
-        #time { font-size: 5.5rem; font-weight: 200; letter-spacing: -2px; text-shadow: 0 4px 12px rgba(0,0,0,0.5); line-height: 1.1; margin: 5px 0; }
-        #date { font-size: 1rem; letter-spacing: 3px; text-transform: uppercase; color: rgba(255,255,255,0.6); }
-        #region, #sub-message { font-size: 0.8rem; color: var(--accent); margin-top: 5px; letter-spacing: 1px; }
-        #sub-message { color: #fff; font-weight: 400; margin-top: 8px; text-transform: uppercase; }
-        #quote-container { margin-top: 20px; max-width: 450px; min-height: 40px; padding: 0 10px; }
-        #quote-text { font-size: 0.9rem; font-style: italic; color: rgba(255,255,255,0.75); line-height: 1.4; text-shadow: 0 2px 4px rgba(0,0,0,0.4); }
-        #quote-author { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1.5px; color: var(--accent); margin-top: 6px; }
+        .center-col { display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; grid-column: 2; height: 100%; pointer-events: none; }
+        #greeting { font-size: 1.7rem; font-weight: 200; letter-spacing: 3px; color: rgba(255,255,255,0.95); text-shadow: 0 0 15px rgba(255,0,255,0.4); }
+        #time { font-size: 6rem; font-weight: 200; letter-spacing: -1px; text-shadow: 0 0 20px rgba(0,255,255,0.3); line-height: 1.1; margin: 5px 0; }
+        #date { font-size: 1.05rem; letter-spacing: 4px; text-transform: uppercase; color: rgba(255,255,255,0.75); }
+        #region, #sub-message { font-size: 0.85rem; color: var(--accent-bright); margin-top: 5px; letter-spacing: 1px; }
+        #sub-message { color: #fff; text-transform: uppercase; text-shadow: 0 0 8px var(--accent); margin-top: 8px; }
+        #quote-container { margin-top: 25px; max-width: 480px; min-height: 40px; }
+        #quote-text { font-size: 0.95rem; font-style: italic; color: rgba(255,255,255,0.85); line-height: 1.5; }
+        #quote-author { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 2px; color: var(--accent); margin-top: 8px; }
         .flex-in { display: flex; gap: 6px; margin-bottom: 12px; }
-        .flex-in input { flex: 1; background: rgba(0,0,0,0.2); border: 1px solid var(--border-glass); padding: 8px; border-radius: 8px; color: white; outline: none; font-size: 0.85rem; }
-        .rem-list { max-height: 140px; overflow-y: auto; font-size: 0.8rem; }
-        .rem-item { background: rgba(255,255,255,0.04); padding: 8px 12px; border-radius: 8px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; }
+        .flex-in input { flex: 1; background: rgba(0,0,0,0.4); border: 1px solid var(--border-glass); padding: 10px; border-radius: 10px; color: white; outline: none; font-size: 0.85rem; transition: all 0.3s; }
+        .flex-in input:focus { border-color: var(--accent-bright); }
+        .rem-list { max-height: 180px; overflow-y: auto; font-size: 0.8rem; }
+        .rem-item { background: rgba(255,255,255,0.03); padding: 10px 12px; border-radius: 10px; margin-bottom: 6px; display: flex; flex-direction: column; gap: 2px; border-left: 3px solid var(--accent); transition: all 0.3s; }
+        .rem-item.fired { border-left-color: var(--accent-bright); background: rgba(0, 255, 255, 0.05); animation: pulseAlert 2s infinite alternate; }
+        .rem-item.completed { border-left-color: var(--success); opacity: 0.4; text-decoration: line-through; background: transparent; }
+        @keyframes pulseAlert { from { box-shadow: 0 0 4px rgba(0,255,255,0.1); } to { box-shadow: 0 0 12px rgba(0,255,255,0.3); } }
+        .rem-meta { display: flex; justify-content: space-between; align-items: center; }
+        .rem-meta span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 75%; }
+        .rem-actions { display: flex; gap: 8px; align-items: center; }
+        .rem-actions i { cursor: pointer; transition: transform 0.2s; }
+        .rem-actions i:hover { transform: scale(1.2); }
+        .rem-time-lbl { font-size: 0.7rem; color: var(--accent-bright); font-weight: 600; }
+        .rem-item.completed .rem-time-lbl { color: var(--success); }
         #notif-center { position: absolute; top: 15px; right: 15px; z-index: 100; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
-        .toast { width: 280px; background: rgba(255,255,255,0.88); backdrop-filter: blur(20px); border-radius: 14px; padding: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); display: flex; gap: 10px; color: #000; animation: sIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; pointer-events: auto; }
+        .toast { width: 290px; background: rgba(15, 5, 25, 0.92); backdrop-filter: blur(20px); border: 1px solid var(--accent-bright); border-radius: 14px; padding: 14px; box-shadow: 0 10px 25px rgba(0,255,255,0.15); display: flex; gap: 10px; color: #fff; animation: sIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; pointer-events: auto; position: relative; transition: opacity 0.4s; }
         @keyframes sIn { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        .t-ico { width: 32px; height: 32px; background: #1d9bf0; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.9rem; }
-        .t-head { display: flex; justify-content: space-between; font-size: 0.7rem; font-weight: 600; color: rgba(0,0,0,0.4); }
-        .t-title { font-weight: 700; font-size: 0.8rem; }
-        .t-body { font-size: 0.8rem; color: #333; }
-        @media (max-width: 900px) { 
-            .ui-layer { grid-template-columns: 1fr; grid-template-rows: auto 1fr auto; overflow-y: auto; pointer-events: auto; } 
-            .center-col { grid-column: 1; grid-row: 2; margin: 40px 0; }
-            .left-col { grid-row: 1; } .right-col { grid-row: 3; }
+        .t-ico { width: 32px; height: 32px; background: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; flex-shrink: 0; }
+        .t-head { display: flex; justify-content: space-between; font-size: 0.7rem; font-weight: 600; color: rgba(255,255,255,0.5); padding-right: 15px; }
+        .t-title { font-weight: 700; font-size: 0.8rem; color: var(--accent-bright); }
+        .t-body { font-size: 0.8rem; color: #eee; margin-top: 2px; }
+        .t-close { position: absolute; top: 12px; right: 14px; color: rgba(255,255,255,0.4); cursor: pointer; font-size: 0.95rem; }
+        #mobile-menu-btn { display: none; position: fixed; top: 15px; left: 15px; z-index: 100; width: 45px; height: 45px; border-radius: 12px; background: var(--bg-glass); border: 1px solid var(--border-glass); backdrop-filter: blur(20px); color: white; font-size: 1.1rem; justify-content: center; align-items: center; }
+        @media (max-width: 900px) {
+            #mobile-menu-btn { display: flex; } .ui-layer { display: block; padding: 0; }
+            .center-col { width: 100%; padding-top: 80px; } #time { font-size: 4.2rem; }
+            .left-col, .right-col { position: fixed; top: 75px; left: 15px; width: 290px; max-height: calc(100% - 90px); overflow-y: auto; z-index: 90; display: none; }
+            .mobile-open .left-col, .mobile-open .right-col { display: block; animation: mFade 0.25s ease forwards; }
         }
+        @keyframes mFade { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
+    <button id="mobile-menu-btn" onclick="toggleMobileMenu(event)"><i class="fa-solid fa-bars"></i></button>
     <div id="canvas-container"></div><div id="custom-bg"></div><canvas id="bday-canvas"></canvas><div id="notif-center"></div>
     <div class="ui-layer" id="ui-wrapper">
         <div class="left-col ui-panels">
             <div class="glass-panel">
-                <h3><i class="fa-solid fa-music"></i> Audio Engine</h3>
-                <button class="btn" onclick="document.getElementById('f-in').click()"><i class="fa-solid fa-upload"></i> Local File</button>
+                <h3><i class="fa-solid fa-music"></i> Audio</h3>
+                <button class="btn" id="mute-btn" onclick="toggleMute()"><i class="fa-solid fa-volume-high"></i> Audio Status: ON</button>
+                <button class="btn secondary" onclick="document.getElementById('f-in').click()"><i class="fa-solid fa-upload"></i> Local File</button>
                 <input type="file" id="f-in" accept="audio/*" style="display:none;">
                 <audio id="player" controls style="width:100%; display:none; margin-top:8px;"></audio>
-                <div class="grid-2" style="margin-top:10px;">
-                    <button class="btn" onclick="msg('Spotify','Link API endpoints')"><i class="fa-brands fa-spotify"></i> Spotify</button>
-                    <button class="btn" onclick="msg('Apple','Link API endpoints')"><i class="fa-brands fa-apple"></i> Apple</button>
+                <div class="flex-in" style="margin-top:10px; margin-bottom: 5px;">
+                    <input type="text" id="sc-url" placeholder="SoundCloud URL..." onkeydown="if(event.key==='Enter') loadSoundCloud()">
+                    <button class="btn" style="width:auto; margin:0;" onclick="loadSoundCloud()"><i class="fa-solid fa-link"></i></button>
                 </div>
+                <div id="sc-wrapper" style="margin-top:8px; display:none;"></div>
             </div>
             <div class="glass-panel">
-                <h3><i class="fa-solid fa-wand-magic-sparkles"></i> Identity & Style</h3>
-                <div class="flex-in" style="margin-bottom:8px;"><input type="text" id="user-name" value="Guest" placeholder="Your Name..." oninput="updateClock()"></div>
+                <h3><i class="fa-solid fa-wand-magic-sparkles"></i> Style</h3>
+                <div class="flex-in"><input type="text" id="user-name" placeholder="Name..." oninput="saveName()"></div>
                 <div class="grid-2">
-                    <input type="number" id="bday-month" value="10" min="1" max="12" style="width:100%; background:rgba(0,0,0,0.2); border:1px solid var(--border-glass); padding:8px; border-radius:8px; color:white; outline:none; font-size:0.8rem;" oninput="updateClock()">
-                    <input type="number" id="bday-day" value="31" min="1" max="31" style="width:100%; background:rgba(0,0,0,0.2); border:1px solid var(--border-glass); padding:8px; border-radius:8px; color:white; outline:none; font-size:0.8rem;" oninput="updateClock()">
+                    <input type="number" id="bday-month" value="10" min="1" max="12" oninput="updateClock()" style="width:100%; background:rgba(0,0,0,0.4); border:1px solid var(--border-glass); padding:8px; border-radius:8px; color:white; outline:none;">
+                    <input type="number" id="bday-day" value="31" min="1" max="31" oninput="updateClock()" style="width:100%; background:rgba(0,0,0,0.4); border:1px solid var(--border-glass); padding:8px; border-radius:8px; color:white; outline:none;">
                 </div>
                 <button class="btn" style="margin-top:8px;" onclick="resetBg()"><i class="fa-solid fa-cube"></i> Default 3D</button>
-                <button class="btn" onclick="document.getElementById('bg-in').click()"><i class="fa-solid fa-image"></i> Custom Wallpaper</button>
+                <button class="btn" onclick="document.getElementById('bg-in').click()"><i class="fa-solid fa-image"></i> Wallpaper</button>
                 <input type="file" id="bg-in" accept="image/*,video/*" style="display:none;">
             </div>
         </div>
@@ -81,38 +106,106 @@
         <div class="right-col ui-panels">
             <div class="glass-panel">
                 <h3><i class="fa-solid fa-bell"></i> Reminders</h3>
-                <div class="flex-in"><input type="text" id="rem-txt" placeholder="New reminder..."><button class="btn" style="width:auto; margin:0;" onclick="addRem()"><i class="fa-solid fa-plus"></i></button></div>
+                <div class="flex-in" style="margin-bottom:6px;">
+                    <input type="text" id="rem-txt" placeholder="Task details..." onkeydown="if(event.key==='Enter') addRem()">
+                    <input type="time" id="rem-time" style="max-width:95px; color:#fff; background:rgba(0,0,0,0.4); border:1px solid var(--border-glass); padding:4px 6px; border-radius:10px;" onkeydown="if(event.key==='Enter') addRem()">
+                </div>
+                <button class="btn" style="margin-bottom:12px;" onclick="addRem()"><i class="fa-solid fa-plus"></i> Create Alert</button>
                 <div class="rem-list" id="rem-box"></div>
+                <button class="btn secondary" style="margin-top:8px; margin-bottom:0; padding:6px; font-size:0.7rem;" onclick="clearCompletedRems()"><i class="fa-solid fa-broom"></i> Clear History</button>
             </div>
             <div class="glass-panel">
                 <h3><i class="fa-solid fa-calendar"></i> Calendar</h3>
-                <button class="btn" onclick="msg('Google Calendar','OAuth requested')"><i class="fa-brands fa-google"></i> Sync Google</button>
+                <button class="btn" onclick="initGoogleCalendar()"><i class="fa-brands fa-google"></i> Sync Google Calendar</button>
             </div>
         </div>
     </div>
-
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script>
-        let ctx, analyser, data, active = false, shouldRender = true, hideTimeout, lastX = 0, lastY = 0, lastTap = 0, isTouchDevice = false;
-        const uiWrapper = document.getElementById('ui-wrapper');
+        let ctx, analyser, data, active = false, shouldRender = true, hideTimeout, lastX = 0, lastY = 0, lastTap = 0, isTouchDevice = false, bdayActive = false, audioLoadingLock = false, confetti = [], bdayAnimationId, scene, camera, renderer, system, rems = [], lastDayChecked = "", lastMinChecked = "";
+        let isMuted = false, titleFlashInterval = null, baseTitle = "Chic Dashboard", audioSourceBound = false;
+        const uiWrapper = document.getElementById('ui-wrapper'), bCanvas = document.getElementById('bday-canvas'), bCtx = bCanvas.getContext('2d'), fIn = document.getElementById('f-in'), p = document.getElementById('player'), bgIn = document.getElementById('bg-in'), cBg = document.getElementById('custom-bg'), cCon = document.getElementById('canvas-container');
+        const quotes = [{ text: "The path to paradise begins in hell.", author: "Dante Alighieri" }, { text: "Out of difficulties grow miracles.", author: "Jean de La Bruyère" }, { text: "He who has a why to live can bear almost any how.", author: "Friedrich Nietzsche" }, { text: "Yesterday I was clever, so I wanted to change the world. Today I am wise, so I am changing myself.", author: "Rumi" }, { text: "Accept the challenges so that you can feel the exhilaration of victory.", author: "General George S. Patton" }];
 
-        window.addEventListener('touchstart', (e) => {
-            isTouchDevice = true; const now = Date.now();
-            if (now - lastTap < 300) { e.preventDefault(); e.stopPropagation(); uiWrapper.classList.toggle('ui-hidden'); if(!uiWrapper.classList.contains('ui-hidden')) resetInactivity(); }
-            lastTap = now;
-        }, { passive: false });
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedName = localStorage.getItem('dashboard-user-name');
+            if(savedName) document.getElementById('user-name').value = savedName;
+            try { 
+                const savedRems = localStorage.getItem('dashboard-reminders'); 
+                rems = savedRems ? JSON.parse(savedRems) : getDefaultRems();
+                if(!Array.isArray(rems)) rems = getDefaultRems();
+            } catch(e) { rems = getDefaultRems(); }
+            if(localStorage.getItem('dashboard-muted') === 'true') { isMuted = true; updateMuteUI(); }
+            resetTimeInput(); drawRems(); setInterval(updateClock, 1000);
+        });
 
-        function resetInactivity() { if (uiWrapper.classList.contains('ui-hidden')) return; uiWrapper.classList.remove('ui-hidden'); clearTimeout(hideTimeout); hideTimeout = setTimeout(() => uiWrapper.classList.add('ui-hidden'), 120000); }
-        function showUI(e) { if (isTouchDevice && e.type === 'mousemove') return; if (e && e.type === 'mousemove') { if (Math.abs(e.clientX - lastX) < 2 && Math.abs(e.clientY - lastY) < 2) return; lastX = e.clientX; lastY = e.clientY; } resetInactivity(); }
-        window.addEventListener('mousemove', showUI); window.addEventListener('click', showUI); resetInactivity();
+        function getDefaultRems() { return [{id:1, txt:"Hydrate beautifully", time:"08:00", triggered:false, activeAlert:false, completed:false}]; }
+        function ensureAudioContext() { if(!ctx || ctx.state === 'closed') ctx = new (window.AudioContext || window.webkitAudioContext)(); if(ctx && ctx.state === 'suspended') ctx.resume(); }
+        window.addEventListener('click', ensureAudioContext, { once: true });
+        function resetTimeInput() { const now = new Date(); document.getElementById('rem-time').value = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`; }
 
-        const quotes = [
-            { text: "The path to paradise begins in hell.", author: "Dante Alighieri" }, { text: "Out of difficulties grow miracles.", author: "Jean de La Bruyère" },
-            { text: "He who has a why to live can bear almost any how.", author: "Friedrich Nietzsche" }, { text: "The uniform makes for unity, but individual courage wins the day.", author: "Field Marshal Strategy" },
-            { text: "Yesterday I was clever, so I wanted to change the world. Today I am wise, so I am changing myself.", author: "Rumi" }, { text: "Accept the challenges so that you can feel the exhilaration of victory.", author: "General George S. Patton" },
-            { text: "Do not go gentle into that good night.", author: "Dylan Thomas" }, { text: "Amor Fati—Love your fate, which is in fact your life.", author: "Albert Camus" }, { text: "I long to accomplish a great and noble task, but it is my chief duty to accomplish small tasks as if they were great and noble.", author: "Helen Keller" }
-        ];
-        let lastDayChecked = "";
+        function toggleMute() {
+            isMuted = !isMuted; localStorage.setItem('dashboard-muted', isMuted); updateMuteUI();
+            if(isMuted && p && !p.paused) p.pause();
+            msg("Audio System", isMuted ? "Sound muted globally" : "Sound unmuted globally");
+        }
+        function updateMuteUI() {
+            const btn = document.getElementById('mute-btn');
+            btn.innerHTML = isMuted ? `<i class="fa-solid fa-volume-xmark"></i> Audio Status: MUTED` : `<i class="fa-solid fa-volume-high"></i> Audio Status: ON`;
+            btn.style.borderColor = isMuted ? 'rgba(255,255,255,0.1)' : 'var(--border-glass)';
+        }
+
+        function saveName() { const val = document.getElementById('user-name').value.trim(); if(val) localStorage.setItem('dashboard-user-name', val); else localStorage.removeItem('dashboard-user-name'); updateClock(); }
+
+        function playSynthAlert() {
+            if (isMuted) return;
+            try {
+                ensureAudioContext();
+                [587.33, 880.00, 587.33, 880.00].forEach((freq, idx) => {
+                    const osc = ctx.createOscillator(), g = ctx.createGain();
+                    osc.type = 'sine'; osc.frequency.setValueAtTime(freq, ctx.currentTime + (idx * 0.15));
+                    g.gain.setValueAtTime(0.2, ctx.currentTime + (idx * 0.15));
+                    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + (idx * 0.15) + 0.2);
+                    osc.connect(g); g.connect(ctx.destination);
+                    osc.start(ctx.currentTime + (idx * 0.15)); osc.stop(ctx.currentTime + (idx * 0.15) + 0.2);
+                });
+            } catch(e) {}
+        }
+
+        function loadSoundCloud() {
+            const url = document.getElementById('sc-url').value.trim(); if(!url) return;
+            p.style.display = 'none'; p.pause(); active = false; ensureAudioContext();
+            document.getElementById('sc-wrapper').innerHTML = `<iframe width="100%" height="120" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=${encodeURIComponent(url)}&color=%23ff00ff&auto_play=${!isMuted}&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false"></iframe>`;
+            document.getElementById('sc-wrapper').style.display = 'block'; msg("SoundCloud", "Streaming active");
+        }
+
+        let tokenClient, gapiInited = false, gisInited = false;
+        function initGoogleCalendar() {
+            if (window.gapi && gapiInited && gisInited) { checkAuthReady(); return; }
+            msg("Google Auth", "Initializing...");
+            if (!document.getElementById('gapi-script')) { const s1 = document.createElement('script'); s1.id = 'gapi-script'; s1.src = "https://apis.google.com/js/api.js"; s1.onload = () => gapi.load('client', startGapi); document.body.appendChild(s1); }
+            if (!document.getElementById('gis-script')) { const s2 = document.createElement('script'); s2.id = 'gis-script'; s2.src = "https://accounts.google.com/gsi/client"; s2.onload = startGis; document.body.appendChild(s2); }
+        }
+        async function startGapi() { await gapi.client.init({}); gapiInited = true; checkAuthReady(); }
+        function startGis() { const cid = 'YOUR_CLIENT_ID.apps.googleusercontent.com'; if(cid.startsWith('YOUR_')) { msg("Config Error", "Set Calendar ID."); return; } try { tokenClient = google.accounts.oauth2.initTokenClient({ client_id: cid, scope: 'https://www.googleapis.com/auth/calendar.events.readonly', callback: (resp) => { if(!resp.error) fetchCalendarEvents(); } }); gisInited = true; checkAuthReady(); } catch(e) {} }
+        function checkAuthReady() { if(gapiInited && gisInited && tokenClient) tokenClient.requestAccessToken({prompt: 'consent'}); }
+        async function fetchCalendarEvents() {
+            try {
+                await gapi.client.load('https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest');
+                const resp = await gapi.client.calendar.events.list({ calendarId: 'primary', timeMin: (new Date()).toISOString(), maxResults: 5, singleEvents: true, orderBy: 'startTime' });
+                const items = resp.result.items; if (!items || items.length === 0) { msg("Calendar", "No upcoming events."); return; }
+                items.forEach(ev => { const s = ev.start.dateTime || ev.start.date; msg("Event Alert", `${ev.summary} (${new Date(s).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})})`); });
+            } catch(e) {}
+        }
+
+        function toggleMobileMenu(e) { e.stopPropagation(); uiWrapper.classList.toggle('mobile-open'); document.querySelector('#mobile-menu-btn i').className = uiWrapper.classList.contains('mobile-open') ? "fa-solid fa-xmark" : "fa-solid fa-bars"; }
+        window.addEventListener('touchstart', (e) => { isTouchDevice = true; const now = Date.now(); if (now - lastTap < 300) { e.preventDefault(); uiWrapper.classList.remove('mobile-open'); if (uiWrapper.classList.contains('ui-hidden')) wakeUI(); else sleepUI(); } lastTap = now; }, { passive: false });
+        function wakeUI() { uiWrapper.classList.remove('ui-hidden'); resetInactivityTimeout(); }
+        function sleepUI() { uiWrapper.classList.add('ui-hidden'); clearTimeout(hideTimeout); }
+        function resetInactivityTimeout() { clearTimeout(hideTimeout); if (!uiWrapper.classList.contains('ui-hidden')) hideTimeout = setTimeout(sleepUI, 120000); }
+        window.addEventListener('mousemove', (e) => { if (isTouchDevice || (Math.abs(e.clientX - lastX) < 2 && Math.abs(e.clientY - lastY) < 2)) return; lastX = e.clientX; lastY = e.clientY; if (uiWrapper.classList.contains('ui-hidden')) wakeUI(); else resetInactivityTimeout(); });
+        window.addEventListener('click', (e) => { if (e.target.closest('.ui-panels') || e.target.closest('#mobile-menu-btn')) { resetInactivityTimeout(); return; } uiWrapper.classList.remove('mobile-open'); if (uiWrapper.classList.contains('ui-hidden')) wakeUI(); else sleepUI(); });
+
         function generateDailyQuote(force = false) {
             const todayStr = new Date().toDateString();
             if (todayStr !== lastDayChecked || force) {
@@ -120,88 +213,74 @@
                 document.getElementById('quote-text').innerText = `"${quotes[idx].text}"`; document.getElementById('quote-author').innerText = `— ${quotes[idx].author}`;
             }
         }
-        generateDailyQuote(true);
+        generateDailyQuote(force=true);
 
-        let bdayActive = false;
         function updateClock() {
-            const now = new Date(), hrs = now.getHours(), m = now.getMonth() + 1, d = now.getDate(), name = document.getElementById('user-name').value.trim() || 'Guest';
-            document.getElementById('time').innerText = now.toTimeString().split(' ')[0];
-            document.getElementById('date').innerText = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-            generateDailyQuote();
+            const timeEl = document.getElementById('time'); if(!timeEl) return;
+            const now = new Date(), hrs = now.getHours(), m = now.getMonth() + 1, d = now.getDate(), name = localStorage.getItem('dashboard-user-name') || 'Guest', curTimeStr = now.toTimeString().split(' ')[0], curHM = curTimeStr.substring(0, 5);
+            timeEl.innerText = curTimeStr; document.getElementById('date').innerText = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }); generateDailyQuote();
+            
+            let updated = false;
+            rems.forEach(r => { if(r.time === curHM && !r.triggered && !r.completed) { r.triggered = true; r.activeAlert = true; updated = true; playSynthAlert(); msg("Reminder Due", r.txt, r.id); startTabTitleFlash(); } });
+            if(updated) { localStorage.setItem('dashboard-reminders', JSON.stringify(rems)); drawRems(); }
+            if(curHM !== lastMinChecked) { lastMinChecked = curHM; let rst = false; rems.forEach(r => { if(r.time !== curHM && r.triggered) { r.triggered = false; rst = true; } }); if(rst) localStorage.setItem('dashboard-reminders', JSON.stringify(rems)); }
+
             let greet = hrs >= 5 && hrs < 12 ? "Good morning" : hrs >= 12 && hrs < 17 ? "Good afternoon" : hrs >= 17 && hrs < 22 ? "Good evening" : "Good night";
-            let hTxt = m===1&&d===1 ? "✨ Happy New Year! ✨" : m===2&&d===14 ? "💖 Happy Valentine's Day! 💖" : m===7&&d===4 ? "🎆 Happy 4th of July! 🎆" : m===10&&d===31 ? "🎃 Happy Halloween! 🎃" : m===12&&d===25 ? "🎄 Merry Christmas! 🎄" : "";
+            let hTxt = m===1&&d===1 ? "✨ New Year ✨" : m===10&&d===31 ? "🎃 Halloween 🎃" : m===12&&d===25 ? "🎄 Christmas 🎄" : "";
             const tM = parseInt(document.getElementById('bday-month').value)||0, tD = parseInt(document.getElementById('bday-day').value)||0, sM = document.getElementById('sub-message');
-            if (m === tM && d === tD) { document.getElementById('greeting').innerText = `🎂 Happy Birthday, ${name}! 🎂`; sM.innerText = hTxt ? `& ${hTxt}` : "It's your special day!"; if(!bdayActive) initBirthdayEngine(); }
+            if (m === tM && d === tD) { document.getElementById('greeting').innerText = `🎂 Happy Birthday, ${name}! 🎂`; sM.innerText = "Your special day!"; if(!bdayActive) initBirthdayEngine(); }
             else { document.getElementById('greeting').innerText = `${greet}, ${name}`; sM.innerText = hTxt; if(bdayActive) stopBirthdayEngine(); }
         }
 
-        const bCanvas = document.getElementById('bday-canvas'), bCtx = bCanvas.getContext('2d');
-        let confetti = [], bdayAnimationId;
-        function initBirthdayEngine() {
-            stopBirthdayEngine(); bdayActive = true; bCanvas.style.display = 'block'; confetti = []; bCanvas.width = window.innerWidth; bCanvas.height = window.innerHeight;
-            for(let i=0; i<120; i++) confetti.push({ x: Math.random()*bCanvas.width, y: Math.random()*bCanvas.height-bCanvas.height, r: Math.random()*6+4, d: Math.random()*bCanvas.height, color: `hsl(${Math.random()*360}, 80%, 70%)`, tilt: Math.random()*10-5, tiltAngleIncremental: Math.random()*0.07+0.02, tiltAngle: 0 });
-            loopBirthday();
-        }
-        function loopBirthday() {
-            if(!bdayActive) return; bdayAnimationId = requestAnimationFrame(loopBirthday); bCtx.clearRect(0, 0, bCanvas.width, bCanvas.height);
-            confetti.forEach((p, idx) => {
-                p.tiltAngle += p.tiltAngleIncremental; p.y += (Math.cos(p.d) + 3 + p.r/2)/2; p.x += Math.sin(p.tiltAngle); p.tilt = Math.sin(p.tiltAngle - idx/3)*15;
-                if (p.y > bCanvas.height) { p.x = Math.random()*bCanvas.width; p.y = -20; p.tilt = Math.random()*10-5; }
-                bCtx.beginPath(); bCtx.lineWidth = p.r; bCtx.strokeStyle = p.color; bCtx.moveTo(p.x+p.tilt+p.r/2, p.y); bCtx.lineTo(p.x+p.tilt, p.y+p.tilt+p.r/2); bCtx.stroke();
-            });
-        }
+        function startTabTitleFlash() { if (titleFlashInterval) return; let f = false; titleFlashInterval = setInterval(() => { document.title = f ? "⏰ ALARM DUE" : baseTitle; f = !f; }, 1000); }
+        function stopTabTitleFlash() { if (!titleFlashInterval) return; clearInterval(titleFlashInterval); titleFlashInterval = null; document.title = baseTitle; }
+
+        function initBirthdayEngine() { stopBirthdayEngine(); bdayActive = true; bCanvas.style.display = 'block'; bCanvas.width = window.innerWidth; bCanvas.height = window.innerHeight; for(let i=0; i<120; i++) confetti.push({ x: Math.random()*bCanvas.width, y: Math.random()*bCanvas.height-bCanvas.height, r: Math.random()*6+4, d: Math.random()*bCanvas.height, color: `hsl(${Math.random()*360}, 80%, 70%)`, tilt: Math.random()*10-5, tiltAngleIncremental: Math.random()*0.07+0.02, tiltAngle: 0 }); loopBirthday(); }
+        function loopBirthday() { if(!bdayActive) return; bdayAnimationId = requestAnimationFrame(loopBirthday); bCtx.clearRect(0, 0, bCanvas.width, bCanvas.height); confetti.forEach((p, idx) => { p.tiltAngle += p.tiltAngleIncremental; p.y += (Math.cos(p.d) + 3 + p.r/2)/2; p.x += Math.sin(p.tiltAngle); p.tilt = Math.sin(p.tiltAngle - idx/3)*15; if (p.y > bCanvas.height) { p.x = Math.random()*bCanvas.width; p.y = -20; } bCtx.beginPath(); bCtx.lineWidth = p.r; bCtx.strokeStyle = p.color; bCtx.moveTo(p.x+p.tilt+p.r/2, p.y); bCtx.lineTo(p.x+p.tilt, p.y+p.tilt+p.r/2); bCtx.stroke(); }); }
         function stopBirthdayEngine() { bdayActive = false; bCanvas.style.display = 'none'; cancelAnimationFrame(bdayAnimationId); }
-        window.addEventListener('resize', () => { if(bdayActive) { bCanvas.width = window.innerWidth; bCanvas.height = window.innerHeight; } });
 
+        window.addEventListener('resize', () => { if(bdayActive) { bCanvas.width = window.innerWidth; bCanvas.height = window.innerHeight; } if(camera && renderer) { camera.aspect = window.innerWidth/window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); } });
         try { document.getElementById('region').innerText = `Zone: ${(Intl.DateTimeFormat().resolvedOptions().timeZone.split('/')[1] || "Local").replace('_', ' ')}`; } catch(e) {}
-        setInterval(updateClock, 1000); updateClock();
 
-        function msg(title, text) {
-            const box = document.getElementById('notif-center'), t = document.createElement('div'); t.className = 'toast';
-            t.innerHTML = `<div class="t-ico"><i class="fa-solid fa-comment"></i></div><div><div class="t-head"><span>ALERT</span><span>${new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</span></div><div class="t-title">${title}</div><div class="t-body">${text}</div></div>`;
-            box.appendChild(t); setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 400); }, 5000);
+        function msg(title, text, trackingId = null) { 
+            const box = document.getElementById('notif-center'), t = document.createElement('div'); t.className = 'toast'; if(trackingId) t.setAttribute('data-rem-id', trackingId);
+            t.innerHTML = `<div class="t-ico"><i class="fa-solid fa-comment"></i></div><div><div class="t-head"><span>ALERT</span><span>${new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</span></div><div class="t-title">${title}</div><div class="t-body">${text}</div></div><div class="t-close" onclick="closeToast(this, ${trackingId})"><i class="fa-solid fa-xmark"></i></div>`; 
+            box.appendChild(t); if(!trackingId) setTimeout(() => { if(t && t.parentElement) { t.style.opacity = '0'; setTimeout(() => t.remove(), 400); } }, 5000);
         }
+        function closeToast(btn, trackingId) { const toast = btn.parentElement; toast.style.opacity = '0'; setTimeout(() => toast.remove(), 400); if(trackingId) { rems = rems.map(r => r.id === trackingId ? { ...r, activeAlert: false, completed: true } : r); localStorage.setItem('dashboard-reminders', JSON.stringify(rems)); drawRems(); checkRemainingAlerts(); } }
+        function checkRemainingAlerts() { if (!rems.some(r => r.activeAlert)) stopTabTitleFlash(); }
 
-        let rems = [{id:1, txt:"Hydrate beautifully"}];
-        function drawRems() { const b = document.getElementById('rem-box'); b.innerHTML = ''; rems.forEach(r => { const d = document.createElement('div'); d.className = 'rem-item'; d.innerHTML = `<span>${r.txt}</span><i class="fa-solid fa-circle-check" style="color:var(--accent);cursor:pointer;" onclick="delRem(${r.id})"></i>`; b.appendChild(d); }); }
-        function addRem() { const i = document.getElementById('rem-txt'); if(!i.value.trim()) return; rems.push({id:Date.now(), txt:i.value.trim()}); msg("Reminders", "Added successfully"); i.value = ''; drawRems(); }
-        function delRem(id) { rems = rems.filter(r => r.id !== id); msg("Reminders", "Completed"); drawRems(); }
-        drawRems();
-
-        let scene, camera, renderer, system;
-        function init3D() {
-            scene = new THREE.Scene(); camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.1, 1000); camera.position.z = 40;
-            renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true }); renderer.setSize(window.innerWidth, window.innerHeight);
-            document.getElementById('canvas-container').appendChild(renderer.domElement);
-            const geo = new THREE.BufferGeometry(), pos = new Float32Array(1500); for(let i=0; i<1500; i++) pos[i] = (Math.random() - 0.5) * 80;
-            geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-            system = new THREE.Points(geo, new THREE.PointsMaterial({ color: 0xe0aaff, size: 0.35, transparent: true, opacity: 0.8 })); scene.add(system);
-            window.addEventListener('resize', () => { camera.aspect = window.innerWidth/window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); });
-            loop();
+        function drawRems() { 
+            const b = document.getElementById('rem-box'); b.innerHTML = ''; 
+            rems.forEach(r => { 
+                const d = document.createElement('div'); d.className = `rem-item ${r.activeAlert ? 'fired' : ''} ${r.completed ? 'completed' : ''}`; 
+                let act = r.completed ? `<i class="fa-solid fa-rotate-left" style="color:var(--accent-bright);" onclick="toggleRemState(${r.id})"></i>` : `<i class="fa-solid fa-circle-check" style="color:var(--success);" onclick="toggleRemState(${r.id})"></i>`;
+                d.innerHTML = `<div class="rem-meta"><span>${r.txt}</span><div class="rem-actions">${act}<i class="fa-solid fa-trash-can" style="color:rgba(255,255,255,0.4);" onclick="delRem(${r.id})"></i></div></div><span class="rem-time-lbl"><i class="fa-regular fa-clock"></i> ${r.time || 'Persistent'} ${r.activeAlert ? '[DUE]' : ''}</span>`;
+                b.appendChild(d); 
+            }); 
         }
-        function loop() {
-            requestAnimationFrame(loop); if (!system || !shouldRender) return; system.rotation.x += 0.001; system.rotation.y += 0.0015;
-            if(active && analyser) { analyser.getByteFrequencyData(data); let sum = 0; for(let i=0; i<data.length; i++) sum += data[i]; let val = 1 + ((sum/data.length) * 0.015); system.scale.set(val, val, val); }
-            renderer.render(scene, camera);
-        }
+        function toggleRemState(id) { rems = rems.map(r => r.id === id ? { ...r, completed: !r.completed, activeAlert: !r.completed ? false : r.activeAlert } : r); const mt = document.querySelector(`.toast[data-rem-id="${id}"]`); if(mt) { mt.style.opacity = '0'; mt.remove(); } localStorage.setItem('dashboard-reminders', JSON.stringify(rems)); drawRems(); checkRemainingAlerts(); }
+        function addRem() { const i = document.getElementById('rem-txt'), tInput = document.getElementById('rem-time'); if(!i.value.trim()) return; rems.push({ id: Date.now(), txt: i.value.trim(), time: tInput.value || null, triggered: false, activeAlert: false, completed: false }); localStorage.setItem('dashboard-reminders', JSON.stringify(rems)); msg("Reminders", "Added successfully"); i.value = ''; resetTimeInput(); drawRems(); }
+        function delRem(id) { rems = rems.filter(r => r.id !== id); localStorage.setItem('dashboard-reminders', JSON.stringify(rems)); const mt = document.querySelector(`.toast[data-rem-id="${id}"]`); if(mt) { mt.style.opacity = '0'; mt.remove(); } drawRems(); checkRemainingAlerts(); }
+        function clearCompletedRems() { rems = rems.filter(r => !r.completed); localStorage.setItem('dashboard-reminders', JSON.stringify(rems)); msg("Reminders", "History cleared"); drawRems(); }
 
-        const fIn = document.getElementById('f-in'), p = document.getElementById('player');
-        fIn.addEventListener('change', async (e) => {
-            if(!e.target.files[0]) return; p.src = URL.createObjectURL(e.target.files[0]); p.style.display = 'block'; p.play();
-            if (!ctx) { ctx = new (window.AudioContext || window.webkitAudioContext)(); analyser = ctx.createAnalyser(); ctx.createMediaElementSource(p).connect(analyser); analyser.connect(ctx.destination); analyser.fftSize = 64; data = new Uint8Array(analyser.frequencyBinCount); }
-            await ctx.resume(); active = true; msg("Audio Engine", "3D System sync active");
+        function init3D() { scene = new THREE.Scene(); camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.1, 1000); camera.position.z = 40; renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true }); renderer.setSize(window.innerWidth, window.innerHeight); document.getElementById('canvas-container').appendChild(renderer.domElement); const geo = new THREE.BufferGeometry(), pos = new Float32Array(1500); for(let i=0; i<1500; i++) pos[i] = (Math.random() - 0.5) * 80; geo.setAttribute('position', new THREE.BufferAttribute(pos, 3)); system = new THREE.Points(geo, new THREE.PointsMaterial({ color: 0xff00ff, size: 0.4, transparent: true, opacity: 0.85 })); scene.add(system); loop(); }
+        function loop() { requestAnimationFrame(loop); if (!system || !shouldRender) return; system.rotation.x += 0.0008; system.rotation.y += 0.0012; renderer.render(scene, camera); }
+
+        fIn.addEventListener('change', async (e) => { 
+            if(!e.target.files[0] || audioLoadingLock) return; audioLoadingLock = true; document.getElementById('sc-wrapper').style.display='none'; p.src = URL.createObjectURL(e.target.files[0]); p.style.display = 'block'; if(!isMuted) p.play(); 
+            ensureAudioContext();
+            if (!audioSourceBound) {
+                try { analyser = ctx.createAnalyser(); ctx.createMediaElementSource(p).connect(analyser); analyser.connect(ctx.destination); analyser.fftSize = 64; data = new Uint8Array(analyser.frequencyBinCount); audioSourceBound = true; } catch(err) {}
+            }
+            active = true; audioLoadingLock = false; msg("Audio Engine", "Playback active"); 
         });
-
-        const bgIn = document.getElementById('bg-in'), cBg = document.getElementById('custom-bg'), cCon = document.getElementById('canvas-container');
-        bgIn.addEventListener('change', (e) => {
-            const f = e.target.files[0]; if(!f) return; const url = URL.createObjectURL(f);
-            if(f.type.startsWith('video')) {
-                const video = document.createElement('video'); video.src = url; video.autoplay = video.loop = video.muted = true; video.setAttribute('playsinline', 'true'); video.style.width = video.style.height = '100%'; video.style.objectFit = 'cover';
-                video.onloadeddata = () => { cBg.innerHTML = ''; cBg.appendChild(video); cBg.style.backgroundImage = 'none'; cBg.style.display = 'block'; cCon.style.opacity = '0.1'; shouldRender = false; };
-            } else { cBg.innerHTML = ''; cBg.style.backgroundImage = `url(${url})`; cBg.style.display = 'block'; cCon.style.opacity = '0.2'; shouldRender = false; }
-            msg("Visuals", "Wallpaper updated");
+        bgIn.addEventListener('change', (e) => { 
+            const f = e.target.files[0]; if(!f) return; const url = URL.createObjectURL(f), ov = cBg.querySelector('video'); if(ov) { ov.pause(); ov.src = ""; }
+            if(f.type.startsWith('video')) { const v = document.createElement('video'); v.src = url; v.autoplay = v.loop = v.muted = true; v.setAttribute('playsinline', 'true'); v.style.width = v.style.height = '100%'; v.style.objectFit = 'cover'; v.onloadeddata = () => { cBg.innerHTML = ''; cBg.appendChild(v); cBg.style.display = 'block'; cCon.style.opacity = '0.1'; shouldRender = false; }; } 
+            else { cBg.innerHTML = ''; cBg.style.backgroundImage = `url(${url})`; cBg.style.display = 'block'; cCon.style.opacity = '0.2'; shouldRender = false; } msg("Visuals", "Wallpaper updated"); 
         });
-        function resetBg() { cBg.style.display = 'none'; cBg.innerHTML = ''; cBg.style.backgroundImage = 'none'; cCon.style.opacity = '1'; shouldRender = true; }
+        function resetBg() { const ov = cBg.querySelector('video'); if(ov) { ov.pause(); ov.src = ""; } cBg.style.display = 'none'; cBg.innerHTML = ''; cCon.style.opacity = '1'; shouldRender = true; }
         init3D();
     </script>
 </body>
