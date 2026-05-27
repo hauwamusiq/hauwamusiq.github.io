@@ -1,8 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chic Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@200;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -10,9 +9,10 @@
         :root { --bg-glass: rgba(255,255,255,0.06); --border-glass: rgba(255,255,255,0.12); --accent: #e0aaff; }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Montserrat', sans-serif; }
         body, html { width: 100%; height: 100%; overflow: hidden; background: #0a0a12; color: #fff; }
-        #canvas-container, #custom-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+        #canvas-container, #custom-bg, #bday-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
         #canvas-container { z-index: 1; pointer-events: none; transition: opacity 0.5s; }
         #custom-bg { object-fit: cover; z-index: 0; display: none; background-size: cover; background-position: center; }
+        #bday-canvas { z-index: 2; pointer-events: none; display: none; }
         .ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; display: grid; grid-template-columns: 280px 1fr 300px; padding: 20px; gap: 20px; pointer-events: none; transition: opacity 0.8s; }
         .ui-panels { transition: 0.8s; pointer-events: auto; }
         .ui-hidden .ui-panels { opacity: 0; transform: scale(0.98); pointer-events: none !important; }
@@ -21,10 +21,15 @@
         .btn { width: 100%; background: rgba(255,255,255,0.08); border: 1px solid var(--border-glass); padding: 10px; border-radius: 10px; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.8rem; transition: 0.3s; margin-bottom: 8px; }
         .btn:hover { background: rgba(255,255,255,0.2); transform: translateY(-1px); }
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-        .center-col { display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; grid-column: 2; pointer-events: auto; }
-        #time { font-size: 5.5rem; font-weight: 200; letter-spacing: -2px; text-shadow: 0 4px 12px rgba(0,0,0,0.5); }
+        .center-col { display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; grid-column: 2; height: 100%; pointer-events: auto; }
+        #greeting { font-size: 1.5rem; font-weight: 200; letter-spacing: 2px; margin-bottom: -10px; color: rgba(255,255,255,0.9); text-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+        #time { font-size: 5.5rem; font-weight: 200; letter-spacing: -2px; text-shadow: 0 4px 12px rgba(0,0,0,0.5); line-height: 1.1; margin: 5px 0; }
         #date { font-size: 1rem; letter-spacing: 3px; text-transform: uppercase; color: rgba(255,255,255,0.6); }
-        #region { font-size: 0.8rem; color: var(--accent); margin-top: 5px; }
+        #region, #sub-message { font-size: 0.8rem; color: var(--accent); margin-top: 5px; letter-spacing: 1px; }
+        #sub-message { color: #fff; font-weight: 400; margin-top: 8px; text-transform: uppercase; }
+        #quote-container { margin-top: 20px; max-width: 450px; min-height: 40px; padding: 0 10px; }
+        #quote-text { font-size: 0.9rem; font-style: italic; color: rgba(255,255,255,0.75); line-height: 1.4; text-shadow: 0 2px 4px rgba(0,0,0,0.4); }
+        #quote-author { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1.5px; color: var(--accent); margin-top: 6px; }
         .flex-in { display: flex; gap: 6px; margin-bottom: 12px; }
         .flex-in input { flex: 1; background: rgba(0,0,0,0.2); border: 1px solid var(--border-glass); padding: 8px; border-radius: 8px; color: white; outline: none; font-size: 0.85rem; }
         .rem-list { max-height: 140px; overflow-y: auto; font-size: 0.8rem; }
@@ -36,14 +41,15 @@
         .t-head { display: flex; justify-content: space-between; font-size: 0.7rem; font-weight: 600; color: rgba(0,0,0,0.4); }
         .t-title { font-weight: 700; font-size: 0.8rem; }
         .t-body { font-size: 0.8rem; color: #333; }
-        @media (max-width: 900px) { .ui-layer { grid-template-columns: 1fr; overflow-y: auto; pointer-events: auto; } .center-col { grid-column: 1; order: -1; margin-bottom: 30px; } }
+        @media (max-width: 900px) { 
+            .ui-layer { grid-template-columns: 1fr; grid-template-rows: auto 1fr auto; overflow-y: auto; pointer-events: auto; } 
+            .center-col { grid-column: 1; grid-row: 2; margin: 40px 0; }
+            .left-col { grid-row: 1; } .right-col { grid-row: 3; }
+        }
     </style>
 </head>
 <body>
-    <div id="canvas-container"></div>
-    <div id="custom-bg"></div>
-    <div id="notif-center"></div>
-
+    <div id="canvas-container"></div><div id="custom-bg"></div><canvas id="bday-canvas"></canvas><div id="notif-center"></div>
     <div class="ui-layer" id="ui-wrapper">
         <div class="left-col ui-panels">
             <div class="glass-panel">
@@ -57,26 +63,25 @@
                 </div>
             </div>
             <div class="glass-panel">
-                <h3><i class="fa-solid fa-wand-magic-sparkles"></i> Visuals</h3>
-                <button class="btn" onclick="resetBg()"><i class="fa-solid fa-cube"></i> Default 3D</button>
-                <button class="btn" onclick="document.getElementById('bg-in').click()"><i class="fa-solid fa-image"></i> Media Wallpaper</button>
+                <h3><i class="fa-solid fa-wand-magic-sparkles"></i> Identity & Style</h3>
+                <div class="flex-in" style="margin-bottom:8px;"><input type="text" id="user-name" value="Guest" placeholder="Your Name..." oninput="updateClock()"></div>
+                <div class="grid-2">
+                    <input type="number" id="bday-month" value="10" min="1" max="12" style="width:100%; background:rgba(0,0,0,0.2); border:1px solid var(--border-glass); padding:8px; border-radius:8px; color:white; outline:none; font-size:0.8rem;" oninput="updateClock()">
+                    <input type="number" id="bday-day" value="31" min="1" max="31" style="width:100%; background:rgba(0,0,0,0.2); border:1px solid var(--border-glass); padding:8px; border-radius:8px; color:white; outline:none; font-size:0.8rem;" oninput="updateClock()">
+                </div>
+                <button class="btn" style="margin-top:8px;" onclick="resetBg()"><i class="fa-solid fa-cube"></i> Default 3D</button>
+                <button class="btn" onclick="document.getElementById('bg-in').click()"><i class="fa-solid fa-image"></i> Custom Wallpaper</button>
                 <input type="file" id="bg-in" accept="image/*,video/*" style="display:none;">
             </div>
         </div>
-
         <div class="center-col">
-            <div id="time">00:00:00</div>
-            <div id="date">Loading...</div>
-            <div id="region">Detecting...</div>
+            <div id="greeting">Hello, Guest</div><div id="time">00:00:00</div><div id="date">Loading...</div><div id="region">Detecting...</div><div id="sub-message"></div>
+            <div id="quote-container"><p id="quote-text">Loading...</p><p id="quote-author"></p></div>
         </div>
-
         <div class="right-col ui-panels">
             <div class="glass-panel">
                 <h3><i class="fa-solid fa-bell"></i> Reminders</h3>
-                <div class="flex-in">
-                    <input type="text" id="rem-txt" placeholder="New reminder...">
-                    <button class="btn" style="width:auto; margin:0;" onclick="addRem()"><i class="fa-solid fa-plus"></i></button>
-                </div>
+                <div class="flex-in"><input type="text" id="rem-txt" placeholder="New reminder..."><button class="btn" style="width:auto; margin:0;" onclick="addRem()"><i class="fa-solid fa-plus"></i></button></div>
                 <div class="rem-list" id="rem-box"></div>
             </div>
             <div class="glass-panel">
@@ -88,42 +93,77 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script>
-        let ctx, analyser, data, active = false, shouldRender = true, hideTimeout, lastX = 0, lastY = 0;
+        let ctx, analyser, data, active = false, shouldRender = true, hideTimeout, lastX = 0, lastY = 0, lastTap = 0, isTouchDevice = false;
         const uiWrapper = document.getElementById('ui-wrapper');
 
-        function showUI(e) {
-            if (e && e.type === 'mousemove') {
-                if (Math.abs(e.clientX - lastX) < 2 && Math.abs(e.clientY - lastY) < 2) return;
-                lastX = e.clientX; lastY = e.clientY;
-            }
-            uiWrapper.classList.remove('ui-hidden');
-            clearTimeout(hideTimeout);
-            hideTimeout = setTimeout(() => uiWrapper.classList.add('ui-hidden'), 120000);
-        }
-        window.addEventListener('mousemove', showUI); window.addEventListener('click', showUI); window.addEventListener('touchstart', showUI); showUI();
+        window.addEventListener('touchstart', (e) => {
+            isTouchDevice = true; const now = Date.now();
+            if (now - lastTap < 300) { e.preventDefault(); e.stopPropagation(); uiWrapper.classList.toggle('ui-hidden'); if(!uiWrapper.classList.contains('ui-hidden')) resetInactivity(); }
+            lastTap = now;
+        }, { passive: false });
 
+        function resetInactivity() { if (uiWrapper.classList.contains('ui-hidden')) return; uiWrapper.classList.remove('ui-hidden'); clearTimeout(hideTimeout); hideTimeout = setTimeout(() => uiWrapper.classList.add('ui-hidden'), 120000); }
+        function showUI(e) { if (isTouchDevice && e.type === 'mousemove') return; if (e && e.type === 'mousemove') { if (Math.abs(e.clientX - lastX) < 2 && Math.abs(e.clientY - lastY) < 2) return; lastX = e.clientX; lastY = e.clientY; } resetInactivity(); }
+        window.addEventListener('mousemove', showUI); window.addEventListener('click', showUI); resetInactivity();
+
+        const quotes = [
+            { text: "The path to paradise begins in hell.", author: "Dante Alighieri" }, { text: "Out of difficulties grow miracles.", author: "Jean de La Bruyère" },
+            { text: "He who has a why to live can bear almost any how.", author: "Friedrich Nietzsche" }, { text: "The uniform makes for unity, but individual courage wins the day.", author: "Field Marshal Strategy" },
+            { text: "Yesterday I was clever, so I wanted to change the world. Today I am wise, so I am changing myself.", author: "Rumi" }, { text: "Accept the challenges so that you can feel the exhilaration of victory.", author: "General George S. Patton" },
+            { text: "Do not go gentle into that good night.", author: "Dylan Thomas" }, { text: "Amor Fati—Love your fate, which is in fact your life.", author: "Albert Camus" }, { text: "I long to accomplish a great and noble task, but it is my chief duty to accomplish small tasks as if they were great and noble.", author: "Helen Keller" }
+        ];
+        let lastDayChecked = "";
+        function generateDailyQuote(force = false) {
+            const todayStr = new Date().toDateString();
+            if (todayStr !== lastDayChecked || force) {
+                lastDayChecked = todayStr; const idx = Math.floor((new Date() - new Date(new Date().getFullYear(), 0, 0)) / 86400000) % quotes.length;
+                document.getElementById('quote-text').innerText = `"${quotes[idx].text}"`; document.getElementById('quote-author').innerText = `— ${quotes[idx].author}`;
+            }
+        }
+        generateDailyQuote(true);
+
+        let bdayActive = false;
         function updateClock() {
-            const now = new Date();
+            const now = new Date(), hrs = now.getHours(), m = now.getMonth() + 1, d = now.getDate(), name = document.getElementById('user-name').value.trim() || 'Guest';
             document.getElementById('time').innerText = now.toTimeString().split(' ')[0];
             document.getElementById('date').innerText = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+            generateDailyQuote();
+            let greet = hrs >= 5 && hrs < 12 ? "Good morning" : hrs >= 12 && hrs < 17 ? "Good afternoon" : hrs >= 17 && hrs < 22 ? "Good evening" : "Good night";
+            let hTxt = m===1&&d===1 ? "✨ Happy New Year! ✨" : m===2&&d===14 ? "💖 Happy Valentine's Day! 💖" : m===7&&d===4 ? "🎆 Happy 4th of July! 🎆" : m===10&&d===31 ? "🎃 Happy Halloween! 🎃" : m===12&&d===25 ? "🎄 Merry Christmas! 🎄" : "";
+            const tM = parseInt(document.getElementById('bday-month').value)||0, tD = parseInt(document.getElementById('bday-day').value)||0, sM = document.getElementById('sub-message');
+            if (m === tM && d === tD) { document.getElementById('greeting').innerText = `🎂 Happy Birthday, ${name}! 🎂`; sM.innerText = hTxt ? `& ${hTxt}` : "It's your special day!"; if(!bdayActive) initBirthdayEngine(); }
+            else { document.getElementById('greeting').innerText = `${greet}, ${name}`; sM.innerText = hTxt; if(bdayActive) stopBirthdayEngine(); }
         }
+
+        const bCanvas = document.getElementById('bday-canvas'), bCtx = bCanvas.getContext('2d');
+        let confetti = [], bdayAnimationId;
+        function initBirthdayEngine() {
+            stopBirthdayEngine(); bdayActive = true; bCanvas.style.display = 'block'; confetti = []; bCanvas.width = window.innerWidth; bCanvas.height = window.innerHeight;
+            for(let i=0; i<120; i++) confetti.push({ x: Math.random()*bCanvas.width, y: Math.random()*bCanvas.height-bCanvas.height, r: Math.random()*6+4, d: Math.random()*bCanvas.height, color: `hsl(${Math.random()*360}, 80%, 70%)`, tilt: Math.random()*10-5, tiltAngleIncremental: Math.random()*0.07+0.02, tiltAngle: 0 });
+            loopBirthday();
+        }
+        function loopBirthday() {
+            if(!bdayActive) return; bdayAnimationId = requestAnimationFrame(loopBirthday); bCtx.clearRect(0, 0, bCanvas.width, bCanvas.height);
+            confetti.forEach((p, idx) => {
+                p.tiltAngle += p.tiltAngleIncremental; p.y += (Math.cos(p.d) + 3 + p.r/2)/2; p.x += Math.sin(p.tiltAngle); p.tilt = Math.sin(p.tiltAngle - idx/3)*15;
+                if (p.y > bCanvas.height) { p.x = Math.random()*bCanvas.width; p.y = -20; p.tilt = Math.random()*10-5; }
+                bCtx.beginPath(); bCtx.lineWidth = p.r; bCtx.strokeStyle = p.color; bCtx.moveTo(p.x+p.tilt+p.r/2, p.y); bCtx.lineTo(p.x+p.tilt, p.y+p.tilt+p.r/2); bCtx.stroke();
+            });
+        }
+        function stopBirthdayEngine() { bdayActive = false; bCanvas.style.display = 'none'; cancelAnimationFrame(bdayAnimationId); }
+        window.addEventListener('resize', () => { if(bdayActive) { bCanvas.width = window.innerWidth; bCanvas.height = window.innerHeight; } });
+
         try { document.getElementById('region').innerText = `Zone: ${(Intl.DateTimeFormat().resolvedOptions().timeZone.split('/')[1] || "Local").replace('_', ' ')}`; } catch(e) {}
         setInterval(updateClock, 1000); updateClock();
 
         function msg(title, text) {
-            const box = document.getElementById('notif-center'), t = document.createElement('div');
-            t.className = 'toast'; t.innerHTML = `<div class="t-ico"><i class="fa-solid fa-comment"></i></div><div><div class="t-head"><span>ALERT</span><span>${new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</span></div><div class="t-title">${title}</div><div class="t-body">${text}</div></div>`;
+            const box = document.getElementById('notif-center'), t = document.createElement('div'); t.className = 'toast';
+            t.innerHTML = `<div class="t-ico"><i class="fa-solid fa-comment"></i></div><div><div class="t-head"><span>ALERT</span><span>${new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</span></div><div class="t-title">${title}</div><div class="t-body">${text}</div></div>`;
             box.appendChild(t); setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 400); }, 5000);
         }
 
         let rems = [{id:1, txt:"Hydrate beautifully"}];
-        function drawRems() {
-            const b = document.getElementById('rem-box'); b.innerHTML = '';
-            rems.forEach(r => {
-                const d = document.createElement('div'); d.className = 'rem-item';
-                d.innerHTML = `<span>${r.txt}</span><i class="fa-solid fa-circle-check" style="color:var(--accent);cursor:pointer;" onclick="delRem(${r.id})"></i>`; b.appendChild(d);
-            });
-        }
+        function drawRems() { const b = document.getElementById('rem-box'); b.innerHTML = ''; rems.forEach(r => { const d = document.createElement('div'); d.className = 'rem-item'; d.innerHTML = `<span>${r.txt}</span><i class="fa-solid fa-circle-check" style="color:var(--accent);cursor:pointer;" onclick="delRem(${r.id})"></i>`; b.appendChild(d); }); }
         function addRem() { const i = document.getElementById('rem-txt'); if(!i.value.trim()) return; rems.push({id:Date.now(), txt:i.value.trim()}); msg("Reminders", "Added successfully"); i.value = ''; drawRems(); }
         function delRem(id) { rems = rems.filter(r => r.id !== id); msg("Reminders", "Completed"); drawRems(); }
         drawRems();
@@ -133,32 +173,22 @@
             scene = new THREE.Scene(); camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.1, 1000); camera.position.z = 40;
             renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true }); renderer.setSize(window.innerWidth, window.innerHeight);
             document.getElementById('canvas-container').appendChild(renderer.domElement);
-            const geo = new THREE.BufferGeometry(), pos = new Float32Array(1500);
-            for(let i=0; i<1500; i++) pos[i] = (Math.random() - 0.5) * 80;
+            const geo = new THREE.BufferGeometry(), pos = new Float32Array(1500); for(let i=0; i<1500; i++) pos[i] = (Math.random() - 0.5) * 80;
             geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
             system = new THREE.Points(geo, new THREE.PointsMaterial({ color: 0xe0aaff, size: 0.35, transparent: true, opacity: 0.8 })); scene.add(system);
             window.addEventListener('resize', () => { camera.aspect = window.innerWidth/window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); });
             loop();
         }
         function loop() {
-            requestAnimationFrame(loop); if (!system || !shouldRender) return;
-            system.rotation.x += 0.001; system.rotation.y += 0.0015;
-            if(active && analyser) {
-                analyser.getByteFrequencyData(data);
-                let sum = 0; for(let i=0; i<data.length; i++) sum += data[i];
-                let val = 1 + ((sum/data.length) * 0.015); system.scale.set(val, val, val);
-            }
+            requestAnimationFrame(loop); if (!system || !shouldRender) return; system.rotation.x += 0.001; system.rotation.y += 0.0015;
+            if(active && analyser) { analyser.getByteFrequencyData(data); let sum = 0; for(let i=0; i<data.length; i++) sum += data[i]; let val = 1 + ((sum/data.length) * 0.015); system.scale.set(val, val, val); }
             renderer.render(scene, camera);
         }
 
         const fIn = document.getElementById('f-in'), p = document.getElementById('player');
         fIn.addEventListener('change', async (e) => {
             if(!e.target.files[0]) return; p.src = URL.createObjectURL(e.target.files[0]); p.style.display = 'block'; p.play();
-            if (!ctx) {
-                ctx = new (window.AudioContext || window.webkitAudioContext)(); analyser = ctx.createAnalyser();
-                ctx.createMediaElementSource(p).connect(analyser); analyser.connect(ctx.destination);
-                analyser.fftSize = 64; data = new Uint8Array(analyser.frequencyBinCount);
-            }
+            if (!ctx) { ctx = new (window.AudioContext || window.webkitAudioContext)(); analyser = ctx.createAnalyser(); ctx.createMediaElementSource(p).connect(analyser); analyser.connect(ctx.destination); analyser.fftSize = 64; data = new Uint8Array(analyser.frequencyBinCount); }
             await ctx.resume(); active = true; msg("Audio Engine", "3D System sync active");
         });
 
@@ -166,9 +196,7 @@
         bgIn.addEventListener('change', (e) => {
             const f = e.target.files[0]; if(!f) return; const url = URL.createObjectURL(f);
             if(f.type.startsWith('video')) {
-                const video = document.createElement('video'); video.src = url;
-                video.autoplay = true; video.loop = true; video.muted = true; video.setAttribute('playsinline', 'true');
-                video.style.width = video.style.height = '100%'; video.style.objectFit = 'cover';
+                const video = document.createElement('video'); video.src = url; video.autoplay = video.loop = video.muted = true; video.setAttribute('playsinline', 'true'); video.style.width = video.style.height = '100%'; video.style.objectFit = 'cover';
                 video.onloadeddata = () => { cBg.innerHTML = ''; cBg.appendChild(video); cBg.style.backgroundImage = 'none'; cBg.style.display = 'block'; cCon.style.opacity = '0.1'; shouldRender = false; };
             } else { cBg.innerHTML = ''; cBg.style.backgroundImage = `url(${url})`; cBg.style.display = 'block'; cCon.style.opacity = '0.2'; shouldRender = false; }
             msg("Visuals", "Wallpaper updated");
