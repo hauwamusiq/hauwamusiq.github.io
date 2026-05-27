@@ -2,258 +2,709 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Engine Terminal Synthesis Matrix</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ariadni Command Center</title>
+    <style>
+        :root {
+            --ink: #f6f2ec;
+            --muted: #a8a2a6;
+            --bg: #08090b;
+            --panel: rgba(18, 20, 25, 0.78);
+            --line: rgba(246, 242, 236, 0.14);
+            --rose: #ff5f87;
+            --cyan: #64d8d4;
+            --lime: #c9f25f;
+            --violet: #9f86ff;
+            --amber: #f5b95f;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            min-height: 100%;
+            background: var(--bg);
+        }
+
+        body {
+            min-height: 100vh;
+            margin: 0;
+            font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            color: var(--ink);
+            background:
+                radial-gradient(circle at 12% 15%, rgba(255, 95, 135, 0.18), transparent 31rem),
+                radial-gradient(circle at 84% 16%, rgba(100, 216, 212, 0.14), transparent 28rem),
+                linear-gradient(135deg, #08090b 0%, #111018 52%, #08090b 100%);
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 1;
+            background-image:
+                linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+            background-size: 58px 58px;
+            mask-image: linear-gradient(to bottom, rgba(0,0,0,0.85), rgba(0,0,0,0.2));
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        button,
+        input {
+            font: inherit;
+        }
+
+        .scene {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.54;
+        }
+
+        .shell {
+            position: relative;
+            z-index: 2;
+            width: min(1180px, calc(100% - 32px));
+            margin: 0 auto;
+            padding: 24px 0 36px;
+        }
+
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            min-height: 54px;
+        }
+
+        .mark {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 0;
+        }
+
+        .sigil {
+            width: 38px;
+            height: 38px;
+            display: grid;
+            place-items: center;
+            border: 1px solid var(--line);
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--lime);
+            font-weight: 800;
+            letter-spacing: 0;
+        }
+
+        .brand {
+            display: grid;
+            gap: 2px;
+        }
+
+        .brand strong {
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.18em;
+            white-space: nowrap;
+        }
+
+        .brand span,
+        .nav a {
+            color: var(--muted);
+            font-size: 0.78rem;
+        }
+
+        .nav {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .nav a {
+            padding: 9px 11px;
+            border: 1px solid transparent;
+            transition: border-color 160ms ease, color 160ms ease, background 160ms ease;
+        }
+
+        .nav a:hover,
+        .nav a:focus-visible {
+            color: var(--ink);
+            border-color: var(--line);
+            background: rgba(255, 255, 255, 0.04);
+            outline: none;
+        }
+
+        .hero {
+            min-height: calc(100vh - 112px);
+            display: grid;
+            align-items: center;
+            gap: 34px;
+            padding: 46px 0 18px;
+        }
+
+        .hero-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 0.92fr) minmax(340px, 1.08fr);
+            gap: 34px;
+            align-items: center;
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 9px;
+            color: var(--cyan);
+            font-size: 0.72rem;
+            font-weight: 800;
+            letter-spacing: 0.22em;
+            text-transform: uppercase;
+            margin-bottom: 18px;
+        }
+
+        .eyebrow::before {
+            content: "";
+            width: 28px;
+            height: 1px;
+            background: var(--cyan);
+        }
+
+        h1 {
+            max-width: 760px;
+            margin: 0;
+            font-size: clamp(3.1rem, 8vw, 7.6rem);
+            line-height: 0.88;
+            letter-spacing: 0;
+            text-transform: uppercase;
+        }
+
+        .lede {
+            max-width: 620px;
+            margin: 22px 0 0;
+            color: #d7d1d4;
+            font-size: clamp(1rem, 1.8vw, 1.22rem);
+            line-height: 1.7;
+        }
+
+        .hero-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 28px;
+        }
+
+        .button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 46px;
+            padding: 0 18px;
+            border: 1px solid var(--line);
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--ink);
+            font-size: 0.82rem;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
+        }
+
+        .button.primary {
+            border-color: rgba(201, 242, 95, 0.55);
+            background: rgba(201, 242, 95, 0.14);
+        }
+
+        .button:hover,
+        .button:focus-visible {
+            transform: translateY(-2px);
+            border-color: var(--lime);
+            background: rgba(255, 255, 255, 0.1);
+            outline: none;
+        }
+
+        .console {
+            border: 1px solid var(--line);
+            background: var(--panel);
+            backdrop-filter: blur(24px);
+            box-shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+            min-width: 0;
+        }
+
+        .console-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 15px 16px;
+            border-bottom: 1px solid var(--line);
+            color: var(--muted);
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.14em;
+        }
+
+        .lights {
+            display: flex;
+            gap: 7px;
+            flex-shrink: 0;
+        }
+
+        .light {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--rose);
+        }
+
+        .light:nth-child(2) {
+            background: var(--amber);
+        }
+
+        .light:nth-child(3) {
+            background: var(--cyan);
+        }
+
+        .console-body {
+            padding: 18px;
+        }
+
+        .command-row {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .command-row label {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+            clip: rect(0 0 0 0);
+        }
+
+        .command-row input {
+            min-width: 0;
+            height: 44px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            background: rgba(0, 0, 0, 0.28);
+            color: var(--ink);
+            padding: 0 13px;
+            outline: none;
+        }
+
+        .command-row input:focus {
+            border-color: var(--cyan);
+        }
+
+        .command-row button {
+            height: 44px;
+            border: 1px solid rgba(100, 216, 212, 0.45);
+            background: rgba(100, 216, 212, 0.1);
+            color: var(--ink);
+            padding: 0 14px;
+            cursor: pointer;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .status {
+            min-height: 34px;
+            margin: 0 0 14px;
+            color: var(--muted);
+            font-size: 0.86rem;
+            line-height: 1.5;
+        }
+
+        .module-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        .module {
+            position: relative;
+            min-height: 132px;
+            padding: 15px;
+            border: 1px solid var(--line);
+            background: rgba(255, 255, 255, 0.035);
+            overflow: hidden;
+            transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
+        }
+
+        .module:hover,
+        .module:focus-visible {
+            transform: translateY(-2px);
+            border-color: var(--accent);
+            background: rgba(255, 255, 255, 0.07);
+            outline: none;
+        }
+
+        .module::after {
+            content: "";
+            position: absolute;
+            inset: auto 15px 13px auto;
+            width: 36px;
+            height: 2px;
+            background: var(--accent);
+        }
+
+        .module small {
+            display: block;
+            color: var(--accent);
+            font-size: 0.68rem;
+            font-weight: 900;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+
+        .module strong {
+            display: block;
+            color: var(--ink);
+            font-size: 1rem;
+            line-height: 1.2;
+            margin-bottom: 8px;
+        }
+
+        .module span {
+            display: block;
+            color: var(--muted);
+            font-size: 0.82rem;
+            line-height: 1.45;
+        }
+
+        .module.portfolio {
+            --accent: var(--lime);
+            grid-column: span 2;
+            min-height: 142px;
+        }
+
+        .module.dashboard {
+            --accent: var(--rose);
+        }
+
+        .module.world {
+            --accent: var(--cyan);
+        }
+
+        .module.physics {
+            --accent: var(--violet);
+        }
+
+        .module.esp {
+            --accent: var(--amber);
+        }
+
+        .below-fold {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 14px;
+            margin-top: 18px;
+        }
+
+        .note {
+            border-top: 1px solid var(--line);
+            padding-top: 14px;
+            min-height: 88px;
+        }
+
+        .note b {
+            display: block;
+            color: var(--ink);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            margin-bottom: 8px;
+        }
+
+        .note p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 0.82rem;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 920px) {
+            .hero {
+                min-height: auto;
+                padding-top: 36px;
+            }
+
+            .hero-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .console {
+                order: 2;
+            }
+
+            .below-fold {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 620px) {
+            .shell {
+                width: min(100% - 22px, 1180px);
+                padding-top: 14px;
+            }
+
+            .topbar {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .nav {
+                justify-content: flex-start;
+            }
+
+            .nav a {
+                padding-left: 0;
+            }
+
+            h1 {
+                font-size: clamp(2.55rem, 17vw, 4.2rem);
+            }
+
+            .command-row,
+            .module-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .module.portfolio {
+                grid-column: auto;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.001ms !important;
+                animation-iteration-count: 1 !important;
+                scroll-behavior: auto !important;
+                transition-duration: 0.001ms !important;
+            }
+        }
+    </style>
 </head>
-<body class="m-0 bg-gray-950 text-indigo-200 font-mono text-xs selection:bg-purple-500/30 overflow-x-hidden">
-<script>
-/**
- * ENGINE TERMINAL SYNTHESIS MATRIX (EISM) — HYPER-DENSE SELF-CONTAINED DEPLOYMENT SURFACE
- * CONSTRAINTS MET: Zero-backend, Ephemeral Cryptographic Device Attestation, Local User Space Persistence,
- * Curried Recursive Fractal Functor Architecture, Monolithic IIFE of IIFEs Graph.
- */
-(async () => {
-    // --- STEP 1: INITIALIZE STYLES & LAYOUT ---
-    await new Promise(r => { 
-        const s = document.head.appendChild(document.createElement('script')); 
-        s.src = "https://cdn.tailwindcss.com"; s.onload = r; 
-    });
+<body>
+    <canvas class="scene" id="scene" aria-hidden="true"></canvas>
+    <div class="shell">
+        <header class="topbar">
+            <a class="mark" href="index.html" aria-label="Ariadni Command Center home">
+                <span class="sigil">A</span>
+                <span class="brand">
+                    <strong>Ariadni Command Center</strong>
+                    <span>HauwaMusiq public workspace</span>
+                </span>
+            </a>
+            <nav class="nav" aria-label="Primary">
+                <a href="tilaelia.html">Portfolio</a>
+                <a href="clock.html">Dashboard</a>
+                <a href="gaia.html">World Engine</a>
+                <a href="lani.html">Physics Lab</a>
+            </nav>
+        </header>
 
-    // --- STEP 2: INTERACTION DOM LAYER ---
-    const DOM = (() => {
-        const wrap = document.body.appendChild(document.createElement('div'));
-        wrap.className = "min-h-screen flex flex-col p-6 gap-4 max-w-7xl mx-auto";
-        
-        const hd = wrap.appendChild(document.createElement('header'));
-        hd.className = "flex flex-wrap justify-between items-center border-b border-gray-900 pb-4 gap-2";
-        hd.innerHTML = `<h1 class="text-sm font-bold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 uppercase">Engine Synthesis Matrix v3.2</h1><div id="dev-badge" class="px-2 py-1 bg-gray-900 border border-gray-800 rounded text-[10px] text-gray-400">Attesting Device Identity...</div>`;
-        
-        const bdy = wrap.appendChild(document.createElement('div'));
-        bdy.className = "grid grid-cols-1 lg:grid-cols-12 gap-4 flex-1";
-        
-        const ctrl = bdy.appendChild(document.createElement('div'));
-        ctrl.className = "lg:col-span-4 bg-black/30 border border-gray-900 p-4 rounded flex flex-col gap-3 h-fit";
-        ctrl.innerHTML = `
-            <div class="flex flex-col gap-1">
-                <label class="text-[10px] text-purple-400 font-bold uppercase tracking-wider">Prompt Matrix Input</label>
-                <textarea id="inp-prompt" class="w-full bg-gray-950 border border-gray-800 rounded p-2 text-indigo-300 focus:outline-none focus:border-indigo-500 resize-none h-20" placeholder="e.g., Cyberpunk samurai parrying lasers in neon rain..."></textarea>
-            </div>
-            <div class="grid grid-cols-2 gap-2">
-                <div class="flex flex-col gap-1">
-                    <label class="text-[10px] text-cyan-400 font-bold uppercase tracking-wider">Environment Setting</label>
-                    <input id="inp-setting" type="text" class="w-full bg-gray-950 border border-gray-800 rounded p-1.5 text-indigo-300 focus:outline-none focus:border-cyan-500" value="Neo-Tokyo">
+        <main class="hero">
+            <section class="hero-grid" aria-label="Creative portal">
+                <div>
+                    <div class="eyebrow">System entrance</div>
+                    <h1>Ariadni's creative portal</h1>
+                    <p class="lede">
+                        A front door for the worlds, tools, studies, music spaces, and experiments gathered under HauwaMusiq.
+                        The portfolio stays focused on the artist. This page opens the whole constellation.
+                    </p>
+                    <div class="hero-actions" aria-label="Featured actions">
+                        <a class="button primary" href="tilaelia.html">Enter Portfolio</a>
+                        <a class="button" href="#modules">Browse Works</a>
+                    </div>
                 </div>
-                <div class="flex flex-col gap-1">
-                    <label class="text-[10px] text-pink-400 font-bold uppercase tracking-wider">Voice Identity Profile</label>
-                    <input id="inp-voice" type="text" class="w-full bg-gray-950 border border-gray-800 rounded p-1.5 text-indigo-300 focus:outline-none focus:border-pink-500" value="Shonen Male A">
+
+                <section class="console" id="modules" aria-label="Creation launcher">
+                    <div class="console-head">
+                        <span>Launch matrix</span>
+                        <span class="lights" aria-hidden="true"><span class="light"></span><span class="light"></span><span class="light"></span></span>
+                    </div>
+                    <div class="console-body">
+                        <form class="command-row" id="command-form">
+                            <label for="command-input">Open a creation by keyword</label>
+                            <input id="command-input" autocomplete="off" placeholder="Type portfolio, dashboard, world, physics, or esp">
+                            <button type="submit">Open</button>
+                        </form>
+                        <p class="status" id="status">Ready. Choose a module or type a destination keyword.</p>
+                        <div class="module-grid">
+                            <a class="module portfolio" href="tilaelia.html">
+                                <small>00 / Portfolio</small>
+                                <strong>Tilaelia's Thread</strong>
+                                <span>The deeper artistic index: music, writings, visuals, and contact pathways.</span>
+                            </a>
+                            <a class="module dashboard" href="clock.html">
+                                <small>01 / Dashboard</small>
+                                <strong>Chic Clock</strong>
+                                <span>A personal clock, reminder, audio, and wallpaper dashboard.</span>
+                            </a>
+                            <a class="module world" href="gaia.html">
+                                <small>02 / World Engine</small>
+                                <strong>Omniscribe Core</strong>
+                                <span>A world-building workspace for planets, cultures, maps, and chronicles.</span>
+                            </a>
+                            <a class="module physics" href="lani.html">
+                                <small>03 / Physics Lab</small>
+                                <strong>Aletheia Physics</strong>
+                                <span>An adaptive study lab with quizzes, simulations, and relativity checks.</span>
+                            </a>
+                            <a class="module esp" href="esp.html">
+                                <small>04 / Trainer</small>
+                                <strong>ESP Target Trainer</strong>
+                                <span>A compact intuition game with color targets and session stats.</span>
+                            </a>
+                        </div>
+                    </div>
+                </section>
+            </section>
+
+            <section class="below-fold" aria-label="Portal notes">
+                <div class="note">
+                    <b>Purpose</b>
+                    <p>A clean public gateway, not the full portfolio. It tells visitors where to go.</p>
                 </div>
-            </div>
-            <button id="btn-fire" class="w-full mt-2 py-2 bg-indigo-950/50 hover:bg-indigo-900 border border-indigo-500/50 hover:border-indigo-500 rounded text-indigo-200 font-bold tracking-widest uppercase transition-all duration-150 active:scale-[0.98]">Execute Synthesis Morphism</button>
-        `;
-        
-        const termCol = bdy.appendChild(document.createElement('div'));
-        termCol.className = "lg:col-span-8 flex flex-col gap-4 min-h-[450px]";
-        
-        const mainTerm = termCol.appendChild(document.createElement('main'));
-        mainTerm.className = "flex-1 bg-black/60 border border-gray-900 rounded p-4 overflow-y-auto max-h-[500px] shadow-inner custom-scrollbar";
-        
-        return { 
-            badge: document.getElementById('dev-badge'),
-            prompt: document.getElementById('inp-prompt'),
-            setting: document.getElementById('inp-setting'),
-            voice: document.getElementById('inp-voice'),
-            fire: document.getElementById('btn-fire'),
-            terminal: mainTerm,
-            appendLog: (msg, lvl) => {
-                const colors = { INFO: "text-blue-400", CORE: "text-purple-400", DEBIT: "text-amber-400", SUCCESS: "text-emerald-400", OPTIM: "text-cyan-400", EVOLVE: "text-pink-400", CRITICAL: "text-red-500 font-bold animate-pulse" };
-                const p = document.createElement('p');
-                p.className = "border-l-2 pl-3 my-1 border-gray-900 hover:border-indigo-500 transition-colors duration-150";
-                // FIXED: Repaired runtime reference typo by swapping string interpolation variable tracking from 't' back to 'msg'
-                p.innerHTML = `<span class="text-gray-600">[${new Date().toISOString().slice(11,19)}]</span> <span class="${colors[lvl] || 'text-gray-400'} font-bold">[${lvl}]</span> ${msg}`;
-                mainTerm.appendChild(p); mainTerm.scrollTop = mainTerm.scrollHeight;
-            },
-            appendSchema: (obj) => {
-                const pre = document.createElement('pre');
-                pre.className = "mt-2 p-3 bg-black/80 border border-purple-950/50 rounded text-pink-400 overflow-x-auto text-[11px] max-w-full";
-                pre.textContent = JSON.stringify(obj, null, 2);
-                mainTerm.appendChild(pre); mainTerm.scrollTop = mainTerm.scrollHeight;
+                <div class="note">
+                    <b>Archive</b>
+                    <p>Each page remains its own self-contained experiment so Ariadni can evolve them independently.</p>
+                </div>
+                <div class="note">
+                    <b>Next</b>
+                    <p>Replace placeholders in the portfolio with real music, images, socials, and writing.</p>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        const destinations = {
+            portfolio: "tilaelia.html",
+            tilaelia: "tilaelia.html",
+            art: "tilaelia.html",
+            music: "tilaelia.html",
+            dashboard: "clock.html",
+            clock: "clock.html",
+            world: "gaia.html",
+            gaia: "gaia.html",
+            omniscribe: "gaia.html",
+            physics: "lani.html",
+            lani: "lani.html",
+            lab: "lani.html",
+            esp: "esp.html",
+            trainer: "esp.html"
+        };
+
+        const form = document.getElementById("command-form");
+        const input = document.getElementById("command-input");
+        const status = document.getElementById("status");
+
+        form.addEventListener("submit", event => {
+            event.preventDefault();
+            const key = input.value.trim().toLowerCase();
+            if (destinations[key]) {
+                status.textContent = `Opening ${key}.`;
+                window.location.href = destinations[key];
+                return;
             }
-        };
-    })();
+            status.textContent = "No match. Try portfolio, dashboard, world, physics, or esp.";
+        });
 
-    // --- STEP 3: INITIALIZE SYSTEM IIFE MATRIX MODULES ---
-    const Log = (m, l) => DOM.appendLog(m, l);
+        const canvas = document.getElementById("scene");
+        const ctx = canvas.getContext("2d");
+        let points = [];
+        let width = 0;
+        let height = 0;
+        let animationId = 0;
+        const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-    const AuthSigModule = await (() => async () => {
-        try {
-            const key = await window.crypto.subtle.generateKey({ name: "RSASSA-PKCS1-v1_5", modulusLength: 2048, publicExponent: new Uint8Array([1, 0, 1]), hash: "SHA-256" }, true, ["sign", "verify"]);
-            const pubRaw = await window.crypto.subtle.exportKey("spki", key.publicKey);
-            const hashBuffer = await window.crypto.subtle.digest("SHA-256", pubRaw);
-            const hashArray = Array.from(new Uint8Array(hashBuffer));
-            const devId = `DEV_${hashArray.map(b => b.toString(16).padStart(2, '0')).join('').slice(0,12).toUpperCase()}`;
-            const devCode = `SIG_0X${hashArray.reverse().map(b => b.toString(16).padStart(2, '0')).join('').slice(0,8).toUpperCase()}`;
-            
-            if(!localStorage.getItem('EISM_USER_SPACE')) localStorage.setItem('EISM_USER_SPACE', JSON.stringify({ deviceId: devId, code: devCode, tokens: 1000, history: [] }));
-            return { devId, devCode };
-        } catch(e) {
-            return { devId: "DEV_FALLBACK_NODE", devCode: "SIG_UNSAFE_EPHEMERAL" };
-        }
-    })()();
-
-    DOM.badge.textContent = `${AuthSigModule.devId} // ${AuthSigModule.devCode}`;
-    Log(`Verified user space configuration footprint: Target ID assigned: ${AuthSigModule.devId}`, "INFO");
-
-    const UserSpaceDB = (() => ({
-        get: () => JSON.parse(localStorage.getItem('EISM_USER_SPACE')),
-        set: (d) => localStorage.setItem('EISM_USER_SPACE', JSON.stringify(d)),
-        charge: (amt) => {
-            const data = JSON.parse(localStorage.getItem('EISM_USER_SPACE'));
-            data.tokens = Math.max(0, data.tokens - amt);
-            localStorage.setItem('EISM_USER_SPACE', JSON.stringify(data));
-            Log(`Deducted ${amt} resource tokens from device profile space. Current balance: ${data.tokens}`, "DEBIT");
-        }
-    }))();
-
-    const ConfigModule = (() => ({ env: "production", maxDuration: 10, maxEntries: 100 }))();
-    
-    const ValidatorModule = (() => p => {
-        if (!p.prompt || !p.setting) return Promise.reject(new Error("Malformed Payload Structure: Inputs Empty."));
-        if (UserSpaceDB.get().tokens <= 0) return Promise.reject(new Error("Resource Allocation Error: Device Space Tokens Expired. Reset LocalStorage."));
-        return Promise.resolve(p);
-    })();
-
-    const AssetProxyModule = (() => async id => `https://cdn.animescape.ai/assets/mock_render_${id % 999}.mp4`)();
-    const AudioSynthModule = (() => async v => ({ trackId: "ctx_local_9", voiceProfile: v, sampleRate: 48000 }))();
-    const TimelineWasmModule = (() => (v, a) => ({ timelineId: "tl_root_space", tracks: [{ type: "video", source: v }, { type: "audio", source: a }], duration: 5.0 }))();
-    const AdaptiveLoadBalancerModule = (() => (tk) => tk > 500 ? { delay: 5, cluster: "local-jit-accelerated-matrix" } : { delay: 100, cluster: "isolated-hardware-emulated-fallback" })();
-    const LoRAInferenceMatcherModule = (() => (p) => p.toLowerCase().includes("samurai") ? { loraId: "anime_mecha_v4", weight: 0.85 } : { loraId: "anime_standard_v1", weight: 0.00 })();
-    const NeuralLipSyncModule = (() => () => ({ synced: true, confidence: 0.994, algorithm: "Local-Wav2Lip-Anime-WASM" }))();
-    const ProfilerModule = () => { const t0 = performance.now(); return { getDelta: () => `${(performance.now() - t0).toFixed(2)}ms` }; };
-
-    const LRUMemoizationCache = (() => {
-        const c = new Map();
-        return {
-            get: (k) => { if (!c.has(k)) return; const v = c.get(k); c.delete(k); c.set(k, v); return v; },
-            set: (k, v) => { if (c.has(k)) c.delete(k); else if (c.size >= ConfigModule.maxEntries) c.delete(c.keys().next().value); c.set(k, v); },
-            has: (k) => c.has(k)
-        };
-    })();
-
-    const AsyncFrameBufferModule = (() => async (s, d) => {
-        const total = d * 24, frames = [];
-        for(let i = 0; i < total; i += 50){
-            const chunk = Math.min(50, total - i);
-            for(let j = 0; j < chunk; j++) frames.push({ frame: i + j, seed: s + i + j });
-            await new Promise(r => setTimeout(r, 0));
-        }
-        return frames;
-    })();
-
-    // --- STEP 4: CURRIED FRACTAL FUNCTOR ARCHITECTURE ENGINE ---
-    const Functor = x => ({
-        map: f => Functor(Promise.resolve(x).then(f)),
-        fold: async (s, f) => { try { return await Promise.resolve(x).then(s); } catch(err) { return f(err); } }
-    });
-
-    const executePipelineFractal = devContext => requestManifest => {
-        const processLayer = async (manifest, depth = 0) => {
-            const layerTimer = ProfilerModule();
-            Log(`Descending into Local Pipeline Layer Structure Depth: [${depth}]`, "CORE");
-            
-            const cacheKey = `${devContext.devId}_${manifest.prompt}_${manifest.setting}`;
-            if (depth === 0 && LRUMemoizationCache.has(cacheKey)) {
-                Log("Cache intersection point discovered! Pulling state snapshot immediately.", "OPTIM");
-                // FIXED: Invoked cache hit logic explicitly through .get() to trigger insertion-order refresh
-                return LRUMemoizationCache.get(cacheKey);
+        function resizeScene() {
+            if (animationId) {
+                window.cancelAnimationFrame(animationId);
+                animationId = 0;
             }
-
-            return Functor(ValidatorModule(manifest))
-                .map(async validated => {
-                    const localState = UserSpaceDB.get();
-                    const balancer = AdaptiveLoadBalancerModule(localState.tokens);
-                    Log(`Allocating virtualization layer to execution scope: [${balancer.cluster}] with a compute delay of ${balancer.delay}ms`, "OPTIM");
-                    await new Promise(r => setTimeout(r, balancer.delay));
-
-                    const lora = LoRAInferenceMatcherModule(validated.prompt);
-                    if (lora.weight > 0) Log(`Injecting functional hypernetwork morph: ${lora.loraId} (Weight: ${lora.weight})`, "EVOLVE");
-
-                    const [video, audio, frames] = await Promise.all([
-                        AssetProxyModule(Math.floor(Math.random() * 10000)),
-                        AudioSynthModule(validated.voice),
-                        AsyncFrameBufferModule(777, ConfigModule.maxDuration)
-                    ]);
-
-                    const compiledTimeline = TimelineWasmModule(video, audio);
-                    UserSpaceDB.charge(depth === 0 ? 15 : 5);
-
-                    const stateProfile = {
-                        success: true,
-                        layerDepth: depth,
-                        attestation: { signature: devContext.devCode, deviceId: devContext.devId },
-                        meta: { lora, sync: NeuralLipSyncModule()(), performanceDelta: layerTimer.getDelta() },
-                        manifest: { ...validated },
-                        composition: compiledTimeline,
-                        metrics: { frameAllocations: frames.length, engineClusterNode: balancer.cluster }
-                    };
-
-                    if (depth < 1) {
-                        stateProfile.downstreamMorphisms = await processLayer({ 
-                            ...manifest, 
-                            prompt: `[Upscaled Local Space Vector] ${manifest.prompt}` 
-                        }, depth + 1);
-                    }
-
-                    if (depth === 0) {
-                        LRUMemoizationCache.set(cacheKey, stateProfile);
-                        const historyUpdate = UserSpaceDB.get();
-                        historyUpdate.history.push({ timestamp: new Date().toISOString(), prompt: validated.prompt });
-                        UserSpaceDB.set(historyUpdate);
-                    }
-
-                    return stateProfile;
-                })
-                .fold(
-                    async successState => successState,
-                    async kernelPanic => {
-                        Log(`CRITICAL PIPELINE PANIC DETECTED AT DEPTH [${depth}]. INITIALIZING TRACE EVALUATION EMULATOR...`, "CRITICAL");
-                        const errorTraceDump = {
-                            panicReason: kernelPanic.message,
-                            panicDepth: depth,
-                            activeDeviceSnapshot: devContext,
-                            failedPayloadManifest: manifest,
-                            stackTrace: kernelPanic.stack ? kernelPanic.stack.split("\n").map(s => s.trim()) : "Stack track dump unavailable."
-                        };
-                        Log("--- RAW TRACE DEBUGGING METRIC GRAPH OUTPUT ---", "CRITICAL");
-                        DOM.appendSchema(errorTraceDump);
-                        throw kernelPanic;
-                    }
-                );
-        };
-        return processLayer(requestManifest);
-    };
-
-    // --- STEP 5: RUNTIME EVENT DISPATCH ORCHESTRATION ---
-    DOM.fire.addEventListener('click', async () => {
-        DOM.fire.disabled = true;
-        DOM.fire.textContent = "PROCESSING MATRIX...";
-        Log("Initializing Functional Monolithic Engine Evolution Layer Execution Pipeline...", "INFO");
-        
-        const runtimeGlobalTimer = ProfilerModule();
-        const payloadInput = { prompt: DOM.prompt.value.trim(), setting: DOM.setting.value.trim(), voice: DOM.voice.value.trim() };
-
-        try {
-            const resolutionMatrixGraph = await executePipelineFractal(AuthSigModule)(payloadInput);
-            Log(`Fractal Flow Morphism Completed in ${runtimeGlobalTimer.getDelta()}! Output Matrix Structuralized:`, "SUCCESS");
-            DOM.appendSchema(resolutionMatrixGraph);
-        } catch (catastrophicException) {
-            Log(`Global Thread Pipeline Breakout Aborted: ${catastrophicException.message}`, "CRITICAL");
-        } finally {
-            DOM.fire.disabled = false;
-            DOM.fire.textContent = "Execute Synthesis Morphism";
+            const ratio = Math.min(window.devicePixelRatio || 1, 2);
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = Math.floor(width * ratio);
+            canvas.height = Math.floor(height * ratio);
+            canvas.style.width = `${width}px`;
+            canvas.style.height = `${height}px`;
+            ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+            const count = Math.max(48, Math.min(118, Math.floor((width * height) / 14000)));
+            points = Array.from({ length: count }, (_, index) => ({
+                x: (index * 97) % width,
+                y: (index * 53) % height,
+                vx: ((index % 5) - 2) * 0.08,
+                vy: (((index + 2) % 5) - 2) * 0.07,
+                hue: index % 4
+            }));
+            drawScene();
         }
-    });
 
-    Log("Monolithic Client-Only Memory Frame Core Ready. Ready for prompt mutation vectors.", "INFO");
-})();
-</script>
+        function drawScene() {
+            ctx.clearRect(0, 0, width, height);
+            ctx.lineWidth = 1;
+            points.forEach((point, index) => {
+                if (!reduceMotion) {
+                    point.x += point.vx;
+                    point.y += point.vy;
+                    if (point.x < -20) point.x = width + 20;
+                    if (point.x > width + 20) point.x = -20;
+                    if (point.y < -20) point.y = height + 20;
+                    if (point.y > height + 20) point.y = -20;
+                }
+
+                for (let j = index + 1; j < points.length; j++) {
+                    const other = points[j];
+                    const dx = point.x - other.x;
+                    const dy = point.y - other.y;
+                    const dist = Math.hypot(dx, dy);
+                    if (dist < 132) {
+                        const alpha = (1 - dist / 132) * 0.16;
+                        ctx.strokeStyle = `rgba(246, 242, 236, ${alpha})`;
+                        ctx.beginPath();
+                        ctx.moveTo(point.x, point.y);
+                        ctx.lineTo(other.x, other.y);
+                        ctx.stroke();
+                    }
+                }
+
+                const colors = ["201, 242, 95", "100, 216, 212", "255, 95, 135", "159, 134, 255"];
+                ctx.fillStyle = `rgba(${colors[point.hue]}, 0.75)`;
+                ctx.beginPath();
+                ctx.arc(point.x, point.y, 1.6, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            if (!reduceMotion) {
+                animationId = window.requestAnimationFrame(drawScene);
+            }
+        }
+
+        window.addEventListener("resize", resizeScene);
+        resizeScene();
+        if (reduceMotion) {
+            window.cancelAnimationFrame(animationId);
+        }
+    </script>
 </body>
 </html>
