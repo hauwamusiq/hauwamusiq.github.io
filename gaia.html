@@ -1,258 +1,249 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Omniscribe Engine Enterprise</title>
+    <title>Omniscribe Core: Cosmic World-Weaver Evolution</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         html, body { position: fixed; width: 100%; height: 100%; overflow: hidden; }
         .scrollable { overflow-y: auto; -webkit-overflow-scrolling: touch; }
-        .glow-transition { transition: background 0.5s ease, box-shadow 0.5s ease; }
+        .scrollable::-webkit-scrollbar { width: 6px; }
+        .scrollable::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.4); }
+        .scrollable::-webkit-scrollbar-thumb { background: #6366f1; border-radius: 3px; }
+        .allow-select { -webkit-user-select: text !important; user-select: text !important; }
+        
+        /* Premium Glowing Range Inputs */
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            background: rgba(30, 41, 59, 0.8);
+            border-radius: 9999px;
+            height: 6px;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #6366f1;
+            box-shadow: 0 0 8px #6366f1;
+            cursor: pointer;
+            transition: transform 0.1s ease, background-color 0.1s ease;
+        }
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.25);
+            background: #818cf8;
+        }
+
+        /* Scanline Overlay for Sci-Fi Retro Feeling */
+        .scanlines {
+            position: relative;
+            overflow: hidden;
+        }
+        .scanlines::before {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            z-index: 2;
+            background-size: 100% 3px, 3px 100%;
+            pointer-events: none;
+        }
+
+        /* Cybernetic grid blinking effect */
+        @keyframes cyber-pulse {
+            0%, 100% { opacity: 0.2; }
+            50% { opacity: 0.6; }
+        }
+        .pulse-grid {
+            animation: cyber-pulse 4s infinite ease-in-out;
+        }
     </style>
 </head>
-<body class="bg-slate-950 text-slate-100 h-screen flex flex-col text-xs select-none">
+<body class="bg-slate-950 text-slate-100 h-screen flex flex-col text-xs font-sans select-none scanlines">
 
-    <header class="bg-slate-900 p-3 flex justify-between items-center border-b border-slate-800 shrink-0 z-20 shadow-lg">
-        <h1 class="font-bold text-sm tracking-tight flex items-center gap-2">
-            <span class="bg-indigo-600 text-white px-2 py-0.5 rounded font-black shadow-sm">Ω</span>
-            Omniscribe <span id="p-title" class="text-indigo-400 font-normal">| Loading Engine Core...</span>
-        </h1>
-        <div class="flex gap-2">
-            <button onclick="StateEngine.clearCache()" class="bg-slate-800 hover:bg-slate-700 active:scale-95 px-2.5 py-1 rounded font-semibold transition-all text-slate-400">Reset</button>
-            <button onclick="StateEngine.exportArchive()" class="bg-indigo-600 hover:bg-indigo-500 active:scale-95 px-3 py-1 rounded font-bold transition-all shadow-md shadow-indigo-950/50">Export Archive</button>
+    <!-- Notification system toast -->
+    <div id="toast" class="fixed top-4 right-4 z-50 transform translate-y-[-120px] opacity-0 transition-all duration-300 bg-slate-900/95 backdrop-blur-md border border-indigo-500/50 text-indigo-100 px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 pointer-events-none max-w-sm">
+        <span class="text-indigo-400 font-bold text-sm" id="toast-icon">⚡</span>
+        <span id="toast-msg" class="font-medium tracking-wide">Interface initialized...</span>
+    </div>
+
+    <!-- MAIN HEADER -->
+    <header class="bg-slate-900 border-b border-slate-800 p-3 flex flex-wrap gap-3 justify-between items-center shrink-0 z-20 shadow-xl">
+        <div class="flex items-center gap-3">
+            <span class="bg-indigo-600 text-white px-2.5 py-1 rounded-lg font-black tracking-widest text-sm shadow-lg shadow-indigo-950/50 flex items-center justify-center animate-pulse">Ω</span>
+            <div>
+                <h1 class="font-black text-sm tracking-wide flex items-center gap-1.5">
+                    OMNISCRIPTOR <span id="p-title" class="text-indigo-400 font-normal">| Cosmic World Engine</span>
+                </h1>
+                <p class="text-[10px] text-slate-400 font-mono">Quantum Simulation Environment v4.2 (Mobile Enhanced)</p>
+            </div>
+        </div>
+        <div class="flex gap-2 flex-wrap items-center">
+            <!-- Sandbox Terrain Painters -->
+            <div id="paint-panel" class="hidden flex items-center gap-1 bg-slate-950 border border-slate-800 rounded-lg p-1 mr-2">
+                <span class="text-[9px] font-bold text-slate-500 px-2 uppercase font-mono">Terrain Brush:</span>
+                <button onclick="WorldEngine.setBrush('mountain')" id="b-mountain" class="px-2 py-1 rounded bg-slate-900 hover:bg-slate-800 text-[10px]">🌋 Mount</button>
+                <button onclick="WorldEngine.setBrush('flatland')" id="b-flatland" class="px-2 py-1 rounded bg-slate-900 hover:bg-slate-800 text-[10px]">🌲 Plains</button>
+                <button onclick="WorldEngine.setBrush('ocean')" id="b-ocean" class="px-2 py-1 rounded bg-slate-900 hover:bg-slate-800 text-[10px]">💧 Ocean</button>
+                <button onclick="WorldEngine.setBrush('river')" id="b-river" class="px-2 py-1 rounded bg-slate-900 hover:bg-slate-800 text-[10px]">🌊 River</button>
+                <button onclick="WorldEngine.setBrush(null)" id="b-none" class="px-2 py-1 rounded bg-indigo-900/60 border border-indigo-700 text-[10px] font-bold">📍 Inspector Only</button>
+            </div>
+            
+            <button onclick="WorldEngine.MapEngine.generateWorldMap()" class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 active:scale-95 px-3 py-1.5 rounded-lg font-bold text-white shadow-md transition-all">Regenerate Topography</button>
+            <button onclick="WorldEngine.clearCache()" class="bg-slate-800 hover:bg-slate-700 active:scale-95 px-3 py-1.5 rounded-lg font-semibold text-slate-300 transition-all">Format System</button>
+            <button onclick="WorldEngine.exportArchive()" class="bg-indigo-600 hover:bg-indigo-500 active:scale-95 px-3.5 py-1.5 rounded-lg font-bold shadow-md shadow-indigo-950/50 transition-all">Export Archive</button>
         </div>
     </header>
 
-    <main class="flex flex-1 overflow-hidden flex-col md:flex-row w-full min-h-0">
+    <!-- FLOATING HUD TOGGLE BUTTON (VISIBLE WHEN SIDEBAR IS COLLAPSED) -->
+    <button id="floating-hud-toggle" onclick="WorldEngine.toggleSidebar()" class="fixed bottom-4 right-4 z-40 hidden bg-indigo-600 hover:bg-indigo-500 active:scale-95 px-4 py-2.5 rounded-full font-bold text-white shadow-2xl transition-all flex items-center gap-2 border border-indigo-400/30">
+        <span>👁️</span> Show HUD Matrix
+    </button>
+
+    <!-- MAIN INTERFACE CONTAINER -->
+    <main class="flex flex-1 overflow-hidden flex-col md:flex-row w-full min-h-0 relative">
         
-        <nav class="bg-slate-900/60 p-2 flex md:flex-col gap-1 border-b md:border-b-0 md:border-r border-slate-800 shrink-0 overflow-x-auto whitespace-nowrap z-10">
-            <button onclick="StateEngine.switchTab('physics')" id="n-physics" class="px-3 py-2 rounded font-bold transition-all text-left flex items-center gap-2"><span>🪐</span> Physics Suite</button>
-            <button onclick="StateEngine.switchTab('faction')" id="n-faction" class="px-3 py-2 rounded font-bold transition-all text-left flex items-center gap-2"><span>🛡️</span> Faction & Law</button>
-            <button onclick="StateEngine.switchTab('names')" id="n-names" class="px-3 py-2 rounded font-bold transition-all text-left flex items-center gap-2"><span>📜</span> Nomenclature</button>
+        <!-- SIDE NAVIGATION -->
+        <nav class="bg-slate-900/40 p-2 flex md:flex-col gap-1.5 border-b md:border-b-0 md:border-r border-slate-800 shrink-0 overflow-x-auto whitespace-nowrap z-10 justify-between">
+            <div class="flex md:flex-col gap-1.5">
+                <button onclick="WorldEngine.switchTab('physics')" id="n-physics" class="px-3.5 py-2.5 rounded-xl font-bold text-left flex items-center gap-2.5 transition-all font-sans">
+                    <span>🪐</span> Astrometrics
+                </button>
+                <button onclick="WorldEngine.switchTab('culture')" id="n-culture" class="px-3.5 py-2.5 rounded-xl font-bold text-left flex items-center gap-2.5 transition-all font-sans">
+                    <span>🛡️</span> Cultural Codex
+                </button>
+                <button onclick="WorldEngine.switchTab('nomenclature')" id="n-nomenclature" class="px-3.5 py-2.5 rounded-xl font-bold text-left flex items-center gap-2.5 transition-all font-sans">
+                    <span>📜</span> Linguistic Scribe
+                </button>
+                <button onclick="WorldEngine.switchTab('ai_scribe')" id="n-ai_scribe" class="px-3.5 py-2.5 rounded-xl font-bold text-left flex items-center gap-2.5 transition-all font-sans">
+                    <span>✨</span> AI Chronicles
+                </button>
+                <button onclick="WorldEngine.switchTab('system_orbits')" id="n-system_orbits" class="px-3.5 py-2.5 rounded-xl font-bold text-left flex items-center gap-2.5 transition-all font-sans">
+                    <span>🌟</span> Orbital Simulator
+                </button>
+            </div>
+            
+            <div class="hidden md:block p-2 border-t border-slate-800/80 mt-auto">
+                <label class="block text-[8px] uppercase tracking-wider font-bold text-slate-500 mb-1">Stellar Link Key</label>
+                <input type="password" id="custom-api-key" placeholder="Enter API Key (Optional)..." onchange="WorldEngine.updateCustomAPIKey(this.value)" class="w-full bg-slate-950 border border-slate-800 rounded p-1.5 text-[10px] text-slate-400 focus:outline-none focus:border-indigo-500/80 font-mono">
+            </div>
         </nav>
 
-        <section class="flex-1 p-4 scrollable space-y-4 bg-slate-950 min-w-0">
+        <!-- VIEWPORT VIEW (CENTER SYSTEM CONTROLS) -->
+        <section class="flex-1 p-4 scrollable space-y-4 bg-slate-950/95 min-w-0">
             
-            <div id="p-physics" class="space-y-4 hidden">
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-900/30 p-4 rounded-xl border border-slate-800/60">
-                    <div class="space-y-1">
-                        <div class="flex justify-between font-medium text-slate-400"><span>Planetary Mass (Earth Equivalents)</span><span id="v-m" class="font-mono text-indigo-400 font-bold">1.00 M⊕</span></div>
-                        <input type="range" id="m" min="0.1" max="5" step="0.05" value="1" oninput="StateEngine.mutate('m', this.value)" class="w-full h-1 bg-slate-800 rounded appearance-none cursor-pointer accent-indigo-500">
-                    </div>
-                    <div class="space-y-1">
-                        <div class="flex justify-between font-medium text-slate-400"><span>Planetary Radius (Size Vector)</span><span id="v-r" class="font-mono text-indigo-400 font-bold">1.00 R⊕</span></div>
-                        <input type="range" id="r" min="0.5" max="3" step="0.05" value="1" oninput="StateEngine.mutate('r', this.value)" class="w-full h-1 bg-slate-800 rounded appearance-none cursor-pointer accent-indigo-500">
-                    </div>
-                    <div class="space-y-1">
-                        <div class="flex justify-between font-medium text-slate-400"><span>Atmospheric Pressure (Density Load)</span><span id="v-d" class="font-mono text-emerald-400 font-bold">1.0 atm</span></div>
-                        <input type="range" id="d" min="0.1" max="10" step="0.1" value="1" oninput="StateEngine.mutate('d', this.value)" class="w-full h-1 bg-slate-800 rounded appearance-none cursor-pointer accent-emerald-500">
-                    </div>
-                    <div class="space-y-1">
-                        <div class="flex justify-between font-medium text-slate-400"><span>Greenhouse Retention Factor</span><span id="v-g" class="font-mono text-emerald-400 font-bold">1.0x</span></div>
-                        <input type="range" id="g" min="0" max="5" step="0.1" value="1" oninput="StateEngine.mutate('g', this.value)" class="w-full h-1 bg-slate-800 rounded appearance-none cursor-pointer accent-emerald-500">
-                    </div>
+            <!-- ASTROMETRICS VIEW -->
+            <div id="p-physics" class="space-y-4 hidden font-sans">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-sm font-bold text-indigo-400 tracking-wider uppercase">Planetary Environmental Vectors</h2>
+                    <span class="text-[10px] bg-indigo-950 border border-indigo-800 text-indigo-300 px-2 py-0.5 rounded-full font-mono">Atmosphere & Gravitational Spec</span>
                 </div>
-                <div class="grid grid-cols-2 gap-3 font-mono">
-                    <div class="bg-slate-900/50 border border-slate-800/80 p-3 rounded-xl">Gravity Coefficient: <span id="o-grav" class="text-indigo-400 font-bold">1.00g</span></div>
-                    <div class="bg-slate-900/50 border border-slate-800/80 p-3 rounded-xl">Thermal Baseline: <span id="o-temp" class="text-emerald-400 font-bold">15.0°C</span></div>
-                </div>
-            </div>
-
-            <div id="p-faction" class="space-y-4 hidden">
-                <div class="space-y-3 bg-slate-900/20 border border-slate-800/60 p-4 rounded-xl">
-                    <div>
-                        <label class="block text-[10px] uppercase font-bold text-slate-500 tracking-wider mb-1">State Paradigm Designation</label>
-                        <input type="text" id="f-name" oninput="StateEngine.mutate('name', this.value)" class="w-full bg-slate-900 border border-slate-800 rounded p-2.5 font-medium focus:outline-none focus:border-indigo-500 text-slate-200 select-text">
-                    </div>
-                    <div>
-                        <label class="block text-[10px] uppercase font-bold text-slate-500 tracking-wider mb-1">System Institutional Matrix</label>
-                        <select id="f-type" onchange="StateEngine.mutate('type', this.value)" class="w-full bg-slate-900 border border-slate-800 rounded p-2.5 focus:outline-none focus:border-indigo-500 font-medium text-slate-300">
-                            <option value="feudal">Decentralized Feudal Framework</option>
-                            <option value="hydraulic">Centralized Hydraulic Empire</option>
-                            <option value="magocracy">High Fantasy Magocracy</option>
-                        </select>
-                    </div>
-                    <div class="p-3 bg-indigo-950/20 border border-indigo-900/40 rounded-lg text-slate-300 italic font-serif leading-relaxed" id="o-prompt"></div>
-                    <div>
-                        <label class="block text-[10px] uppercase font-bold text-slate-500 tracking-wider mb-1">Civilization Journal Records</label>
-                        <textarea id="f-notes" rows="6" oninput="StateEngine.mutate('notes', this.value)" class="w-full bg-slate-900 border border-slate-800 rounded p-3 font-serif text-slate-300 focus:outline-none focus:border-indigo-500 text-xs leading-relaxed select-text" placeholder="Record localized historical shifts..."></textarea>
-                    </div>
-                </div>
-            </div>
-
-            <div id="p-names" class="space-y-4 hidden">
-                <div class="flex gap-2 bg-slate-900/40 p-3 rounded-xl border border-slate-800/60">
-                    <select id="n-cult" class="flex-1 bg-slate-900 border border-slate-800 rounded p-2 focus:outline-none text-slate-300 font-medium">
-                        <option value="norse">Old Norse Archetype</option>
-                        <option value="roman">Imperial Roman Formula</option>
-                        <option value="nahuatl">Aztec Nahuatl Compound</option>
-                        <option value="anglosaxon">Anglo-Saxon Dithematic</option>
-                    </select>
-                    <button onclick="StateEngine.generateNames()" class="bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-bold px-4 rounded transition-all shadow-md shadow-emerald-950/40">Synthesize</button>
-                </div>
-                <ul id="n-list" class="grid grid-cols-2 gap-2 font-mono text-emerald-400 bg-slate-900/20 p-3 rounded-xl border border-slate-800">
-                    <li class="col-span-2 text-slate-600 italic text-center py-2">Awaiting vocabulary processing syntax generation...</li>
-                </ul>
-            </div>
-        </section>
-
-        <section class="w-full md:w-64 bg-slate-900/30 border-t md:border-t-0 md:border-l border-slate-800/60 p-4 flex flex-col items-center justify-between gap-4 shrink-0 bg-slate-900/10">
-            <div class="flex justify-between items-center w-full bg-slate-950 p-2 rounded-lg border border-slate-800/40">
-                <span class="font-bold text-slate-400 tracking-wide">Spatial Simulation</span>
-                <button id="v-toggle" onclick="StateEngine.toggleProjection()" class="bg-indigo-600 hover:bg-indigo-500 active:scale-95 px-2.5 py-1 rounded text-[10px] font-black tracking-wider transition-all">3D Globe</button>
-            </div>
-            
-            <div class="relative flex items-center justify-center py-2">
-                <div id="canvas" class="w-32 h-32 sm:w-40 sm:h-40 rounded-xl glow-transition shadow-2xl border border-slate-800/40 relative overflow-hidden">
-                    <div id="atmosphere-glow" class="absolute inset-0 transition-all duration-500 pointer-events-none"></div>
-                </div>
-            </div>
-            
-            <div class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl font-mono text-[11px] shadow-inner space-y-0.5">
-                <div class="text-indigo-400 font-bold" id="o-biome">Evaluating Biome...</div>
-                <div class="text-slate-400 text-[10px]" id="o-moist">Calculating Moisture...</div>
-            </div>
-        </section>
-    </main>
-
-    <script>
-        const StateEngine = {
-            data: { id: "w_"+Math.floor(Math.random()*99999), name: "The Iron Hegemony", type: "feudal", notes: "", vMode: "2d", m: 1.0, r: 1.0, d: 1.0, g: 1.0, tab: "physics" },
-            
-            matrices: {
-                norse: { pre: ["Thor", "Sig", "Bjorn", "Ragnar", "Ivar", "Hrafn"], suf: ["stein", "mund", "kell", "geir", "vald", "run"], t: ["the Defiant", "Sunder-Shield", "Sea-Gazer"] },
-                roman: { pre: ["Gaius", "Marcus", "Lucius", "Publius", "Tiberius"], suf: ["Julius", "Cornelius", "Claudius", "Fabius", "Valerius"], t: ["Magnus", "Africanus", "Severus"] },
-                nahuatl: { pre: ["Moctez", "Quetzal", "Ahuitz", "Itz", "Xochi"], suf: ["uma", "coatl", "otl", "emoc", "pilli"], t: ["Tlatoani", "Eagle Essence", "Obsidian Heart"] },
-                anglosaxon: { pre: ["Aethel", "Cyn", "Ead", "Wulf", "Osw"], suf: ["stan", "ward", "ric", "wine", "gar"], t: ["of Wessex", "Iron-Arm", "Barrow-Warden"] }
-            },
-
-            prompts: {
-                feudal: "SYSTEMIC INSTRUCTIONS: Central structural law is physically restricted. Who leads local frontier garrisons, and how is currency value extracted without fluid capital assets?",
-                hydraulic: "SYSTEMIC INSTRUCTIONS: Communities are hard-locked to river irrigation pathways. Your state maintains a lock-gate monopoly. Who manages the resource flow distributions during droughts?",
-                magocracy: "SYSTEMIC INSTRUCTIONS: Arcane fields bypass physical thermodynamics. Since casting elites manifest localized velocity freely, how are traditional protective perimeter networks engineered?"
-            },
-
-            init() {
-                const cache = localStorage.getItem("omniscribe_core_cache");
-                if (cache) {
-                    try { this.data = JSON.parse(cache); } catch(e) { console.error("Cache corrupted, restoring base models."); }
-                }
-                this.syncDOMInputFields();
-                this.evaluateAndRepaint();
-            },
-
-            mutate(key, val) {
-                this.data[key] = (isNaN(val) || val === "") ? val : parseFloat(val);
-                localStorage.setItem("omniscribe_core_cache", JSON.stringify(this.data));
-                this.evaluateAndRepaint();
-            },
-
-            syncDOMInputFields() {
-                ["m", "r", "d", "g"].forEach(k => {
-                    const el = document.getElementById(k);
-                    if (el) el.value = this.data[k];
-                });
-                document.getElementById("f-name").value = this.data.name;
-                document.getElementById("f-type").value = this.data.type;
-                document.getElementById("f-notes").value = this.data.notes;
-            },
-
-            switchTab(tabId) {
-                this.data.tab = tabId;
-                this.evaluateAndRepaint();
-            },
-
-            toggleProjection() {
-                this.data.vMode = this.data.vMode === "2d" ? "3d" : "2d";
-                this.evaluateAndRepaint();
-            },
-
-            clearCache() {
-                localStorage.removeItem("omniscribe_core_cache");
-                location.reload();
-            },
-
-            evaluateAndRepaint() {
-                const { m, r, d, g, name, type, notes, vMode, tab } = this.data;
-
-                document.getElementById("v-m").innerText = m.toFixed(2)+" M⊕"; document.getElementById("v-r").innerText = r.toFixed(2)+" R⊕";
-                document.getElementById("v-d").innerText = d.toFixed(1)+" atm"; document.getElementById("v-g").innerText = g.toFixed(1)+"x";
-                document.getElementById("p-title").innerText = "| " + (name || "Untitled Axis");
-
-                const gravity = m / Math.pow(r, 2);
-                const temperature = 15 + (d * 8.2) + (g * 11.8) - (r * 4.5);
-
-                document.getElementById("o-grav").innerText = gravity.toFixed(2)+"g";
-                document.getElementById("o-temp").innerText = temperature.toFixed(1)+"°C";
-                document.getElementById("o-prompt").innerText = this.prompts[type] || "";
-
-                // Layout display loop fix using class toggle abstractions
-                ["physics", "faction", "names"].forEach(k => {
-                    const block = document.getElementById(`p-${k}`);
-                    const button = document.getElementById(`n-${k}`);
-                    
-                    if (k === tab) {
-                        block.classList.remove("hidden");
-                        button.className = "px-3 py-2 rounded font-bold text-xs text-left flex items-center gap-2 transition-all bg-slate-800 text-white border border-slate-700 shadow-inner";
-                    } else {
-                        block.classList.add("hidden");
-                        button.className = "px-3 py-2 rounded font-bold text-xs text-left flex items-center gap-2 transition-all text-slate-400 hover:text-slate-200";
-                    }
-                });
-
-                const is3d = vMode === "3d";
-                document.getElementById("v-toggle").innerText = is3d ? "2D Flat" : "3D Globe";
-                document.getElementById("canvas").className = `w-32 h-32 sm:w-40 sm:h-40 shadow-2xl border border-slate-800/60 transition-all duration-700 ease-out ${is3d ? 'rounded-full animate-[spin_40s_linear_infinite]' : 'rounded-xl'}`;
-
-                this.calculateBiomes(temperature, d);
-            },
-
-            calculateBiomes(t, d) {
-                const canvas = document.getElementById("canvas"), glow = document.getElementById("atmosphere-glow"), bName = document.getElementById("o-biome"), bMoist = document.getElementById("o-moist");
-                const scatterAlpha = Math.min(d * 0.08, 0.6);
-                glow.style.background = `radial-gradient(circle at center, rgba(56,189,248,${scatterAlpha}) 0%, rgba(30,41,59,0) 70%)`;
-
-                if (t < 0) {
-                    canvas.style.background = "radial-gradient(circle, #f1f5f9 0%, #475569 85%)"; bName.innerText = "Glacial Polar Cryosphere"; bName.className = "text-sky-300 font-bold"; bMoist.innerText = "Permafrost / Low Liquid Dispersion";
-                } else if (t < 18) {
-                    const isDry = d < 1.6;
-                    canvas.style.background = isDry ? "radial-gradient(circle, #4ade80 0%, #166534 85%)" : "radial-gradient(circle, #0d9488 0%, #115e59 85%)";
-                    bName.innerText = isDry ? "Temperate Savannah/Woodlands" : "Saturated Coniferous Taiga"; bName.className = "text-emerald-400 font-bold"; bMoist.innerText = isDry ? "Moderate Periodic Moisture Levels" : "Heavy Constant Air Water Content";
-                } else {
-                    const isDry = d < 1.8;
-                    canvas.style.background = isDry ? "radial-gradient(circle, #fef08a 0%, #854d0e 85%)" : "radial-gradient(circle, #22c55e 0%, #14532d 85%)";
-                    bName.innerText = isDry ? "Hyper-Arid Sand Desert Core" : "Torrential Jungle Canopy Matrix"; bName.className = isDry ? "text-yellow-400 font-bold" : "text-green-500 font-bold"; bMoist.innerText = isDry ? "High Ambient Thermal Evaporation" : "Saturated Dynamic Hydro-Loop";
-                }
-            },
-
-            generateNames() {
-                const k = document.getElementById("n-cult").value, mat = this.matrices[k], list = document.getElementById("n-list");
-                list.innerHTML = "";
-                for(let i=0; i<6; i++) {
-                    const p = mat.pre[Math.floor(Math.random()*mat.pre.length)], s = mat.suf[Math.floor(Math.random()*mat.suf.length)], t = mat.t[Math.floor(Math.random()*mat.t.length)];
-                    const li = document.createElement("li");
-                    li.className = "bg-slate-950 p-2 rounded text-center border border-slate-900 font-semibold text-[10px]";
-                    li.innerText = k === "roman" ? `${p} ${s} ${t}` : `${p}${s} ${t}`;
-                    list.appendChild(li);
-                }
-            },
-
-            exportArchive() {
-                const gravity = this.data.m / Math.pow(this.data.r, 2);
-                const temp = 15 + (this.data.d * 8.2) + (this.data.g * 11.8) - (this.data.r * 4.5);
                 
-                const meta = { application: "Omniscribe Runtime", key: this.data.id, telemetry: { gravityG: gravity, globalTempC: temp } };
-                const stream = `---\nSYSTEM_METADATA_HEADER\n${JSON.stringify(meta, null, 2)}\n---\n# WORLD ENGINE DOCUMENTATION: ${this.data.name.toUpperCase()}\n* Structural Administrative Axis: ${this.data.type.toUpperCase()}\n\n## WRITING JOURNAL FIELD NOTES\n${this.data.notes || 'Empty local cache entries.'}`;
-                
-                const blob = new Blob([stream], { type: "text/plain;charset=utf-8" });
-                const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
-                a.download = `${(this.data.name || 'unnamed').toLowerCase().replace(/\s+/g, '_')}_system_archive.txt`;
-                document.body.appendChild(a); a.click(); document.body.removeChild(a);
-            }
-        };
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-900/30 p-4 rounded-xl border border-slate-800/60 font-sans">
+                    <div class="space-y-1">
+                        <div class="flex justify-between font-medium text-slate-400"><span>Planetary Mass</span><span id="v-m" class="font-mono text-indigo-400 font-bold">1.00 M⊕</span></div>
+                        <input type="range" id="m" min="0.1" max="5" step="0.05" value="1" oninput="WorldEngine.mutate('m', this.value)" class="w-full">
+                    </div>
+                    <div class="space-y-1">
+                        <div class="flex justify-between font-medium text-slate-400"><span>Planetary Radius</span><span id="v-r" class="font-mono text-indigo-400 font-bold">1.00 R⊕</span></div>
+                        <input type="range" id="r" min="0.5" max="3" step="0.05" value="1" oninput="WorldEngine.mutate('r', this.value)" class="w-full">
+                    </div>
+                    <div class="space-y-1">
+                        <div class="flex justify-between font-medium text-slate-400"><span>Atmospheric Barometric Pressure</span><span id="v-d" class="font-mono text-emerald-400 font-bold">1.0 atm</span></div>
+                        <input type="range" id="d" min="0.1" max="10" step="0.1" value="1" oninput="WorldEngine.mutate('d', this.value)" class="w-full">
+                    </div>
+                    <div class="space-y-1">
+                        <div class="flex justify-between font-medium text-slate-400"><span>Greenhouse Forcing Coeff.</span><span id="v-g" class="font-mono text-emerald-400 font-bold">1.0x</span></div>
+                        <input type="range" id="g" min="0.0" max="5" step="0.1" value="1" oninput="WorldEngine.mutate('g', this.value)" class="w-full">
+                    </div>
+                </div>
 
-        window.onload = () => StateEngine.init();
-    </script>
-</body>
-</html>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 font-mono">
+                    <div class="bg-slate-900/40 border border-slate-800/50 p-3 rounded-xl flex flex-col">
+                        <span class="text-[10px] text-slate-400">Surface Gravity</span>
+                        <span id="o-grav" class="text-indigo-400 font-bold text-sm mt-0.5">1.00g</span>
+                    </div>
+                    <div class="bg-slate-900/40 border border-slate-800/50 p-3 rounded-xl flex flex-col">
+                        <span class="text-[10px] text-slate-400">Global Average Temp</span>
+                        <span id="o-temp" class="text-emerald-400 font-bold text-sm mt-0.5">15.0°C</span>
+                    </div>
+                    <div class="bg-slate-900/40 border border-slate-800/50 p-3 rounded-xl flex flex-col">
+                        <span class="text-[10px] text-slate-400">Atmospheric Density</span>
+                        <span id="o-density" class="text-sky-400 font-bold text-sm mt-0.5">1.22 kg/m³</span>
+                    </div>
+                    <div class="bg-slate-900/40 border border-slate-800/50 p-3 rounded-xl flex flex-col">
+                        <span class="text-[10px] text-slate-400">Planetary Hazard Risk</span>
+                        <span id="o-hazard" class="text-rose-400 font-bold text-sm mt-0.5">Low (G-Class)</span>
+                    </div>
+                </div>
+
+                <!-- ATMOSPHERIC COMPOSITION SPECTRUM ANALYZER -->
+                <div class="bg-slate-900/20 border border-slate-800/50 p-4 rounded-xl space-y-3 font-sans">
+                    <h3 class="font-bold text-indigo-400 uppercase tracking-wide text-[10px]">Planetary Atmospheric Composition Spectrum</h3>
+                    <div class="flex h-6 rounded-lg overflow-hidden border border-slate-800 shadow-inner">
+                        <div id="gas-n2" class="bg-blue-600 flex items-center justify-center font-mono text-[9px] text-white transition-all duration-300" style="width: 78%;">N₂</div>
+                        <div id="gas-o2" class="bg-emerald-500 flex items-center justify-center font-mono text-[9px] text-white transition-all duration-300" style="width: 21%;">O₂</div>
+                        <div id="gas-co2" class="bg-rose-600 flex items-center justify-center font-mono text-[9px] text-white transition-all duration-300" style="width: 0.5%;">CO₂</div>
+                        <div id="gas-ar" class="bg-amber-600 flex items-center justify-center font-mono text-[9px] text-white transition-all duration-300" style="width: 0.5%;">Ar</div>
+                    </div>
+                    <div class="grid grid-cols-4 gap-2 text-[10px] font-mono">
+                        <div class="text-blue-400">Nitrogen (N₂): <span id="val-n2">78.0%</span></div>
+                        <div class="text-emerald-400">Oxygen (O₂): <span id="val-o2">21.0%</span></div>
+                        <div class="text-rose-400">Carbon Dioxide (CO₂): <span id="val-co2">0.5%</span></div>
+                        <div class="text-amber-400">Noble Gases (Ar/He): <span id="val-ar">0.5%</span></div>
+                    </div>
+                </div>
+
+                <!-- BIOMES EXPLAINER & MAP LEGEND -->
+                <div class="bg-slate-900/20 border border-slate-800/40 p-4 rounded-xl space-y-3">
+                    <h3 class="font-semibold text-slate-400 tracking-wide">Atmospheric & Biosphere Index</h3>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[10px]">
+                        <div class="flex items-center gap-2 p-1.5 bg-slate-900/40 rounded border border-slate-800/30">
+                            <span class="w-3 h-3 rounded-sm bg-[#1e3a8a] inline-block"></span>
+                            <span>Abyssal Deep Oceans</span>
+                        </div>
+                        <div class="flex items-center gap-2 p-1.5 bg-slate-900/40 rounded border border-slate-800/30">
+                            <span class="w-3 h-3 rounded-sm bg-[#0284c7] inline-block"></span>
+                            <span>Shallow Water / Estuaries</span>
+                        </div>
+                        <div class="flex items-center gap-2 p-1.5 bg-slate-900/40 rounded border border-slate-800/30">
+                            <span class="w-3 h-3 rounded-sm bg-[#ffffff] inline-block"></span>
+                            <span>Tectonic Peaks & Snowpack</span>
+                        </div>
+                        <div class="flex items-center gap-2 p-1.5 bg-slate-900/40 rounded border border-slate-800/30">
+                            <span class="w-3 h-3 rounded-sm bg-[#22d3ee] inline-block"></span>
+                            <span>Freshwater River Networks</span>
+                        </div>
+                        <div class="flex items-center gap-2 p-1.5 bg-slate-900/40 rounded border border-slate-800/30">
+                            <span class="w-3 h-3 rounded-sm bg-[#cbd5e1] inline-block"></span>
+                            <span>Sub-Zero Glaciers</span>
+                        </div>
+                        <div class="flex items-center gap-2 p-1.5 bg-slate-900/40 rounded border border-slate-800/30">
+                            <span class="w-3 h-3 rounded-sm bg-[#14532d] inline-block"></span>
+                            <span>Temperate Canopy Forests</span>
+                        </div>
+                        <div class="flex items-center gap-2 p-1.5 bg-slate-900/40 rounded border border-slate-800/30">
+                            <span class="w-3 h-3 rounded-sm bg-[#fef08a] inline-block"></span>
+                            <span>Arid Super-Deserts</span>
+                        </div>
+                        <div class="flex items-center gap-2 p-1.5 bg-slate-900/40 rounded border border-slate-800/30">
+                            <span class="w-3 h-3 rounded-sm bg-[#166534] inline-block"></span>
+                            <span>Equatorial Rainforests</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CULTURAL CODEX VIEW -->
+            <div id="p-culture" class="space-y-4 hidden font-sans">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-sm font-bold text-indigo-400 tracking-wide uppercase">Anthropological Culture Matrix</h2>
+                    <button onclick="WorldEngine.AI.generateScribeField('culture', event)" class="bg-indigo-900 hover:bg
+
+```
