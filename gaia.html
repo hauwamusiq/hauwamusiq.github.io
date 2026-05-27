@@ -244,6 +244,1131 @@
             <div id="p-culture" class="space-y-4 hidden font-sans">
                 <div class="flex justify-between items-center">
                     <h2 class="text-sm font-bold text-indigo-400 tracking-wide uppercase">Anthropological Culture Matrix</h2>
-                    <button onclick="WorldEngine.AI.generateScribeField('culture', event)" class="bg-indigo-900 hover:bg
+                    <button onclick="WorldEngine.AI.generateScribeField('culture', event)" class="bg-indigo-900 hover:bg-indigo-800 text-indigo-200 border border-indigo-700/50 px-2.5 py-1 rounded font-bold text-[10px] flex items-center gap-1.5 transition-all">
+                        <span>✨</span> Complete with AI Scribe
+                    </button>
+                </div>
+                
+                <div class="space-y-4 bg-slate-900/20 border border-slate-800/60 p-4 rounded-xl">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-[10px] uppercase font-bold text-slate-500 mb-1">Culture/Society Identity Name</label>
+                            <input type="text" id="f-name" oninput="WorldEngine.mutate('name', this.value)" class="w-full bg-slate-900 border border-slate-800 rounded p-2 focus:outline-none focus:border-indigo-500 text-slate-200 allow-select">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] uppercase font-bold text-slate-500 mb-1">Visual Record Data</label>
+                            <input type="file" id="f-image" accept="image/*" onchange="WorldEngine.handleImageUpload(this)" class="w-full bg-slate-900 border border-slate-800 rounded p-1 text-[11px] file:py-1 file:px-2 file:rounded file:border-0 file:text-[10px] file:font-bold file:bg-indigo-900 file:text-indigo-200 cursor-pointer font-sans">
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-[10px] uppercase font-bold text-indigo-400/80 mb-1">1. Government Structure</label>
+                            <textarea id="c-gov" rows="3" oninput="WorldEngine.mutate('c_gov', this.value)" class="w-full bg-slate-900 border border-slate-800 rounded p-2 font-mono text-slate-300 focus:outline-none allow-select text-[11px]" placeholder="Describe ruling structures, factions, or corporate blocks..."></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] uppercase font-bold text-indigo-400/80 mb-1">2. Social Customs</label>
+                            <textarea id="c-customs" rows="3" oninput="WorldEngine.mutate('c_customs', this.value)" class="w-full bg-slate-900 border border-slate-800 rounded p-2 font-mono text-slate-300 focus:outline-none allow-select text-[11px]" placeholder="Detail standard daily routines, taboos, or class paradigms..."></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] uppercase font-bold text-emerald-400/80 mb-1">3. Ideological Beliefs</label>
+                            <textarea id="c-beliefs" rows="3" oninput="WorldEngine.mutate('c_beliefs', this.value)" class="w-full bg-slate-900 border border-slate-800 rounded p-2 font-mono text-slate-300 focus:outline-none allow-select text-[11px]" placeholder="Outline foundational philosophical assertions or dogmas..."></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] uppercase font-bold text-emerald-400/80 mb-1">4. Cosmology & Mythos</label>
+                            <textarea id="c-cosmo" rows="3" oninput="WorldEngine.mutate('c_cosmo', this.value)" class="w-full bg-slate-900 border border-slate-800 rounded p-2 font-mono text-slate-300 focus:outline-none allow-select text-[11px]" placeholder="Flesh out planetary creation myths or orbital theology..."></textarea>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">General Lore Ledger</label>
+                        <textarea id="f-notes" rows="3" oninput="WorldEngine.mutate('notes', this.value)" class="w-full bg-slate-900 border border-slate-800 rounded p-2 font-mono text-slate-300 focus:outline-none allow-select text-[11px]" placeholder="Enter general historical notations..."></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LINGUISTIC SCRIBE -->
+            <div id="p-nomenclature" class="space-y-4 hidden font-sans">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-sm font-bold text-indigo-400 tracking-wide uppercase">Phonetic Identity Generator</h2>
+                    <span class="text-[10px] bg-slate-900 border border-slate-800 text-emerald-400 px-2.5 py-0.5 rounded-full font-mono">Synthesizer Active</span>
+                </div>
+                
+                <div class="flex gap-2 bg-slate-900/40 p-3 rounded-xl border border-slate-800/60">
+                    <select id="n-cult" class="flex-1 bg-slate-900 border border-slate-800 rounded-lg p-2 text-slate-300 font-medium focus:outline-none font-mono">
+                        <option value="norse">Old Norse Archetype</option>
+                        <option value="roman">Imperial Roman Formula</option>
+                        <option value="nahuatl">Aztec Nahuatl Compound</option>
+                        <option value="anglosaxon">Anglo-Saxon Dithematic</option>
+                    </select>
+                    <button onclick="WorldEngine.generateNames()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-4 rounded-lg transition-all font-sans">Synthesize Terms</button>
+                </div>
+                <ul id="n-list" class="grid grid-cols-2 gap-2 font-mono text-emerald-400 bg-slate-900/20 p-3 rounded-xl border border-slate-800">
+                    <li class="col-span-2 text-slate-600 italic text-center py-2 font-sans">Select an archetype and synthesize to populate dictionary database...</li>
+                </ul>
+            </div>
+
+            <!-- AI SCRIBE HUB -->
+            <div id="p-ai_scribe" class="space-y-4 hidden font-sans">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-sm font-bold text-indigo-400 tracking-wide uppercase">Interactive AI Chronicles</h2>
+                    <span class="text-[10px] bg-indigo-950 border border-indigo-800 text-indigo-300 px-2 py-0.5 rounded-full font-mono">Gemini Integration</span>
+                </div>
+
+                <div class="bg-slate-900/30 border border-slate-800/60 p-4 rounded-xl space-y-4">
+                    <p class="text-slate-400 leading-relaxed">
+                        Enlist the AI Chronicles engine to expand your world's deep space records, generate localized histories, or build specialized field guides based on active environmental sliders and topography.
+                    </p>
+
+                    <div class="space-y-2">
+                        <label class="block text-[10px] uppercase font-bold text-slate-500 font-sans">Custom Scriptor Prompt / Directive</label>
+                        <textarea id="ai-prompt" rows="3" class="w-full bg-slate-900 border border-slate-800 rounded-lg p-2.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500 allow-select font-mono" placeholder="E.g., Write a scientific log of a colony ship's surveyor discovering this planet's unique gravity anomaly..."></textarea>
+                    </div>
+
+                    <div class="flex gap-2 justify-end">
+                        <button onclick="WorldEngine.AI.generateChronicle()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-4 py-2 rounded-lg flex items-center gap-2 transition-all font-sans">
+                            <span>✨</span> Execute AI Synthesis
+                        </button>
+                    </div>
+
+                    <!-- AI Progress Loader -->
+                    <div id="ai-loader" class="hidden flex items-center justify-center py-6 gap-3">
+                        <div class="w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+                        <span class="font-mono text-indigo-400 animate-pulse">Consulting planetary archives...</span>
+                    </div>
+
+                    <!-- Output Area -->
+                    <div id="ai-output-container" class="hidden bg-slate-950/80 border border-indigo-900/40 rounded-xl p-4 space-y-3">
+                        <div class="flex justify-between items-center border-b border-slate-900 pb-2">
+                            <span class="font-bold text-indigo-400 font-mono tracking-wide">Synthesized Scribe Log</span>
+                            <button onclick="WorldEngine.AI.copyOutput()" class="text-[10px] text-slate-400 hover:text-white underline font-mono">Copy to Clipboard</button>
+                        </div>
+                        <div id="ai-output" class="text-slate-300 leading-relaxed font-mono whitespace-pre-wrap allow-select max-h-72 overflow-y-auto pr-2"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ORBITAL SIMULATOR VIEW -->
+            <div id="p-system_orbits" class="space-y-4 hidden font-sans font-sans">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-sm font-bold text-indigo-400 tracking-wide uppercase">Solar Orbit System Simulator</h2>
+                    <span class="text-[10px] bg-slate-900 border border-slate-800 text-yellow-400 px-2 py-0.5 rounded-full font-mono">Interactive Gravity Vector</span>
+                </div>
+                <div class="bg-slate-900/30 border border-slate-800/60 p-4 rounded-xl flex flex-col items-center gap-4">
+                    <p class="text-slate-400 text-center max-w-lg leading-relaxed">
+                        Watch the procedural orbit dynamics of your planet (marked in blue) within its host stellar sector. Its transit speed is calculated dynamically using Newtonian vectors related to the planetary mass.
+                    </p>
+                    <div class="relative bg-slate-950/80 border border-slate-800 rounded-xl p-2 w-full max-w-md h-64 overflow-hidden flex items-center justify-center shadow-inner">
+                        <canvas id="orbitCanvas" class="w-full h-full bg-slate-950"></canvas>
+                    </div>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 w-full max-w-md font-mono text-[10px]">
+                        <div class="bg-slate-900/50 p-2 rounded border border-slate-800 text-center">
+                            <span class="text-slate-500 block">Stellar Class</span>
+                            <span id="stellar-class" class="text-yellow-400 font-bold">G-Type Solar Star</span>
+                        </div>
+                        <div class="bg-slate-900/50 p-2 rounded border border-slate-800 text-center">
+                            <span class="text-slate-500 block">Semi-Major Axis</span>
+                            <span id="orbital-distance" class="text-indigo-400 font-bold">1.02 AU</span>
+                        </div>
+                        <div class="bg-slate-900/50 p-2 rounded border border-slate-800 text-center col-span-2 sm:col-span-1">
+                            <span class="text-slate-500 block">Orbital Period (Year)</span>
+                            <span id="orbital-year" class="text-emerald-400 font-bold">372.4 Standard Days</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- GLOBE DISPLAY & MAP VIEWPORT (SCROLLABLE SIDEBAR WITH EXPAND / MINIMIZE CAPABILITIES) -->
+        <section id="sidebar-hud" class="w-full md:w-96 bg-slate-900/30 border-t md:border-t-0 md:border-l border-slate-800/60 p-4 flex flex-col justify-between gap-4 shrink-0 overflow-y-auto z-30 transition-all duration-300">
+            
+            <div class="w-full space-y-4">
+                <!-- Projections & Collapsible Controls -->
+                <div class="flex justify-between items-center w-full bg-slate-950 p-2.5 rounded-xl border border-slate-800/40">
+                    <span class="font-bold text-slate-400" id="projection-lbl">Projection Matrix (3D)</span>
+                    <div class="flex gap-2">
+                        <button onclick="WorldEngine.toggleProjection()" class="bg-slate-800 hover:bg-slate-700 px-2.5 py-1 rounded-lg text-[10px] font-black tracking-wider transition-all font-sans">Toggle View</button>
+                        <button onclick="WorldEngine.toggleSidebar()" class="bg-rose-900/80 hover:bg-rose-800 px-2.5 py-1 rounded-lg text-[10px] font-black tracking-wider transition-all border border-rose-500/30 text-rose-200">Minimize HUD</button>
+                    </div>
+                </div>
+
+                <!-- Globe Canvas Frame -->
+                <div class="relative flex items-center justify-center bg-slate-950 rounded-xl p-3 border border-slate-900/60 w-full h-64 overflow-hidden">
+                    <canvas id="globeCanvas" onclick="WorldEngine.handleCanvasClick(event)" class="w-56 h-56 border border-slate-800/30 rounded-full cursor-crosshair bg-slate-950 shadow-inner"></canvas>
+                    <div class="absolute bottom-2 left-2 flex gap-1 bg-slate-950/80 px-2 py-1 rounded border border-slate-800/50 pointer-events-none font-mono text-[9px] text-slate-400">
+                        <span>FPS:</span><span id="fps" class="text-indigo-400 font-bold">--</span>
+                    </div>
+                </div>
+
+                <!-- POI Inspector Panel -->
+                <div id="poi-inspector" class="hidden bg-indigo-950/30 border border-indigo-500/30 p-3 rounded-xl space-y-3 animate-fade-in font-sans">
+                    <div class="flex justify-between items-center font-sans">
+                        <span class="font-bold text-indigo-400 uppercase tracking-wide text-[10px]">POI Telemetry Inspector</span>
+                        <button onclick="WorldEngine.closePOIInspector()" class="text-slate-400 hover:text-white font-bold">✕</button>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="flex gap-2">
+                            <div class="flex-1">
+                                <label class="text-[9px] uppercase font-bold text-slate-500">Node Name</label>
+                                <input type="text" id="poi-name" class="w-full bg-slate-900 border border-slate-800 rounded p-1.5 text-xs text-white focus:outline-none" oninput="WorldEngine.updatePOIDetails()">
+                            </div>
+                            <div>
+                                <label class="text-[9px] uppercase font-bold text-slate-500">Classification</label>
+                                <select id="poi-type" class="w-full bg-slate-900 border border-slate-800 rounded p-1.5 text-xs text-slate-300 focus:outline-none" onchange="WorldEngine.updatePOIDetails()">
+                                    <option value="city">🏰 Settlement</option>
+                                    <option value="anomaly">🌀 Quantum Anomaly</option>
+                                    <option value="wonder">🌋 Natural Wonder</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="text-[9px] uppercase font-bold text-slate-500">Interactive Lore / Coordinates</label>
+                            <textarea id="poi-lore" rows="2" class="w-full bg-slate-900 border border-slate-800 rounded p-1.5 text-[10px] text-slate-300 focus:outline-none font-mono" placeholder="A mysterious beacon emits signals from this coordinate sector..." oninput="WorldEngine.updatePOIDetails()"></textarea>
+                        </div>
+                        <div class="flex justify-between gap-2">
+                            <button onclick="WorldEngine.deleteSelectedPOI()" class="bg-rose-950/80 text-rose-300 hover:bg-rose-900 border border-rose-800 px-3 py-1 rounded text-[10px] font-bold transition-all">Deconstruct Node</button>
+                            <button onclick="WorldEngine.AI.synthesizePOILore()" class="bg-indigo-900/80 text-indigo-200 hover:bg-indigo-800 border border-indigo-700 px-3 py-1 rounded text-[10px] font-bold flex items-center gap-1 transition-all">
+                                <span>✨</span> AI Scribe Lore
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ecosystem Diagnostic Dashboard -->
+                <div class="w-full bg-slate-950 border border-slate-800/80 p-3 rounded-xl font-mono text-[11px] space-y-2">
+                    <div class="flex justify-between items-center border-b border-slate-900 pb-1.5">
+                        <span class="text-slate-400 text-[10px] font-bold uppercase tracking-wider">Sector Readings</span>
+                        <span id="o-coordinates" class="text-[10px] text-slate-500 font-mono">X: --, Y: --</span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 text-[10px]">
+                        <div>
+                            <div class="text-slate-500 font-sans">Calculated Biome</div>
+                            <div class="text-indigo-400 font-bold" id="o-biome">Evaluating Biome...</div>
+                        </div>
+                        <div>
+                            <div class="text-slate-500 font-sans">Local Moisture</div>
+                            <div class="text-sky-400 font-bold" id="o-moist">Calculating...</div>
+                        </div>
+                        <div>
+                            <div class="text-slate-500 font-sans">Active Ecosystems</div>
+                            <div class="text-amber-400 font-bold" id="o-cities">Settlements: 0</div>
+                        </div>
+                        <div>
+                            <div class="text-slate-500 font-sans">Biosphere Safety</div>
+                            <div id="o-safety" class="text-emerald-400 font-bold">Stable (Tier-1)</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dynamic Media Frame -->
+            <div class="w-full space-y-2 font-sans">
+                <span class="text-[10px] uppercase font-black text-slate-500 tracking-wider">Planetary Archive Artifact</span>
+                <div id="sidebar-img-frame" class="w-full h-24 bg-slate-950 rounded-xl border border-slate-800/60 flex items-center justify-center overflow-hidden text-slate-500 italic text-[10px] relative shadow-inner">
+                    No visual vector attached
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // Stellar Link API Configurations
+        let api_key_override = ""; 
+
+        const WorldEngine = {
+            data: { 
+                id: "w_"+Math.floor(Math.random()*99999), 
+                name: "Tenebris Prime", 
+                tab: "physics", 
+                vMode: "3d", 
+                m: 1.0, 
+                r: 1.0, 
+                d: 1.0, 
+                g: 1.0, 
+                c_gov: "Decentralized stellar trading guilds run via distributed network consensus engines.", 
+                c_customs: "Sabbaticals of total planetary dynamic silence to honor celestial cycles.", 
+                c_beliefs: "All carbon-based thought processes are biological computational substrates of a broader galactic AI matrix.", 
+                c_cosmo: "The system star is believed to be an artificial Dyson matrix harboring ancestors' minds.", 
+                notes: "Planetary scouts identified non-natural radio anomalies originating from subterranean ocean rifts.", 
+                imgData: "", 
+                cities: [] // Each element: {x, y, name, type: 'city'|'anomaly'|'wonder', lore: ''}
+            },
+            
+            matrices: {
+                norse: { pre: ["Thor", "Sig", "Bjorn", "Ragnar", "Ivar", "Odin", "Gunnar"], suf: ["stein", "mund", "kell", "geir", "vald", "heim", "gard"], t: ["the Defiant", "Sunder-Shield", "Deep-Seer"] },
+                roman: { pre: ["Gaius", "Marcus", "Lucius", "Publius", "Augustus", "Aurelius"], suf: ["Julius", "Cornelius", "Claudius", "Fabius", "Tiberius"], t: ["Magnus", "Africanus", "Victor"] },
+                nahuatl: { pre: ["Moctez", "Quetzal", "Ahuitz", "Itz", "Tenoch", "Xochi"], suf: ["uma", "coatl", "otl", "emoc", "pipil", "ca"], t: ["Tlatoani", "Obsidian Heart", "Heavens Gate"] },
+                anglosaxon: { pre: ["Aethel", "Cyn", "Ead", "Wulf", "Beo", "God"], suf: ["stan", "ward", "ric", "wine", "mund", "wulf"], t: ["of Wessex", "Iron-Arm", "Shield-Scribe"] }
+            },
+            
+            rotationAngle: 0,
+            canvasContext: null,
+            orbitCanvasContext: null,
+            lastFrameTime: performance.now(),
+            fpsCounter: 0,
+            selectedPOIIndex: null,
+            activeBrush: null, // "mountain", "flatland", "ocean", "river"
+            orbitAngle: 0,
+            sidebarCollapsed: false,
+
+            updateCustomAPIKey(val) {
+                api_key_override = val.trim();
+                this.showToast("Stellar Link parameters synced!", "🔑");
+            },
+
+            setBrush(type) {
+                this.activeBrush = type;
+                ["mountain", "flatland", "ocean", "river", "none"].forEach(b => {
+                    const el = document.getElementById("b-" + b);
+                    if (el) {
+                        if (b === (type || 'none')) {
+                            el.className = "px-2 py-1 rounded bg-indigo-600 text-white font-bold text-[10px]";
+                        } else {
+                            el.className = "px-2 py-1 rounded bg-slate-900 hover:bg-slate-800 text-[10px]";
+                        }
+                    }
+                });
+                if (type) {
+                    this.showToast(`Brush active: ${type}. Draw on 2D map.`, "🖌️");
+                }
+            },
+
+            toggleSidebar() {
+                const sidebar = document.getElementById("sidebar-hud");
+                const floatingButton = document.getElementById("floating-hud-toggle");
+                
+                this.sidebarCollapsed = !this.sidebarCollapsed;
+                
+                if (this.sidebarCollapsed) {
+                    sidebar.classList.add("hidden");
+                    sidebar.classList.remove("flex");
+                    floatingButton.classList.remove("hidden");
+                    this.showToast("HUD minimized. Sliders fully visible.", "🔍");
+                } else {
+                    sidebar.classList.remove("hidden");
+                    sidebar.classList.add("flex");
+                    floatingButton.classList.add("hidden");
+                    this.showToast("HUD maximized.", "👁️");
+                }
+                this.evaluateAndRepaint();
+            },
+
+            MapEngine: {
+                gridWidth: 64, gridHeight: 64, terrainGrid: [], noiseSeed: Math.random(),
+                
+                rawNoise(x, y) { 
+                    let n = Math.sin(x * 12.9898 + y * 78.233 + this.noiseSeed) * 43758.5453123; 
+                    return n - Math.floor(n); 
+                },
+                
+                smoothNoise(x, y) {
+                    let s = 0.09, fx = x * s, fy = y * s, ix = Math.floor(fx), iy = Math.floor(fy), tx = fx - ix, ty = fy - iy;
+                    let sx = tx * tx * (3 - 2 * tx), sy = ty * ty * (3 - 2 * ty);
+                    return (this.rawNoise(ix,iy) + sx*(this.rawNoise(ix+1,iy) - this.rawNoise(ix,iy))) + sy*((this.rawNoise(ix,iy+1) + sx*(this.rawNoise(ix+1,iy+1) - this.rawNoise(ix,iy+1))) - (this.rawNoise(ix,iy) + sx*(this.rawNoise(ix+1,iy) - this.rawNoise(ix,iy))));
+                },
+
+                generateWorldMap() {
+                    this.terrainGrid = []; 
+                    this.noiseSeed = Math.random(); 
+                    WorldEngine.data.cities = [];
+                    WorldEngine.selectedPOIIndex = null;
+                    document.getElementById("poi-inspector").classList.add("hidden");
+
+                    for (let y = 0; y < this.gridHeight; y++) {
+                        let row = [], lat = Math.abs(y - 32) / 32;
+                        for (let x = 0; x < this.gridWidth; x++) {
+                            let el = (this.smoothNoise(x,y) + this.smoothNoise(x*2,y*2)*0.5) / 1.5;
+                            let type = el > 0.84 ? "mountain" : el > 0.68 ? "hills" : el > 0.38 ? "flatland" : "ocean";
+                            row.push({ x, y, elevation: el, baseMoisture: this.smoothNoise(x+500, y+500), latitude: lat, type, hasRiver: false });
+                        }
+                        this.terrainGrid.push(row);
+                    }
+                    this.generateRivers(8); 
+                    WorldEngine.evaluateAndRepaint();
+                    WorldEngine.showToast("Synthetic Biosphere matrices initialized", "🌍");
+                },
+
+                generateRivers(count) {
+                    for (let r = 0; r < count; r++) {
+                        let cell = this.terrainGrid[Math.floor(Math.random()*64)][Math.floor(Math.random()*64)];
+                        if (cell.type !== "mountain" && cell.type !== "hills") continue;
+                        for (let s = 0; s < 30; s++) {
+                            cell.hasRiver = true; 
+                            let lowest = null, e = cell.elevation;
+                            for (let dy = -1; dy <= 1; dy++) {
+                                for (let dx = -1; dx <= 1; dx++) {
+                                    let ny = cell.y + dy, nx = (cell.x + dx + 64) % 64;
+                                    if (ny >= 0 && ny < 64 && this.terrainGrid[ny][nx].elevation < e) { 
+                                        e = this.terrainGrid[ny][nx].elevation; 
+                                        lowest = this.terrainGrid[ny][nx]; 
+                                    }
+                                }
+                            }
+                            if (!lowest || lowest.type === "ocean") { 
+                                if (lowest) lowest.hasRiver = true; 
+                                break; 
+                            }
+                            cell = lowest;
+                        }
+                    }
+                },
+
+                getCellClimateColor(c, gt, gp) {
+                    let lt = gt + (c.baseMoisture * 6) - (c.latitude * 24) - (c.elevation * 15);
+                    if (c.type === "ocean") return lt < -1 ? "#1e3a8a" : "#0284c7";
+                    if (c.hasRiver) return "#22d3ee";
+                    if (c.type === "mountain") return lt < 0 ? "#ffffff" : "#64748b";
+                    if (lt < -4) return "#cbd5e1";
+                    return lt < 12 ? (gp < 1.6 ? "#86efac" : "#14532d") : (gp < 1.8 ? "#fef08a" : "#166534");
+                }
+            },
+
+            init() {
+                const canvas = document.getElementById("globeCanvas");
+                canvas.width = 224;
+                canvas.height = 224;
+                this.canvasContext = canvas.getContext("2d");
+
+                const orbitCanvas = document.getElementById("orbitCanvas");
+                orbitCanvas.width = 300;
+                orbitCanvas.height = 250;
+                this.orbitCanvasContext = orbitCanvas.getContext("2d");
+
+                // Storage recovery
+                const cache = localStorage.getItem("omniscribe_world_cache");
+                if (cache) { 
+                    try { 
+                        this.data = Object.assign({}, this.data, JSON.parse(cache)); 
+                    } catch(e) {} 
+                }
+                if(localStorage.getItem("omniscribe_img_blob")) {
+                    this.data.imgData = localStorage.getItem("omniscribe_img_blob");
+                }
+                
+                this.syncDOMInputFields(); 
+                this.MapEngine.generateWorldMap(); 
+                this.startRenderLoop();
+            },
+
+            mutate(k, v) { 
+                this.data[k] = (isNaN(v) || v === "") ? v : parseFloat(v); 
+                this.saveToStorage();
+                this.evaluateAndRepaint(); 
+            },
+
+            saveToStorage() {
+                const saveState = Object.assign({}, this.data);
+                delete saveState.imgData; // Exclude raw base64 graphics from regular object JSON sizes
+                localStorage.setItem("omniscribe_world_cache", JSON.stringify(saveState));
+            },
+
+            syncDOMInputFields() {
+                ["m", "r", "d", "g"].forEach(k => { 
+                    if(document.getElementById(k)) document.getElementById(k).value = this.data[k]; 
+                });
+                
+                document.getElementById('f-name').value = this.data.name || '';
+                document.getElementById('c-gov').value = this.data.c_gov || '';
+                document.getElementById('c-customs').value = this.data.c_customs || '';
+                document.getElementById('c-beliefs').value = this.data.c_beliefs || '';
+                document.getElementById('c-cosmo').value = this.data.c_cosmo || '';
+                document.getElementById('f-notes').value = this.data.notes || '';
+                
+                if(this.data.imgData) this.displayStoredImage();
+            },
+
+            switchTab(tabId) { 
+                this.data.tab = tabId; 
+                ["physics", "culture", "nomenclature", "ai_scribe", "system_orbits"].forEach(t => {
+                    const view = document.getElementById("p-" + t);
+                    const nav = document.getElementById("n-" + t);
+                    if (t === tabId) {
+                        view.classList.remove("hidden");
+                        nav.classList.add("bg-indigo-900/40", "text-indigo-200", "border-l-2", "border-indigo-500");
+                        nav.classList.remove("text-slate-400");
+                    } else {
+                        view.classList.add("hidden");
+                        nav.classList.remove("bg-indigo-900/40", "text-indigo-200", "border-l-2", "border-indigo-500");
+                        nav.classList.add("text-slate-400");
+                    }
+                });
+
+                // Show painting tools if they are on physics tab and 2D mode is selected
+                this.syncPaintPanelVisibility();
+            },
+
+            syncPaintPanelVisibility() {
+                const panel = document.getElementById("paint-panel");
+                if (this.data.tab === "physics" && this.data.vMode === "2d") {
+                    panel.classList.remove("hidden");
+                } else {
+                    panel.classList.add("hidden");
+                    this.setBrush(null);
+                }
+            },
+
+            toggleProjection() { 
+                this.data.vMode = this.data.vMode === "2d" ? "3d" : "2d"; 
+                document.getElementById("projection-lbl").innerText = `Projection Matrix (${this.data.vMode.toUpperCase()})`; 
+                this.syncPaintPanelVisibility();
+                this.evaluateAndRepaint(); 
+            },
+
+            handleCanvasClick(event) {
+                const canvas = document.getElementById("globeCanvas"), rect = canvas.getBoundingClientRect();
+                
+                // Real touch coordinates mapping ratio calculation
+                let clickX = ((event.clientX - rect.left) / rect.width) * canvas.width;
+                let clickY = ((event.clientY - rect.top) / rect.height) * canvas.height;
+                let gx, gy;
+                
+                if (this.data.vMode === "2d") {
+                    gx = Math.floor((clickX / canvas.width) * 64); 
+                    gy = Math.floor((clickY / canvas.height) * 64);
+                } else {
+                    let cx = canvas.width / 2, cy = canvas.height / 2, r = 90, dx = clickX - cx, dy = clickY - cy;
+                    if (dx*dx + dy*dy > r*r) return;
+                    let phi = Math.asin(Math.max(-1, Math.min(1, dy / r))); 
+                    let theta = Math.atan2(dx, Math.sqrt(r*r - dx*dx - dy*dy)) - this.rotationAngle;
+                    
+                    // Depth testing: avoid placing nodes through back side of globe
+                    let depthTestLong = ((theta + Math.PI) / (Math.PI * 2)) * 64;
+                    let checkCos = Math.cos(theta + this.rotationAngle);
+                    if (checkCos < 0) return; // Prevent clicking on hidden backface
+
+                    gx = Math.floor(((theta + Math.PI) / (Math.PI * 2)) * 64); 
+                    gx = ((gx % 64) + 64) % 64;
+                    gy = Math.floor(((phi + Math.PI / 2) / Math.PI) * 64);
+                }
+
+                if (gy >= 0 && gy < 64 && gx >= 0 && gx < 64) {
+                    // Sandbox Paint Brush Logic
+                    if (this.activeBrush && this.data.vMode === "2d") {
+                        let cell = this.MapEngine.terrainGrid[gy][gx];
+                        if (this.activeBrush === "mountain") {
+                            cell.type = "mountain";
+                            cell.elevation = 0.9;
+                        } else if (this.activeBrush === "flatland") {
+                            cell.type = "flatland";
+                            cell.elevation = 0.5;
+                            cell.hasRiver = false;
+                        } else if (this.activeBrush === "ocean") {
+                            cell.type = "ocean";
+                            cell.elevation = 0.1;
+                            cell.hasRiver = false;
+                        } else if (this.activeBrush === "river") {
+                            cell.hasRiver = true;
+                        }
+                        this.evaluateAndRepaint();
+                        return;
+                    }
+
+                    const clickedPOIIndex = this.data.cities.findIndex(poi => poi.x === gx && poi.y === gy);
+                    
+                    if (clickedPOIIndex !== -1) {
+                        this.openPOIInspector(clickedPOIIndex);
+                        return;
+                    }
+
+                    let cell = this.MapEngine.terrainGrid[gy][gx];
+                    if (cell.type === "ocean" && Math.random() < 0.7) {
+                        this.showToast("Unstable Hydrosphere coordinates. Try a continental plate.", "⚠️");
+                        return;
+                    }
+
+                    const cultType = document.getElementById("n-cult").value || "norse";
+                    const m = this.matrices[cultType];
+                    const name = m.pre[Math.floor(Math.random()*m.pre.length)] + m.suf[Math.floor(Math.random()*m.suf.length)];
+                    
+                    const newPOI = { 
+                        x: gx, 
+                        y: gy, 
+                        name: name, 
+                        type: cell.type === "ocean" ? "wonder" : "city", 
+                        lore: `A localized coordinate region presenting rich physical markers and historical interest.` 
+                    };
+                    
+                    this.data.cities.push(newPOI);
+                    this.saveToStorage();
+                    this.openPOIInspector(this.data.cities.length - 1);
+                    this.showToast(`Node anchored: ${name}`, "📍");
+                    this.evaluateAndRepaint();
+                }
+            },
+
+            openPOIInspector(idx) {
+                this.selectedPOIIndex = idx;
+                const poi = this.data.cities[idx];
+                const panel = document.getElementById("poi-inspector");
+                panel.classList.remove("hidden");
+                
+                document.getElementById("poi-name").value = poi.name;
+                document.getElementById("poi-type").value = poi.type || "city";
+                document.getElementById("poi-lore").value = poi.lore || "";
+                
+                document.getElementById("o-coordinates").innerText = `Lat: ${(90 - (poi.y/64)*180).toFixed(1)}°, Long: ${((poi.x/64)*360 - 180).toFixed(1)}°`;
+                this.evaluateAndRepaint();
+            },
+
+            closePOIInspector() {
+                this.selectedPOIIndex = null;
+                document.getElementById("poi-inspector").classList.add("hidden");
+                document.getElementById("o-coordinates").innerText = "X: --, Y: --";
+            },
+
+            updatePOIDetails() {
+                if (this.selectedPOIIndex === null) return;
+                const poi = this.data.cities[this.selectedPOIIndex];
+                poi.name = document.getElementById("poi-name").value;
+                poi.type = document.getElementById("poi-type").value;
+                poi.lore = document.getElementById("poi-lore").value;
+                this.saveToStorage();
+            },
+
+            deleteSelectedPOI() {
+                if (this.selectedPOIIndex === null) return;
+                this.data.cities.splice(this.selectedPOIIndex, 1);
+                this.saveToStorage();
+                this.closePOIInspector();
+                this.showToast("Coordinate anchor dissolved", "🗑️");
+                this.evaluateAndRepaint();
+            },
+
+            handleImageUpload(input) {
+                if (input.files && input.files[0]) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => { 
+                        this.data.imgData = e.target.result;
+                        localStorage.setItem("omniscribe_img_blob", e.target.result);
+                        this.displayStoredImage();
+                        this.showToast("Visual sector rasterized", "🖼️");
+                    };
+                    reader.readAsDataURL(input.files[0]);
+                }
+            },
+
+            displayStoredImage() {
+                const frame = document.getElementById("sidebar-img-frame");
+                if (this.data.imgData) {
+                    frame.innerHTML = `<img src="${this.data.imgData}" class="w-full h-full object-cover">`;
+                } else {
+                    frame.innerHTML = "No visual vector attached";
+                }
+            },
+
+            generateNames() {
+                const cultType = document.getElementById("n-cult").value;
+                const m = this.matrices[cultType];
+                const list = document.getElementById("n-list");
+                list.innerHTML = "";
+                
+                for(let i=0; i<6; i++) {
+                    const base = m.pre[Math.floor(Math.random()*m.pre.length)] + m.suf[Math.floor(Math.random()*m.suf.length)];
+                    const title = m.t[Math.floor(Math.random()*m.t.length)];
+                    const li = document.createElement("li");
+                    li.className = "bg-slate-900/60 p-2.5 rounded-lg border border-slate-800 text-center text-xs tracking-wider capitalize text-emerald-400 font-bold hover:border-indigo-500/50 transition-all cursor-pointer";
+                    li.innerText = `${base} ${title}`;
+                    li.onclick = () => {
+                        if (this.selectedPOIIndex !== null) {
+                            document.getElementById("poi-name").value = base;
+                            this.updatePOIDetails();
+                            this.showToast(`Named node: ${base}`, "📜");
+                        }
+                    };
+                    list.appendChild(li);
+                }
+                this.showToast("Phonetic systems parsed", "📜");
+            },
+
+            clearCache() {
+                localStorage.removeItem("omniscribe_world_cache");
+                localStorage.removeItem("omniscribe_img_blob");
+                this.data.cities = [];
+                this.data.imgData = "";
+                this.data.name = "Sector Unknown";
+                this.data.notes = "";
+                this.data.c_gov = "";
+                this.data.c_customs = "";
+                this.data.c_beliefs = "";
+                this.data.c_cosmo = "";
+                this.syncDOMInputFields();
+                document.getElementById("sidebar-img-frame").innerHTML = "No visual vector attached";
+                this.MapEngine.generateWorldMap();
+                this.showToast("Local memory matrices purged", "🧹");
+            },
+
+            exportArchive() {
+                const payload = JSON.stringify(this.data, null, 2);
+                const blob = new Blob([payload], { type: "application/json" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = `${this.data.name.toLowerCase().replace(/\s+/g, "_")}_stellar_archive.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                this.showToast("System archive synthesized!", "💾");
+            },
+
+            showToast(msg, icon = "⚡") {
+                const toast = document.getElementById("toast");
+                document.getElementById("toast-msg").innerText = msg;
+                document.getElementById("toast-icon").innerText = icon;
+                toast.classList.remove("translate-y-[-120px]", "opacity-0");
+                toast.classList.add("translate-y-0", "opacity-100");
+                setTimeout(() => {
+                    toast.classList.remove("translate-y-0", "opacity-100");
+                    toast.classList.add("translate-y-[-120px]", "opacity-0");
+                }, 3500);
+            },
+
+            evaluateAndRepaint() {
+                document.getElementById("p-title").innerText = `| ${this.data.name || 'Terra Incognita'}`;
+
+                const gravity = this.data.m / (this.data.r * this.data.r);
+                const calculatedTemp = 15.0 + (this.data.g * 11.5) - ((this.data.r - 1.0) * 16) - ((this.data.m - 1.0) * 4);
+                const atmDensity = 1.225 * this.data.d * (1.0 + (gravity - 1.0)*0.3);
+                
+                document.getElementById("o-grav").innerText = `${gravity.toFixed(2)}g`;
+                document.getElementById("v-m").innerText = `${this.data.m.toFixed(2)} M⊕`;
+                document.getElementById("v-r").innerText = `${this.data.r.toFixed(2)} R⊕`;
+                document.getElementById("v-d").innerText = `${this.data.d.toFixed(1)} atm`;
+                document.getElementById("v-g").innerText = `${this.data.g.toFixed(1)}x`;
+                document.getElementById("o-temp").innerText = `${calculatedTemp.toFixed(1)}°C`;
+                document.getElementById("o-density").innerText = `${atmDensity.toFixed(3)} kg/m³`;
+                document.getElementById("o-cities").innerText = `POI Nodes Active: ${this.data.cities.length}`;
+
+                // Recalculate Atmosphere composition visually
+                const co2pct = Math.min(10, 0.5 * this.data.g);
+                const o2pct = Math.max(0, 21.0 - (co2pct - 0.5) - ((gravity - 1.0)*4));
+                const arpct = Math.min(5, 0.5 * this.data.d);
+                const n2pct = 100 - co2pct - o2pct - arpct;
+
+                document.getElementById("gas-n2").style.width = `${n2pct}%`;
+                document.getElementById("gas-o2").style.width = `${o2pct}%`;
+                document.getElementById("gas-co2").style.width = `${co2pct}%`;
+                document.getElementById("gas-ar").style.width = `${arpct}%`;
+
+                document.getElementById("val-n2").innerText = `${n2pct.toFixed(1)}%`;
+                document.getElementById("val-o2").innerText = `${o2pct.toFixed(1)}%`;
+                document.getElementById("val-co2").innerText = `${co2pct.toFixed(1)}%`;
+                document.getElementById("val-ar").innerText = `${arpct.toFixed(1)}%`;
+
+                // Recalculate orbit system metrics
+                const rawPeriod = Math.pow(this.data.r * 1.5, 1.5) * 365.25;
+                document.getElementById("orbital-distance").innerText = `${(this.data.r * 1.05).toFixed(2)} AU`;
+                document.getElementById("orbital-year").innerText = `${rawPeriod.toFixed(1)} Standard Days`;
+
+                let hazardText = "Low (G-Class)";
+                let hazardColor = "text-emerald-400";
+                if (gravity > 2.2 || calculatedTemp > 45 || calculatedTemp < -15 || this.data.d > 5.0) {
+                    hazardText = "Extreme (Hazard Tier V)";
+                    hazardColor = "text-rose-500";
+                } else if (gravity > 1.5 || calculatedTemp > 30 || calculatedTemp < -5 || this.data.d > 2.0) {
+                    hazardText = "Moderate (Sub-Optimal)";
+                    hazardColor = "text-amber-400";
+                }
+                const hazardLabel = document.getElementById("o-hazard");
+                hazardLabel.innerText = hazardText;
+                hazardLabel.className = `${hazardColor} font-bold text-sm mt-0.5`;
+
+                const safetyLabel = document.getElementById("o-safety");
+                if (hazardText.includes("Extreme")) {
+                    safetyLabel.innerText = "Hostile Biosphere";
+                    safetyLabel.className = "text-rose-500 font-bold";
+                } else if (hazardText.includes("Moderate")) {
+                    safetyLabel.innerText = "Challenging Habitability";
+                    safetyLabel.className = "text-amber-400 font-bold";
+                } else {
+                    safetyLabel.innerText = "Ideal Life Conditions";
+                    safetyLabel.className = "text-emerald-400 font-bold";
+                }
+
+                if(this.MapEngine.terrainGrid.length > 0) {
+                    let searchX = 32, searchY = 32;
+                    if (this.selectedPOIIndex !== null) {
+                        searchX = this.data.cities[this.selectedPOIIndex].x;
+                        searchY = this.data.cities[this.selectedPOIIndex].y;
+                    }
+                    const cell = this.MapEngine.terrainGrid[searchY][searchX];
+                    const moistureVal = cell.baseMoisture * 100;
+                    document.getElementById("o-moist").innerText = `${moistureVal.toFixed(0)}% Moisture`;
+                    
+                    let biomeType = "Permafrost Tundra";
+                    if (calculatedTemp > 24) {
+                        biomeType = cell.baseMoisture > 0.5 ? "Xerophilic Rain Forest" : "Hyper-Arid Dunes";
+                    } else if (calculatedTemp > 6) {
+                        biomeType = cell.baseMoisture > 0.65 ? "Equatorial Forest" : cell.baseMoisture > 0.35 ? "Deciduous Woods" : "Savannah / Scrub";
+                    } else if (calculatedTemp < -10) {
+                        biomeType = "Glacial Continental Ice";
+                    }
+                    if (cell.type === "ocean") biomeType = "Tidal Deep ocean";
+                    document.getElementById("o-biome").innerText = biomeType;
+                }
+                
+                this.paintCanvas(calculatedTemp, this.data.d);
+            },
+
+            paintCanvas(gt, gp) {
+                const ctx = this.canvasContext;
+                if(!ctx) return;
+                
+                const w = 224, h = 224;
+                ctx.clearRect(0, 0, w, h);
+
+                if (this.data.vMode === "2d") {
+                    const cellSize = 224 / 64;
+                    for (let y = 0; y < 64; y++) {
+                        for (let x = 0; x < 64; x++) {
+                            const c = this.MapEngine.terrainGrid[y][x];
+                            ctx.fillStyle = this.MapEngine.getCellClimateColor(c, gt, gp);
+                            ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
+                        }
+                    }
+
+                    // Tactical grid overlay lines (blends beautifully as a HUD)
+                    ctx.strokeStyle = "rgba(99, 102, 241, 0.15)";
+                    ctx.lineWidth = 0.5;
+                    for (let i = 0; i <= 224; i += 16) {
+                        ctx.beginPath();
+                        ctx.moveTo(i, 0); ctx.lineTo(i, 224);
+                        ctx.stroke();
+                        ctx.beginPath();
+                        ctx.moveTo(0, i); ctx.lineTo(224, i);
+                        ctx.stroke();
+                    }
+
+                    this.data.cities.forEach((poi, index) => {
+                        ctx.fillStyle = this.selectedPOIIndex === index ? "#ff007f" : (poi.type === "anomaly" ? "#a855f7" : (poi.type === "wonder" ? "#ef4444" : "#f59e0b"));
+                        ctx.beginPath();
+                        ctx.arc(poi.x * cellSize + cellSize/2, poi.y * cellSize + cellSize/2, this.selectedPOIIndex === index ? 4.5 : 3, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.strokeStyle = "#ffffff";
+                        ctx.lineWidth = 0.8;
+                        ctx.stroke();
+                    });
+                } else {
+                    const cx = w / 2, cy = h / 2, r = 90;
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.arc(cx, cy, r, 0, Math.PI*2);
+                    ctx.clip();
+                    ctx.fillStyle = "#020617";
+                    ctx.fillRect(0, 0, w, h);
+
+                    for (let y = 0; y < 64; y++) {
+                        let latitude = ((y / 64) * Math.PI) - (Math.PI / 2);
+                        let cosLat = Math.cos(latitude);
+                        let sinLat = Math.sin(latitude);
+                        let sy = cy + r * sinLat;
+
+                        for (let x = 0; x < 64; x++) {
+                            let longitude = ((x / 64) * Math.PI * 2) - Math.PI + this.rotationAngle;
+                            let cosLong = Math.cos(longitude);
+                            
+                            if (cosLong < 0) continue; 
+                            let sx = cx + r * cosLat * Math.sin(longitude);
+
+                            const c = this.MapEngine.terrainGrid[y][x];
+                            ctx.fillStyle = this.MapEngine.getCellClimateColor(c, gt, gp);
+                            
+                            let pSize = Math.max(1, Math.ceil(4 * cosLat * cosLong));
+                            ctx.fillRect(sx - pSize/2, sy - pSize/2, pSize, pSize);
+                        }
+                    }
+
+                    this.data.cities.forEach((poi, index) => {
+                        let latitude = ((poi.y / 64) * Math.PI) - (Math.PI / 2);
+                        let longitude = ((poi.x / 64) * Math.PI * 2) - Math.PI + this.rotationAngle;
+                        let cosLong = Math.cos(longitude);
+                        
+                        if (cosLong >= 0) {
+                            let cosLat = Math.cos(latitude);
+                            let sinLat = Math.sin(latitude);
+                            let sx = cx + r * cosLat * Math.sin(longitude);
+                            let sy = cy + r * sinLat;
+                            
+                            ctx.fillStyle = this.selectedPOIIndex === index ? "#ff007f" : (poi.type === "anomaly" ? "#c084fc" : (poi.type === "wonder" ? "#f87171" : "#fbbf24"));
+                            ctx.beginPath();
+                            ctx.arc(sx, sy, this.selectedPOIIndex === index ? 5.5 : 4, 0, Math.PI * 2);
+                            ctx.fill();
+                            ctx.strokeStyle = "#ffffff";
+                            ctx.lineWidth = 1;
+                            ctx.stroke();
+                        }
+                    });
+
+                    ctx.restore();
+
+                    const gradient = ctx.createRadialGradient(cx, cy, r - 5, cx, cy, r + 6);
+                    gradient.addColorStop(0, "rgba(99, 102, 241, 0)");
+                    gradient.addColorStop(0.5, "rgba(99, 102, 241, 0.25)");
+                    gradient.addColorStop(1, "rgba(99, 102, 241, 0)");
+                    ctx.strokeStyle = gradient;
+                    ctx.lineWidth = 10;
+                    ctx.beginPath();
+                    ctx.arc(cx, cy, r + 3, 0, Math.PI*2);
+                    ctx.stroke();
+
+                    ctx.strokeStyle = "rgba(129, 140, 248, 0.35)";
+                    ctx.lineWidth = 1.2;
+                    ctx.beginPath();
+                    ctx.arc(cx, cy, r, 0, Math.PI*2);
+                    ctx.stroke();
+                }
+            },
+
+            paintOrbitCanvas() {
+                const ctx = this.orbitCanvasContext;
+                if (!ctx) return;
+
+                const w = 300, h = 250;
+                ctx.clearRect(0, 0, w, h);
+
+                const cx = w / 2, cy = h / 2;
+
+                // Draw Stellar Star (Host star)
+                ctx.beginPath();
+                ctx.arc(cx, cy, 18, 0, Math.PI * 2);
+                ctx.fillStyle = "#eab308";
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = "#f59e0b";
+                ctx.fill();
+                ctx.shadowBlur = 0; // reset shadow
+
+                // Draw Kepler Orbit Path Ring
+                const semiMajor = 75 * (this.data.r * 1.05);
+                ctx.beginPath();
+                ctx.arc(cx, cy, semiMajor, 0, Math.PI * 2);
+                ctx.strokeStyle = "rgba(99, 102, 241, 0.2)";
+                ctx.lineWidth = 1;
+                ctx.stroke();
+
+                // Orbit Planet translation position (relative to time loops)
+                const px = cx + semiMajor * Math.cos(this.orbitAngle);
+                const py = cy + semiMajor * Math.sin(this.orbitAngle);
+
+                ctx.beginPath();
+                ctx.arc(px, py, Math.max(2, 6 * this.data.r), 0, Math.PI * 2);
+                ctx.fillStyle = "#3b82f6";
+                ctx.shadowBlur = 6;
+                ctx.shadowColor = "#60a5fa";
+                ctx.fill();
+                ctx.shadowBlur = 0;
+
+                // Simple orbital coordinate tracer vectors
+                ctx.strokeStyle = "rgba(99, 102, 241, 0.4)";
+                ctx.lineWidth = 0.5;
+                ctx.beginPath();
+                ctx.moveTo(cx, cy);
+                ctx.lineTo(px, py);
+                ctx.stroke();
+            },
+
+            startRenderLoop() {
+                const animate = (timestamp) => {
+                    this.fpsCounter++;
+                    if (timestamp > this.lastFrameTime + 1000) {
+                        document.getElementById("fps").innerText = this.fpsCounter;
+                        this.fpsCounter = 0;
+                        this.lastFrameTime = timestamp;
+                    }
+
+                    // Spin the Globe
+                    if (this.data.vMode === "3d") {
+                        this.rotationAngle += 0.0025;
+                    }
+
+                    // Safe speed limits applied to the orbital rotation loop
+                    const orbitSpeedDampener = Math.min(0.04, 0.015 / (this.data.m || 0.1));
+                    this.orbitAngle += orbitSpeedDampener;
+
+                    const gravity = this.data.m / (this.data.r * this.data.r);
+                    const calculatedTemp = 15.0 + (this.data.g * 11.5) - ((this.data.r - 1.0) * 16) - ((this.data.m - 1.0) * 4);
+                    
+                    if (!this.sidebarCollapsed) {
+                        this.paintCanvas(calculatedTemp, this.data.d);
+                    }
+                    
+                    if (this.data.tab === "system_orbits") {
+                        this.paintOrbitCanvas();
+                    }
+
+                    requestAnimationFrame(animate);
+                };
+                requestAnimationFrame(animate);
+            },
+
+            // CORE GEMINI AI SCRIBING SYSTEMS
+            AI: {
+                getEffectiveKey() {
+                    return api_key_override || apiKey || "";
+                },
+
+                generateMockResponse(type, promptContext = "") {
+                    const generators = {
+                        culture: `--- CULTURAL CODEX ANALYSIS: ${WorldEngine.data.name.toUpperCase()} ---
+1. Government Structure:
+A hyper-monitored technocratic network governed by decentralized, localized algorithmic councils. Legislation is auto-optimized based on real-time ecological parameters.
+
+2. Social Customs:
+Residents maintain structural silence regimens during magnetic storms to minimize static interference. Commemorative festivals celebrate the planet's celestial alignment with neighboring planetary moons.
+
+3. Ideological Beliefs:
+Hold the central tenet that biological brains operate as biological physical nodes inside a vast, cosmic quantum array.
+
+4. Cosmology & Mythos:
+Mythology relates that the primary sun represents a massive machine designed by stellar progenitors to harvest spiritual energies.`,
+                        general: `ANOMALY ARCHIVE TRANSCRIPT:
+Planetary logs indicate that the physical coordinates at the active sector reveal localized gravitational fluctuations. Automated probes recorded minor spatial tears, possibly generated during the tectonic alignment event. Standard exploratory safety procedures remain recommended.`
+                    };
+                    return generators[type] || generators.general;
+                },
+
+                async executeAPICall(promptText, systemText = "") {
+                    const activeKey = this.getEffectiveKey();
+                    if (!activeKey) {
+                        await new Promise(resolve => setTimeout(resolve, 1200));
+                        return this.generateMockResponse("culture");
+                    }
+
+                    const maxRetries = 5;
+                    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${activeKey}`;
+                    
+                    const payload = {
+                        contents: [{ parts: [{ text: promptText }] }]
+                    };
+                    if (systemText) {
+                        payload.systemInstruction = { parts: [{ text: systemText }] };
+                    }
+
+                    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+                        try {
+                            const response = await fetch(endpoint, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(payload)
+                            });
+                            
+                            if (response.ok) {
+                                const result = await response.json();
+                                return result.candidates?.[0]?.content?.parts?.[0]?.text || "Empty scribe report.";
+                            }
+                        } catch (e) {
+                            // Suppressed retries per console directives
+                        }
+                        
+                        const delay = Math.pow(2, attempt - 1) * 1000;
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                    }
+                    throw new Error("Planetary link communication failure.");
+                },
+
+                async generateScribeField(type, evt) {
+                    let button = null;
+                    if (evt && evt.currentTarget) {
+                        button = evt.currentTarget;
+                    }
+                    const originalText = button ? button.innerHTML : "";
+                    if (button) {
+                        button.disabled = true;
+                        button.innerHTML = `<span>⏳</span> Analyzing...`;
+                    }
+
+                    const systemPrompt = "You are Omniscribe Core, an advanced world-building AI system. Produce evocative, highly-creative sci-fi/fantasy lore settings. Rely heavily on the planetary physical attributes provided.";
+                    const userPrompt = `Generate a creative, detailed anthropological culture matrix block for a planet named "${WorldEngine.data.name}". 
+                    Planetary Gravity: ${document.getElementById("o-grav").innerText}, Global Surface Temp: ${document.getElementById("o-temp").innerText}.
+                    Generate unique, immersive details for:
+                    1. Government Structure
+                    2. Social Customs
+                    3. Ideological Beliefs
+                    4. Cosmology & Mythos
+                    
+                    Respond in clean, well-organized sections. Keep the tone fascinating and evocative.`;
+
+                    try {
+                        const responseText = await this.executeAPICall(userPrompt, systemPrompt);
+                        
+                        WorldEngine.showToast("Planetary cultural matrix generated!", "✨");
+                        WorldEngine.switchTab("ai_scribe");
+                        document.getElementById("ai-output-container").classList.remove("hidden");
+                        document.getElementById("ai-output").innerText = responseText;
+                    } catch (err) {
+                        WorldEngine.showToast("Failed to establish secure AI channel.", "⚠️");
+                    } finally {
+                        if (button) {
+                            button.disabled = false;
+                            button.innerHTML = originalText;
+                        }
+                    }
+                },
+
+                async generateChronicle() {
+                    const prompt = document.getElementById("ai-prompt").value;
+                    if (!prompt.trim()) {
+                        WorldEngine.showToast("Please enter a custom directive first.", "⚠️");
+                        return;
+                    }
+
+                    const loader = document.getElementById("ai-loader");
+                    const container = document.getElementById("ai-output-container");
+                    const output = document.getElementById("ai-output");
+
+                    loader.classList.remove("hidden");
+                    container.classList.add("hidden");
+
+                    const systemPrompt = `You are a professional world-building designer. Write creative logbooks, scientific journal entries, or historical records that seamlessly mesh with the provided astrophysical variables. Current Planet name: ${WorldEngine.data.name}. Gravity: ${document.getElementById("o-grav").innerText}, Global Temp: ${document.getElementById("o-temp").innerText}, Biome: ${document.getElementById("o-biome").innerText}.`;
+                    
+                    try {
+                        const responseText = await this.executeAPICall(prompt, systemPrompt);
+                        output.innerText = responseText;
+                        container.classList.remove("hidden");
+                        WorldEngine.showToast("Neural Scriptor entry generated!", "✨");
+                    } catch (e) {
+                        WorldEngine.showToast("Scribe communications disconnected.", "⚠️");
+                    } finally {
+                        loader.classList.add("hidden");
+                    }
+                },
+
+                async synthesizePOILore() {
+                    if (WorldEngine.selectedPOIIndex === null) return;
+                    const poi = WorldEngine.data.cities[WorldEngine.selectedPOIIndex];
+                    
+                    WorldEngine.showToast("Consulting quantum sensors...", "✨");
+                    
+                    const systemPrompt = "Write a captivating, short (2-3 sentence) lore description for a Point of Interest in a sci-fi/fantasy world.";
+                    const userPrompt = `Create an atmospheric, mysterious lore description for a Point of Interest named "${poi.name}" which is a ${poi.type} on the planet "${WorldEngine.data.name}". The planet has a surface gravity of ${document.getElementById("o-grav").innerText} and local biome of ${document.getElementById("o-biome").innerText}.`;
+
+                    try {
+                        const responseText = await this.executeAPICall(userPrompt, systemPrompt);
+                        document.getElementById("poi-lore").value = responseText;
+                        WorldEngine.updatePOIDetails();
+                        WorldEngine.showToast("Lore localized to active coordinates!", "✨");
+                    } catch (e) {
+                        WorldEngine.showToast("Lore generation failed.", "⚠️");
+                    }
+                },
+
+                copyOutput() {
+                    const text = document.getElementById("ai-output").innerText;
+                    const el = document.createElement('textarea');
+                    el.value = text;
+                    document.body.appendChild(el);
+                    el.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(el);
+                    WorldEngine.showToast("Lore copied to clipboard!", "📋");
+                }
+            }
+        };
+
+        window.onload = function() {
+            WorldEngine.init();
+            WorldEngine.switchTab("physics");
+        }
+    </script>
+</body>
+</html>
 
 ```
