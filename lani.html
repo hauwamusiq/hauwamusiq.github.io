@@ -78,6 +78,7 @@
             <nav class="flex flex-wrap gap-2" aria-label="Workspace sections">
                 <button class="nav-btn active px-3 py-2 rounded-lg text-sm font-bold transition" data-tab="learn"><i class="fa-solid fa-book-open mr-2"></i>Learn</button>
                 <button class="nav-btn px-3 py-2 rounded-lg text-sm font-bold transition" data-tab="lab"><i class="fa-solid fa-flask-vial mr-2"></i>Lab</button>
+                <button class="nav-btn px-3 py-2 rounded-lg text-sm font-bold transition" data-tab="simulator"><i class="fa-solid fa-chart-line mr-2"></i>Simulate</button>
                 <button class="nav-btn px-3 py-2 rounded-lg text-sm font-bold transition" data-tab="research"><i class="fa-solid fa-magnifying-glass-chart mr-2"></i>Research</button>
                 <button class="nav-btn px-3 py-2 rounded-lg text-sm font-bold transition" data-tab="notebook"><i class="fa-solid fa-clipboard-list mr-2"></i>Notebook</button>
                 <button class="nav-btn px-3 py-2 rounded-lg text-sm font-bold transition" data-tab="roadmap"><i class="fa-solid fa-route mr-2"></i>Roadmap</button>
@@ -286,6 +287,58 @@
                             <div class="bg-slate-950/60 rounded-xl p-3 border border-slate-800"><span class="text-[10px] text-slate-500 uppercase font-black">Speed</span><strong id="orbit-speed-out" class="block text-xl">--</strong></div>
                         </div>
                     </aside>
+                </div>
+            </section>
+
+            <section id="tab-simulator" class="hidden-tab space-y-6">
+                <div class="glass rounded-2xl p-5 md:p-7">
+                    <h2 class="text-2xl md:text-4xl font-black">Numerical simulation chamber</h2>
+                    <p class="mt-2 text-slate-300 max-w-3xl leading-relaxed">Phase 3 turns the lab from calculators into evolving systems. Start with a damped pendulum, inspect energy, and compare numerical behavior with analytic intuition.</p>
+                </div>
+                <div class="grid grid-cols-1 xl:grid-cols-[420px_1fr] gap-6">
+                    <aside class="glass rounded-2xl p-5 space-y-4">
+                        <h3 class="font-black text-cyan-300"><i class="fa-solid fa-sliders mr-2"></i>Pendulum controls</h3>
+                        <label class="block text-xs text-slate-400">Initial angle: <span id="pend-angle-label" class="mono text-white">45</span> deg</label>
+                        <input id="pend-angle-slider" type="range" min="-170" max="170" step="1" value="45" class="w-full">
+                        <label class="block text-xs text-slate-400">Length: <span id="pend-length-label" class="mono text-white">1.50</span> m</label>
+                        <input id="pend-length-slider" type="range" min="0.3" max="5" step="0.05" value="1.5" class="w-full">
+                        <label class="block text-xs text-slate-400">Gravity: <span id="pend-gravity-label" class="mono text-white">9.81</span> m/s^2</label>
+                        <input id="pend-gravity-slider" type="range" min="1" max="25" step="0.05" value="9.81" class="w-full">
+                        <label class="block text-xs text-slate-400">Damping: <span id="pend-damping-label" class="mono text-white">0.04</span></label>
+                        <input id="pend-damping-slider" type="range" min="0" max="1" step="0.01" value="0.04" class="w-full">
+                        <div class="flex flex-wrap gap-2 pt-2">
+                            <button id="pend-toggle-btn" class="rounded-lg bg-cyan-500 text-slate-950 px-4 py-2 text-sm font-black">Pause</button>
+                            <button id="pend-reset-btn" class="rounded-lg border border-slate-700 px-4 py-2 text-sm font-bold text-slate-200">Reset</button>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="bg-slate-950/60 rounded-xl p-3 border border-slate-800"><span class="text-[10px] text-slate-500 uppercase font-black">Period est.</span><strong id="pend-period-out" class="block text-xl">--</strong></div>
+                            <div class="bg-slate-950/60 rounded-xl p-3 border border-slate-800"><span class="text-[10px] text-slate-500 uppercase font-black">Energy</span><strong id="pend-energy-out" class="block text-xl">--</strong></div>
+                        </div>
+                    </aside>
+                    <section class="glass rounded-2xl p-5 space-y-4">
+                        <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
+                            <div>
+                                <h3 class="font-black text-indigo-300"><i class="fa-solid fa-compass-drafting mr-2"></i>Motion and phase space</h3>
+                                <p id="pend-note" class="mt-1 text-sm text-slate-300 leading-relaxed"></p>
+                            </div>
+                            <span id="pend-state-label" class="mono text-xs text-cyan-200 bg-cyan-500/10 border border-cyan-400/20 rounded-lg px-3 py-2">running</span>
+                        </div>
+                        <canvas id="pendulum-canvas" class="w-full h-80 bg-slate-950/60 rounded-xl border border-slate-800"></canvas>
+                    </section>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <article class="glass rounded-2xl p-5">
+                        <h3 class="text-xs uppercase tracking-widest font-black text-cyan-300 mb-3">Equation</h3>
+                        <p class="text-sm text-slate-300 leading-relaxed">The chamber integrates theta'' = -(g/L)sin(theta) - b theta'. The small-angle shortcut only works when sin(theta) is close to theta.</p>
+                    </article>
+                    <article class="glass rounded-2xl p-5">
+                        <h3 class="text-xs uppercase tracking-widest font-black text-emerald-300 mb-3">Research habit</h3>
+                        <p class="text-sm text-slate-300 leading-relaxed">Change one parameter at a time, predict the result first, then watch the system. That is how simulation becomes physics instead of animation.</p>
+                    </article>
+                    <article class="glass rounded-2xl p-5">
+                        <h3 class="text-xs uppercase tracking-widest font-black text-amber-300 mb-3">Next upgrade path</h3>
+                        <p class="text-sm text-slate-300 leading-relaxed">This chamber can grow into N-body gravity, wave packets, diffusion, numerical ODE solvers, and exportable lab reports.</p>
+                    </article>
                 </div>
             </section>
 
@@ -598,6 +651,13 @@
         let flashFlipped = false;
         let progress = loadProgress();
         let paperNotes = loadPaperNotes();
+        let pendulum = {
+            theta: Math.PI / 4,
+            omega: 0,
+            running: true,
+            lastTime: performance.now(),
+            trace: []
+        };
 
         const $ = id => document.getElementById(id);
 
@@ -766,11 +826,11 @@
 
         function switchTab(tab) {
             activeTab = tab;
-            ["learn", "lab", "research", "notebook", "roadmap"].forEach(name => {
+            ["learn", "lab", "simulator", "research", "notebook", "roadmap"].forEach(name => {
                 $(`tab-${name}`).classList.toggle("hidden-tab", name !== tab);
             });
             document.querySelectorAll(".nav-btn").forEach(btn => btn.classList.toggle("active", btn.dataset.tab === tab));
-            if (tab === "lab") resizeCanvases();
+            if (tab === "lab" || tab === "simulator") resizeCanvases();
         }
 
         function renderResearch() {
@@ -849,6 +909,123 @@
             $("orbit-speed-out").textContent = `${speed.toFixed(1)} km/s`;
         }
 
+        function pendulumParams() {
+            return {
+                angle: Number($("pend-angle-slider").value),
+                length: Number($("pend-length-slider").value),
+                gravity: Number($("pend-gravity-slider").value),
+                damping: Number($("pend-damping-slider").value)
+            };
+        }
+
+        function resetPendulum() {
+            const params = pendulumParams();
+            pendulum.theta = params.angle * Math.PI / 180;
+            pendulum.omega = 0;
+            pendulum.trace = [];
+            pendulum.lastTime = performance.now();
+            updatePendulumTelemetry();
+        }
+
+        function updatePendulumTelemetry() {
+            const params = pendulumParams();
+            const period = 2 * Math.PI * Math.sqrt(params.length / params.gravity);
+            const energy = params.gravity * params.length * (1 - Math.cos(pendulum.theta)) + 0.5 * (params.length * pendulum.omega) ** 2;
+            $("pend-angle-label").textContent = params.angle.toFixed(0);
+            $("pend-length-label").textContent = params.length.toFixed(2);
+            $("pend-gravity-label").textContent = params.gravity.toFixed(2);
+            $("pend-damping-label").textContent = params.damping.toFixed(2);
+            $("pend-period-out").textContent = `${period.toFixed(2)} s`;
+            $("pend-energy-out").textContent = energy.toFixed(2);
+            $("pend-note").textContent = Math.abs(params.angle) > 25
+                ? "Large angles break the simple harmonic approximation, so the real period drifts away from the small-angle estimate."
+                : "Small angles behave almost like a harmonic oscillator, which is why theta and sin(theta) can be compared.";
+            $("pend-state-label").textContent = pendulum.running ? "running" : "paused";
+            $("pend-toggle-btn").textContent = pendulum.running ? "Pause" : "Run";
+        }
+
+        function stepPendulum(dt) {
+            const params = pendulumParams();
+            const maxStep = 1 / 90;
+            let remaining = Math.min(dt, 0.08);
+            while (remaining > 0) {
+                const h = Math.min(maxStep, remaining);
+                const accel = -(params.gravity / params.length) * Math.sin(pendulum.theta) - params.damping * pendulum.omega;
+                pendulum.omega += accel * h;
+                pendulum.theta += pendulum.omega * h;
+                remaining -= h;
+            }
+            pendulum.trace.push({ theta: pendulum.theta, omega: pendulum.omega });
+            if (pendulum.trace.length > 180) pendulum.trace.shift();
+        }
+
+        function drawPendulumSim(now) {
+            if (activeTab !== "simulator") return;
+            const canvas = $("pendulum-canvas");
+            const ctx = canvas.getContext("2d");
+            const w = canvas.clientWidth, h = canvas.clientHeight;
+            if (!w || !h) return;
+            const dt = (now - pendulum.lastTime) / 1000;
+            pendulum.lastTime = now;
+            if (pendulum.running) stepPendulum(dt);
+            updatePendulumTelemetry();
+
+            ctx.clearRect(0, 0, w, h);
+            const split = Math.max(240, w * 0.58);
+            const originX = split * 0.5;
+            const originY = 42;
+            const lengthPixels = Math.min(h * 0.68, split * 0.38);
+            const bobX = originX + Math.sin(pendulum.theta) * lengthPixels;
+            const bobY = originY + Math.cos(pendulum.theta) * lengthPixels;
+
+            ctx.strokeStyle = "rgba(148,163,184,.25)";
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(split, 20);
+            ctx.lineTo(split, h - 20);
+            ctx.stroke();
+
+            ctx.strokeStyle = "rgba(34,211,238,.82)";
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(originX, originY);
+            ctx.lineTo(bobX, bobY);
+            ctx.stroke();
+
+            ctx.fillStyle = "rgba(248,250,252,.96)";
+            ctx.beginPath();
+            ctx.arc(originX, originY, 5, 0, Math.PI * 2);
+            ctx.fill();
+            const gradient = ctx.createRadialGradient(bobX - 6, bobY - 8, 2, bobX, bobY, 18);
+            gradient.addColorStop(0, "rgba(255,255,255,.95)");
+            gradient.addColorStop(0.25, "rgba(34,211,238,.95)");
+            gradient.addColorStop(1, "rgba(79,70,229,.75)");
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.arc(bobX, bobY, 18, 0, Math.PI * 2);
+            ctx.fill();
+
+            const graphX = split + 32;
+            const graphY = 34;
+            const graphW = Math.max(120, w - split - 58);
+            const graphH = h - 68;
+            ctx.strokeStyle = "rgba(148,163,184,.35)";
+            ctx.lineWidth = 1;
+            ctx.strokeRect(graphX, graphY, graphW, graphH);
+            ctx.fillStyle = "rgba(148,163,184,.8)";
+            ctx.font = "12px Inter, sans-serif";
+            ctx.fillText("phase space", graphX, graphY - 10);
+            ctx.strokeStyle = "rgba(129,140,248,.86)";
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            pendulum.trace.forEach((point, index) => {
+                const x = graphX + graphW * (0.5 + point.theta / (Math.PI * 2));
+                const y = graphY + graphH * (0.5 - point.omega / 10);
+                if (index === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+            });
+            ctx.stroke();
+        }
+
         function updateResearchLinks() {
             const query = $("research-query").value.trim() || topics[activeTopic].title;
             const encoded = encodeURIComponent(query);
@@ -913,7 +1090,7 @@
         }
 
         function resizeCanvases() {
-            ["osc-canvas", "field-canvas"].forEach(id => {
+            ["osc-canvas", "field-canvas", "pendulum-canvas"].forEach(id => {
                 const canvas = $(id);
                 if (!canvas.clientWidth || !canvas.clientHeight) return;
                 const ratio = Math.min(devicePixelRatio || 1, 2);
@@ -977,6 +1154,8 @@
             if (activeTab === "lab") {
                 drawOscillator();
                 drawField();
+            } else if (activeTab === "simulator") {
+                drawPendulumSim(performance.now());
             }
             requestAnimationFrame(animateLabs);
         }
@@ -1011,6 +1190,18 @@
             updateDimensions();
         });
         ["orbit-mass-slider", "orbit-radius-slider"].forEach(id => $(id).addEventListener("input", updateOrbit));
+        ["pend-angle-slider", "pend-length-slider", "pend-gravity-slider", "pend-damping-slider"].forEach(id => {
+            $(id).addEventListener("input", () => {
+                if (id === "pend-angle-slider") resetPendulum();
+                updatePendulumTelemetry();
+            });
+        });
+        $("pend-toggle-btn").addEventListener("click", () => {
+            pendulum.running = !pendulum.running;
+            pendulum.lastTime = performance.now();
+            updatePendulumTelemetry();
+        });
+        $("pend-reset-btn").addEventListener("click", resetPendulum);
         $("research-query").addEventListener("input", updateResearchLinks);
         $("save-note-btn").addEventListener("click", saveNotebookEntry);
         $("clear-notes-btn").addEventListener("click", () => {
@@ -1027,6 +1218,7 @@
         updateRelativity();
         updateDimensions();
         updateOrbit();
+        resetPendulum();
         updateResearchLinks();
         renderPaperNotes();
         resizeCanvases();
