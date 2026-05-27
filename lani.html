@@ -79,6 +79,7 @@
                 <button class="nav-btn active px-3 py-2 rounded-lg text-sm font-bold transition" data-tab="learn"><i class="fa-solid fa-book-open mr-2"></i>Learn</button>
                 <button class="nav-btn px-3 py-2 rounded-lg text-sm font-bold transition" data-tab="lab"><i class="fa-solid fa-flask-vial mr-2"></i>Lab</button>
                 <button class="nav-btn px-3 py-2 rounded-lg text-sm font-bold transition" data-tab="research"><i class="fa-solid fa-magnifying-glass-chart mr-2"></i>Research</button>
+                <button class="nav-btn px-3 py-2 rounded-lg text-sm font-bold transition" data-tab="notebook"><i class="fa-solid fa-clipboard-list mr-2"></i>Notebook</button>
                 <button class="nav-btn px-3 py-2 rounded-lg text-sm font-bold transition" data-tab="roadmap"><i class="fa-solid fa-route mr-2"></i>Roadmap</button>
             </nav>
         </div>
@@ -147,6 +148,21 @@
                         <article class="bg-slate-950/45 rounded-xl border border-slate-800 p-4">
                             <h3 class="text-xs uppercase tracking-widest font-black text-amber-300 mb-3">Lab challenge</h3>
                             <p id="topic-lab" class="text-sm leading-relaxed text-slate-300"></p>
+                        </article>
+                    </div>
+
+                    <div class="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-4">
+                        <article class="bg-cyan-500/5 rounded-xl border border-cyan-400/20 p-4">
+                            <h3 class="text-xs uppercase tracking-widest font-black text-cyan-300 mb-3">Study protocol</h3>
+                            <ul id="topic-protocol" class="space-y-2 text-sm leading-relaxed text-slate-300"></ul>
+                        </article>
+                        <article class="bg-indigo-500/5 rounded-xl border border-indigo-400/20 p-4">
+                            <h3 class="text-xs uppercase tracking-widest font-black text-indigo-300 mb-3">Common trap</h3>
+                            <p id="topic-trap" class="text-sm leading-relaxed text-slate-300"></p>
+                        </article>
+                        <article class="bg-emerald-500/5 rounded-xl border border-emerald-400/20 p-4">
+                            <h3 class="text-xs uppercase tracking-widest font-black text-emerald-300 mb-3">Next proof or derivation</h3>
+                            <p id="topic-derivation" class="text-sm leading-relaxed text-slate-300"></p>
                         </article>
                     </div>
                 </div>
@@ -237,6 +253,40 @@
                         <p class="text-sm text-slate-300 leading-relaxed">This is qualitative: the goal is visual intuition before numerical field solvers.</p>
                     </article>
                 </div>
+                <div class="grid grid-cols-1 xl:grid-cols-[1fr_420px] gap-4">
+                    <section class="glass rounded-2xl p-5 space-y-4">
+                        <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
+                            <div>
+                                <h3 class="font-black text-amber-300"><i class="fa-solid fa-ruler-combined mr-2"></i>Dimensional analysis workbench</h3>
+                                <p class="mt-1 text-sm text-slate-300 leading-relaxed">Build the dimensional skeleton of a proposed relation. If both sides do not match, the equation cannot be physically correct.</p>
+                            </div>
+                            <button id="dimension-preset-btn" class="px-3 py-2 rounded-lg bg-amber-500/15 border border-amber-400/30 text-amber-200 text-xs font-bold">Load kinetic energy</button>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="space-y-3">
+                                <label class="block text-xs uppercase tracking-widest font-black text-slate-500" for="lhs-dim">Left side dimensions</label>
+                                <input id="lhs-dim" class="w-full bg-slate-950/70 border border-slate-700 rounded-lg px-3 py-2 text-sm mono outline-none focus:border-amber-300" placeholder="M L^2 T^-2">
+                            </div>
+                            <div class="space-y-3">
+                                <label class="block text-xs uppercase tracking-widest font-black text-slate-500" for="rhs-dim">Right side dimensions</label>
+                                <input id="rhs-dim" class="w-full bg-slate-950/70 border border-slate-700 rounded-lg px-3 py-2 text-sm mono outline-none focus:border-amber-300" placeholder="M L^2 T^-2">
+                            </div>
+                        </div>
+                        <div id="dimension-result" class="rounded-xl border border-slate-800 bg-slate-950/55 p-4 text-sm text-slate-300 leading-relaxed"></div>
+                    </section>
+
+                    <aside class="glass rounded-2xl p-5 space-y-4">
+                        <h3 class="font-black text-rose-300"><i class="fa-solid fa-satellite mr-2"></i>Orbit estimator</h3>
+                        <label class="block text-xs text-slate-400">Central mass in solar masses: <span id="orbit-mass-label" class="mono text-white">1.00</span></label>
+                        <input id="orbit-mass-slider" type="range" min="0.1" max="10" step="0.1" value="1" class="w-full">
+                        <label class="block text-xs text-slate-400">Orbital radius in AU: <span id="orbit-radius-label" class="mono text-white">1.00</span></label>
+                        <input id="orbit-radius-slider" type="range" min="0.1" max="20" step="0.1" value="1" class="w-full">
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="bg-slate-950/60 rounded-xl p-3 border border-slate-800"><span class="text-[10px] text-slate-500 uppercase font-black">Period</span><strong id="orbit-period-out" class="block text-xl">--</strong></div>
+                            <div class="bg-slate-950/60 rounded-xl p-3 border border-slate-800"><span class="text-[10px] text-slate-500 uppercase font-black">Speed</span><strong id="orbit-speed-out" class="block text-xl">--</strong></div>
+                        </div>
+                    </aside>
+                </div>
             </section>
 
             <section id="tab-research" class="hidden-tab space-y-6">
@@ -273,6 +323,40 @@
                         <h3 class="font-black text-rose-300 mb-3">Future engine</h3>
                         <p class="text-sm text-slate-300 leading-relaxed">Next version can add live arXiv/Semantic Scholar search, paper queues, AI-assisted prerequisite extraction, and a notebook. For GitHub Pages, anything with private API keys should go through a small serverless function.</p>
                     </article>
+                </div>
+            </section>
+
+            <section id="tab-notebook" class="hidden-tab space-y-6">
+                <div class="glass rounded-2xl p-5 md:p-7">
+                    <h2 class="text-2xl md:text-4xl font-black">Research notebook</h2>
+                    <p class="mt-2 text-slate-300 max-w-3xl leading-relaxed">A local training notebook for turning papers, lectures, and confusions into concrete physics work. Entries are saved in this browser only.</p>
+                </div>
+                <div class="grid grid-cols-1 xl:grid-cols-[440px_1fr] gap-6">
+                    <aside class="glass rounded-2xl p-5 space-y-4">
+                        <h3 class="text-xs uppercase tracking-widest font-black text-cyan-300">Find material</h3>
+                        <label class="block text-xs text-slate-400" for="research-query">Research query</label>
+                        <input id="research-query" class="w-full bg-slate-950/70 border border-slate-700 rounded-lg px-3 py-2 text-sm outline-none focus:border-cyan-400" placeholder="black hole information, tensors, QFT...">
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                            <a id="arxiv-search-link" class="text-center rounded-lg bg-cyan-500/15 border border-cyan-400/30 px-3 py-2 text-xs font-bold text-cyan-200" target="_blank" rel="noopener">arXiv</a>
+                            <a id="scholar-search-link" class="text-center rounded-lg bg-indigo-500/15 border border-indigo-400/30 px-3 py-2 text-xs font-bold text-indigo-200" target="_blank" rel="noopener">Semantic</a>
+                            <a id="lecture-search-link" class="text-center rounded-lg bg-rose-500/15 border border-rose-400/30 px-3 py-2 text-xs font-bold text-rose-200" target="_blank" rel="noopener">Lectures</a>
+                        </div>
+                        <div class="pt-4 border-t border-slate-700/60 space-y-3">
+                            <h3 class="text-xs uppercase tracking-widest font-black text-amber-300">Add paper note</h3>
+                            <input id="note-title" class="w-full bg-slate-950/70 border border-slate-700 rounded-lg px-3 py-2 text-sm outline-none focus:border-amber-300" placeholder="Paper or lecture title">
+                            <textarea id="note-claim" class="w-full min-h-[82px] bg-slate-950/70 border border-slate-700 rounded-lg px-3 py-2 text-sm outline-none focus:border-amber-300" placeholder="Central claim or concept"></textarea>
+                            <textarea id="note-prereqs" class="w-full min-h-[82px] bg-slate-950/70 border border-slate-700 rounded-lg px-3 py-2 text-sm outline-none focus:border-amber-300" placeholder="Prerequisites to learn"></textarea>
+                            <textarea id="note-reproduce" class="w-full min-h-[82px] bg-slate-950/70 border border-slate-700 rounded-lg px-3 py-2 text-sm outline-none focus:border-amber-300" placeholder="Calculation, plot, or result to reproduce"></textarea>
+                            <button id="save-note-btn" class="w-full rounded-lg bg-amber-400 text-slate-950 px-4 py-2 text-sm font-black">Save note</button>
+                        </div>
+                    </aside>
+                    <section class="glass rounded-2xl p-5">
+                        <div class="flex items-center justify-between gap-3 mb-4">
+                            <h3 class="text-xs uppercase tracking-widest font-black text-slate-300">Saved study queue</h3>
+                            <button id="clear-notes-btn" class="rounded-lg border border-slate-700 px-3 py-1.5 text-xs font-bold text-slate-300">Clear</button>
+                        </div>
+                        <div id="paper-notes" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+                    </section>
                 </div>
             </section>
 
@@ -450,14 +534,70 @@
             ["1", "Mathematical fluency", "Calculus, linear algebra, ODEs/PDEs, probability, tensors, and dimensional analysis."],
             ["2", "Undergrad core", "Mechanics, E&M, waves, thermal physics, quantum mechanics, relativity, and labs."],
             ["3", "Graduate ascent", "GR, QFT, statistical field theory, condensed matter, particle physics, and mathematical physics."],
-            ["4", "Research formation", "Read papers, reproduce calculations, build simulations, ask sharper questions, and write notes."]
+            ["4", "Research formation", "Read papers, reproduce calculations, build simulations, ask sharper questions, and write notes."],
+            ["5", "Original work", "Use the notebook to track anomalies, failed derivations, open questions, and reproducible claims."]
         ];
+
+        const defaultProtocol = [
+            "Name the physical system and the idealizations being made.",
+            "Write the governing quantities with units before manipulating equations.",
+            "Solve one limiting case, then compare the result with intuition."
+        ];
+
+        const topicGuides = {
+            "math-methods": {
+                protocol: ["Translate every symbol into a unit and geometric meaning.", "Practice one derivative, one integral, and one matrix operation by hand.", "Check every answer with dimensional analysis."],
+                trap: "Treating math as decoration. In physics, notation is an instrument: it tells you what can change, what is conserved, and what is measurable.",
+                derivation: "Derive the dimensions of energy, force, momentum, pressure, and angular momentum from base M, L, and T units."
+            },
+            "classical-mechanics": {
+                protocol: ["Draw a force diagram and define coordinates.", "Choose conservation laws before writing long equations.", "Test your solution at zero force, large mass, or small displacement."],
+                trap: "Forgetting constraints. A system's allowed motion matters as much as the forces acting on it.",
+                derivation: "Derive simple harmonic motion from Hooke's law and recover omega = sqrt(k/m)."
+            },
+            "lagrangian": {
+                protocol: ["Pick generalized coordinates that match the constraint.", "Write T and V separately before forming L = T - V.", "Apply Euler-Lagrange and compare with Newton's law."],
+                trap: "Choosing coordinates too early. Bad coordinates can bury a simple symmetry under algebra.",
+                derivation: "Derive the pendulum equation from the Lagrangian and identify the small-angle approximation."
+            },
+            "electromagnetism": {
+                protocol: ["Identify charges, currents, boundaries, and symmetry.", "Decide whether integral or differential Maxwell equations fit the problem.", "Sketch field lines before calculating."],
+                trap: "Confusing field pictures with proof. Visual intuition guides the calculation, but Maxwell's equations are the authority.",
+                derivation: "Use Maxwell's equations in vacuum to derive the electromagnetic wave equation."
+            },
+            "quantum": {
+                protocol: ["State the Hilbert space, Hamiltonian, and boundary conditions.", "Normalize the state before interpreting probability.", "Check classical limits and symmetry constraints."],
+                trap: "Imagining the wavefunction as an ordinary material wave. It is an amplitude whose squared magnitude predicts outcomes.",
+                derivation: "Solve the infinite square well and show how boundary conditions quantize energy."
+            },
+            "stat-mech": {
+                protocol: ["Define the microstates and macrostate constraints.", "Build the partition function before computing averages.", "Interpret derivatives of log Z physically."],
+                trap: "Treating entropy as vague disorder. Entropy is a count, or measure, of compatible microscopic possibilities.",
+                derivation: "Compute the two-state partition function and derive the average energy."
+            },
+            "general-relativity": {
+                protocol: ["Start from coordinates, metric, and physical observers.", "Separate coordinate effects from curvature effects.", "Check weak-field and flat-spacetime limits."],
+                trap: "Thinking curvature is just a visual bend. Curvature is encoded in how vectors transport and geodesics deviate.",
+                derivation: "Derive gravitational time dilation in the weak-field limit and compare with special-relativistic time dilation."
+            },
+            "qft": {
+                protocol: ["Identify fields, symmetries, and the Lagrangian density.", "Track dimensions and scales before doing perturbation theory.", "Connect diagrams to algebraic amplitude terms."],
+                trap: "Reading Feynman diagrams as literal particle paths. They are perturbative bookkeeping for amplitudes.",
+                derivation: "Derive the Klein-Gordon equation from the scalar-field Lagrangian."
+            },
+            "frontier-methods": {
+                protocol: ["Map the paper's claim, assumptions, and prior work.", "Find one equation or figure to reproduce.", "Write one precise question that could become a project."],
+                trap: "Trying to understand every line on first contact. First build the terrain map, then return for depth.",
+                derivation: "Choose one paper and rewrite its central derivation in your own notation."
+            }
+        };
 
         let activeLevel = "All";
         let activeTopic = 0;
         let activeTab = "learn";
         let flashFlipped = false;
         let progress = loadProgress();
+        let paperNotes = loadPaperNotes();
 
         const $ = id => document.getElementById(id);
 
@@ -480,6 +620,28 @@
             } catch {
                 $("recommendation").textContent = "Progress could not be saved in this browser session, but the lab still works.";
             }
+        }
+
+        function loadPaperNotes() {
+            try {
+                const parsed = JSON.parse(localStorage.getItem("aletheia-paper-notes-v1") || "[]");
+                return Array.isArray(parsed) ? parsed : [];
+            } catch {
+                localStorage.removeItem("aletheia-paper-notes-v1");
+                return [];
+            }
+        }
+
+        function savePaperNotes() {
+            try {
+                localStorage.setItem("aletheia-paper-notes-v1", JSON.stringify(paperNotes.slice(0, 50)));
+            } catch {
+                paperNotes = paperNotes.slice(0, 10);
+            }
+        }
+
+        function setText(id, value) {
+            $(id).textContent = value;
         }
 
         function filteredTopics() {
@@ -530,16 +692,24 @@
             activeTopic = index;
             flashFlipped = false;
             const t = topics[index];
-            $("topic-level").textContent = t.level;
-            $("topic-track").textContent = `/ ${t.track}`;
-            $("topic-title").textContent = t.title;
-            $("topic-subtitle").textContent = t.subtitle;
-            $("topic-prereqs").textContent = t.prereqs;
-            $("topic-mode").textContent = t.mode;
-            $("topic-intuition").textContent = t.intuition;
+            const guide = topicGuides[t.id] || {};
+            setText("topic-level", t.level);
+            setText("topic-track", `/ ${t.track}`);
+            setText("topic-title", t.title);
+            setText("topic-subtitle", t.subtitle);
+            setText("topic-prereqs", t.prereqs);
+            setText("topic-mode", t.mode);
+            setText("topic-intuition", t.intuition);
             $("topic-formula").innerHTML = t.formula;
-            $("topic-worked").textContent = t.worked;
-            $("topic-lab").textContent = t.lab;
+            setText("topic-worked", t.worked);
+            setText("topic-lab", t.lab);
+            $("topic-protocol").replaceChildren(...(guide.protocol || defaultProtocol).map(item => {
+                const li = document.createElement("li");
+                li.textContent = item;
+                return li;
+            }));
+            setText("topic-trap", guide.trap || "Skipping the setup. Most physics mistakes happen before the first equation is solved.");
+            setText("topic-derivation", guide.derivation || "Derive the topic's central equation, then test it against units and a limiting case.");
             renderFlash();
             renderQuiz();
             renderTopicList();
@@ -596,7 +766,7 @@
 
         function switchTab(tab) {
             activeTab = tab;
-            ["learn", "lab", "research", "roadmap"].forEach(name => {
+            ["learn", "lab", "research", "notebook", "roadmap"].forEach(name => {
                 $(`tab-${name}`).classList.toggle("hidden-tab", name !== tab);
             });
             document.querySelectorAll(".nav-btn").forEach(btn => btn.classList.toggle("active", btn.dataset.tab === tab));
@@ -630,6 +800,116 @@
             $("gamma-out").textContent = gamma.toFixed(4);
             $("relmass-out").textContent = `${(gamma * m).toFixed(2)} kg`;
             $("relativity-note").textContent = gamma > 5 ? "Near light speed, small velocity changes create huge energy demands." : "As v approaches c, gamma grows nonlinearly. This is why massive objects cannot be accelerated to light speed.";
+        }
+
+        function parseDimensions(input) {
+            const dims = { M: 0, L: 0, T: 0, Q: 0, Theta: 0 };
+            const aliases = { mass: "M", length: "L", time: "T", charge: "Q", temp: "Theta", temperature: "Theta" };
+            const normalized = input
+                .replace(/theta/gi, "Theta")
+                .replace(/[,[\]{}()]/g, " ")
+                .trim();
+            if (!normalized) return dims;
+            normalized.split(/\s+/).forEach(part => {
+                const match = part.match(/^([A-Za-z]+)(?:\^(-?\d+(?:\.\d+)?))?$/);
+                if (!match) return;
+                const key = aliases[match[1].toLowerCase()] || match[1];
+                if (!Object.prototype.hasOwnProperty.call(dims, key)) return;
+                dims[key] += match[2] ? Number(match[2]) : 1;
+            });
+            return dims;
+        }
+
+        function formatDimensions(dims) {
+            const parts = Object.entries(dims)
+                .filter(([, value]) => Math.abs(value) > 1e-9)
+                .map(([key, value]) => value === 1 ? key : `${key}^${value}`);
+            return parts.length ? parts.join(" ") : "dimensionless";
+        }
+
+        function updateDimensions() {
+            const lhs = parseDimensions($("lhs-dim").value);
+            const rhs = parseDimensions($("rhs-dim").value);
+            const keys = Object.keys(lhs);
+            const matched = keys.every(key => Math.abs(lhs[key] - rhs[key]) < 1e-9);
+            $("dimension-result").className = `rounded-xl border p-4 text-sm leading-relaxed ${matched ? "border-emerald-400/40 bg-emerald-500/10 text-emerald-100" : "border-rose-400/40 bg-rose-500/10 text-rose-100"}`;
+            $("dimension-result").textContent = matched
+                ? `Pass: both sides reduce to ${formatDimensions(lhs)}. This does not prove the equation, but it survives the first physics audit.`
+                : `Mismatch: left is ${formatDimensions(lhs)}, right is ${formatDimensions(rhs)}. Recheck powers, constants, or the proposed relationship.`;
+        }
+
+        function updateOrbit() {
+            const mass = Number($("orbit-mass-slider").value);
+            const radius = Number($("orbit-radius-slider").value);
+            const periodYears = Math.sqrt((radius ** 3) / mass);
+            const speed = 29.78 * Math.sqrt(mass / radius);
+            $("orbit-mass-label").textContent = mass.toFixed(2);
+            $("orbit-radius-label").textContent = radius.toFixed(2);
+            $("orbit-period-out").textContent = periodYears < 1 ? `${(periodYears * 365.25).toFixed(1)} d` : `${periodYears.toFixed(2)} y`;
+            $("orbit-speed-out").textContent = `${speed.toFixed(1)} km/s`;
+        }
+
+        function updateResearchLinks() {
+            const query = $("research-query").value.trim() || topics[activeTopic].title;
+            const encoded = encodeURIComponent(query);
+            $("arxiv-search-link").href = `https://arxiv.org/search/?query=${encoded}&searchtype=all&source=header`;
+            $("scholar-search-link").href = `https://www.semanticscholar.org/search?q=${encoded}&sort=relevance`;
+            $("lecture-search-link").href = `https://www.youtube.com/results?search_query=${encoded}%20physics%20lecture`;
+        }
+
+        function renderPaperNotes() {
+            const target = $("paper-notes");
+            if (!paperNotes.length) {
+                const empty = document.createElement("div");
+                empty.className = "rounded-xl border border-slate-800 bg-slate-950/45 p-5 text-sm text-slate-400 leading-relaxed md:col-span-2";
+                empty.textContent = "No saved notes yet. Add a paper, lecture, or question from the left panel.";
+                target.replaceChildren(empty);
+                return;
+            }
+            target.replaceChildren(...paperNotes.map((note, index) => {
+                const article = document.createElement("article");
+                article.className = "rounded-xl border border-slate-800 bg-slate-950/50 p-4 space-y-3";
+                const title = document.createElement("h4");
+                title.className = "font-black text-cyan-200";
+                title.textContent = note.title;
+                const claim = document.createElement("p");
+                claim.className = "text-sm text-slate-300 leading-relaxed";
+                claim.textContent = note.claim;
+                const prereqs = document.createElement("p");
+                prereqs.className = "text-xs text-indigo-200 leading-relaxed";
+                prereqs.textContent = `Prereqs: ${note.prereqs}`;
+                const reproduce = document.createElement("p");
+                reproduce.className = "text-xs text-amber-200 leading-relaxed";
+                reproduce.textContent = `Reproduce: ${note.reproduce}`;
+                const remove = document.createElement("button");
+                remove.className = "rounded-lg border border-slate-700 px-3 py-1.5 text-xs font-bold text-slate-300";
+                remove.textContent = "Remove";
+                remove.addEventListener("click", () => {
+                    paperNotes.splice(index, 1);
+                    savePaperNotes();
+                    renderPaperNotes();
+                });
+                article.append(title, claim, prereqs, reproduce, remove);
+                return article;
+            }));
+        }
+
+        function saveNotebookEntry() {
+            const title = $("note-title").value.trim();
+            const claim = $("note-claim").value.trim();
+            const prereqs = $("note-prereqs").value.trim();
+            const reproduce = $("note-reproduce").value.trim();
+            if (!title || !claim) return;
+            paperNotes.unshift({
+                title,
+                claim,
+                prereqs: prereqs || "To map",
+                reproduce: reproduce || "Choose one central calculation or figure.",
+                createdAt: new Date().toISOString()
+            });
+            ["note-title", "note-claim", "note-prereqs", "note-reproduce"].forEach(id => { $(id).value = ""; });
+            savePaperNotes();
+            renderPaperNotes();
         }
 
         function resizeCanvases() {
@@ -724,6 +1004,20 @@
         });
         ["v-slider", "m-slider"].forEach(id => $(id).addEventListener("input", updateRelativity));
         ["k-slider", "osc-m-slider", "field-slider"].forEach(id => $(id).addEventListener("input", () => {}));
+        ["lhs-dim", "rhs-dim"].forEach(id => $(id).addEventListener("input", updateDimensions));
+        $("dimension-preset-btn").addEventListener("click", () => {
+            $("lhs-dim").value = "M L^2 T^-2";
+            $("rhs-dim").value = "M L^2 T^-2";
+            updateDimensions();
+        });
+        ["orbit-mass-slider", "orbit-radius-slider"].forEach(id => $(id).addEventListener("input", updateOrbit));
+        $("research-query").addEventListener("input", updateResearchLinks);
+        $("save-note-btn").addEventListener("click", saveNotebookEntry);
+        $("clear-notes-btn").addEventListener("click", () => {
+            paperNotes = [];
+            savePaperNotes();
+            renderPaperNotes();
+        });
         window.addEventListener("resize", resizeCanvases);
 
         renderLevelFilters();
@@ -731,6 +1025,10 @@
         loadTopic(0);
         renderResearch();
         updateRelativity();
+        updateDimensions();
+        updateOrbit();
+        updateResearchLinks();
+        renderPaperNotes();
         resizeCanvases();
         animateLabs();
     </script>
