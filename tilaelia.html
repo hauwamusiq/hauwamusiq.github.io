@@ -62,6 +62,7 @@
         #gate {
             position: fixed;
             inset: 0;
+            min-height: 100dvh;
             z-index: 99;
             background: #020103;
             display: grid;
@@ -89,13 +90,10 @@
         #gate.entering .gate-copy {
             animation: gateDive 1.3s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
         }
-        #gate.entering .word-space span {
-            animation-duration: 1.2s;
-        }
         @keyframes gateDive {
-            0% { transform: translateZ(0) scale(1); opacity: 1; filter: blur(0); }
-            55% { transform: translateZ(220px) scale(1.65); opacity: 0.94; filter: blur(0.5px); }
-            100% { transform: translateZ(640px) scale(3.4); opacity: 0; filter: blur(12px); }
+            0% { transform: translate3d(0, 0, 0) scale(1); opacity: 1; filter: blur(0); }
+            58% { transform: translate3d(0, 0, 0) scale(1.34); opacity: 0.96; filter: blur(0.4px); }
+            100% { transform: translate3d(0, 0, 0) scale(2.25); opacity: 0; filter: blur(10px); }
         }
         @keyframes gateDoorFade {
             0%, 58% { opacity: 1; visibility: visible; }
@@ -107,6 +105,15 @@
             width: 100%;
             height: 100%;
             display: none;
+        }
+        #title-spark-canvas {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+            opacity: 0.9;
         }
         .word-space {
             position: absolute;
@@ -146,11 +153,19 @@
             width: min(900px, calc(100% - 34px));
             text-align: center;
             padding: 42px 18px;
-            animation: gateFloat 6s ease-in-out infinite;
+            transform-style: preserve-3d;
         }
-        @keyframes gateFloat {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-8px); }
+        .title-drifter {
+            display: inline-block;
+            transform-style: preserve-3d;
+            animation: titleSpaceDrift 7.5s ease-in-out infinite;
+            will-change: transform;
+        }
+        @keyframes titleSpaceDrift {
+            0% { transform: translate3d(-12px, 4px, -24px) rotateX(2deg) rotateY(-5deg) scale(0.98); }
+            28% { transform: translate3d(14px, -10px, 18px) rotateX(-2deg) rotateY(4deg) scale(1.015); }
+            58% { transform: translate3d(8px, 10px, 34px) rotateX(3deg) rotateY(2deg) scale(1.035); }
+            100% { transform: translate3d(-12px, 4px, -24px) rotateX(2deg) rotateY(-5deg) scale(0.98); }
         }
         .gate-kicker {
             color: var(--rose);
@@ -169,30 +184,6 @@
             text-transform: uppercase;
             position: relative;
             text-shadow: 0 0 22px rgba(255, 248, 237, 0.4), 0 0 52px rgba(255, 109, 158, 0.48), 0 0 82px rgba(246,204,114,0.18);
-        }
-        .gate-copy h1::before, .gate-copy h1::after {
-            content: "";
-            position: absolute;
-            inset: -28px -42px;
-            z-index: -1;
-            pointer-events: none;
-            background:
-                radial-gradient(circle, rgba(246,204,114,0.85) 0 1.5px, transparent 2px),
-                radial-gradient(circle, rgba(255,109,158,0.8) 0 1px, transparent 1.8px),
-                radial-gradient(circle, rgba(100,234,220,0.75) 0 1px, transparent 1.8px);
-            background-size: 74px 74px, 46px 46px, 118px 118px;
-            filter: drop-shadow(0 0 8px rgba(246,204,114,0.55));
-            animation: sparkleField 5s linear infinite;
-            opacity: 0.8;
-        }
-        .gate-copy h1::after {
-            animation-duration: 8s;
-            animation-direction: reverse;
-            opacity: 0.46;
-        }
-        @keyframes sparkleField {
-            from { transform: translate3d(0, 0, 0) rotate(0deg); }
-            to { transform: translate3d(18px, -22px, 0) rotate(6deg); }
         }
         .gate-copy p {
             width: min(620px, 100%);
@@ -692,7 +683,55 @@
             .hero { padding-top: 18px; }
             .hero h2 { font-size: clamp(2.6rem, 17vw, 4.4rem); }
             .gallery { grid-template-columns: 1fr; }
-            .gate-copy h1 { font-size: clamp(2.5rem, 18vw, 4.5rem); }
+            .gate-copy {
+                width: min(100% - 24px, 560px);
+                padding: 28px 10px;
+            }
+            .gate-kicker {
+                font-size: 0.62rem;
+                letter-spacing: 0.24em;
+                margin-bottom: 14px;
+            }
+            .gate-copy h1 {
+                font-size: clamp(2.15rem, 15vw, 3.75rem);
+                line-height: 0.94;
+            }
+            .gate-copy p {
+                font-size: 0.92rem;
+                line-height: 1.65;
+                margin: 18px auto 24px;
+            }
+            .title-drifter {
+                animation-name: titleSpaceDriftMobile;
+                animation-duration: 8.5s;
+            }
+            #gate.entering .gate-copy {
+                animation-name: gateDiveMobile !important;
+            }
+            .word-space {
+                perspective: 620px;
+            }
+            .word-space span {
+                font-size: 0.74rem;
+                letter-spacing: 0.14em;
+            }
+            .word-space span:nth-child(n+7) {
+                display: none;
+            }
+            #title-spark-canvas {
+                opacity: 0.72;
+            }
+        }
+        @keyframes titleSpaceDriftMobile {
+            0% { transform: translate3d(-5px, 3px, -10px) rotateX(1deg) rotateY(-2deg) scale(0.99); }
+            35% { transform: translate3d(6px, -6px, 12px) rotateX(-1deg) rotateY(2deg) scale(1.01); }
+            68% { transform: translate3d(3px, 5px, 16px) rotateX(1deg) rotateY(1deg) scale(1.018); }
+            100% { transform: translate3d(-5px, 3px, -10px) rotateX(1deg) rotateY(-2deg) scale(0.99); }
+        }
+        @keyframes gateDiveMobile {
+            0% { transform: translate3d(0, 0, 0) scale(1); opacity: 1; filter: blur(0); }
+            62% { transform: translate3d(0, -2px, 0) scale(1.16); opacity: 0.96; filter: blur(0.2px); }
+            100% { transform: translate3d(0, -6px, 0) scale(1.62); opacity: 0; filter: blur(8px); }
         }
         @media (prefers-reduced-motion: reduce) {
             *, *::before, *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; scroll-behavior: auto !important; }
@@ -716,9 +755,12 @@
             <span style="--x:-4vw;--y:38vh;--duration:18s;--delay:-12s;">devotion</span>
             <span style="--x:44vw;--y:8vh;--duration:15s;--delay:-9s;">creation</span>
         </div>
+        <canvas id="title-spark-canvas" aria-hidden="true"></canvas>
         <div class="gate-copy">
             <div class="gate-kicker">The threshold opens</div>
-            <h1>Tilleli's Thread</h1>
+            <div class="title-drifter" id="title-drifter">
+                <h1>Tilelli's Thread</h1>
+            </div>
             <p>A black gate into a sacred archive of sound, image, thought, research, and the living act of creation.</p>
             <button class="enter-btn" id="enter-btn">Enter</button>
         </div>
@@ -1185,7 +1227,87 @@
             window.setTimeout(() => {
                 gate.classList.add("open");
             }, 1450);
+            window.setTimeout(() => {
+                titleSparkState.active = false;
+            }, 1700);
         });
+
+        const titleSparkState = { sparks: [], lastX: 0, lastY: 0, lastEmit: 0, active: true };
+
+        function gateViewport() {
+            const visual = window.visualViewport;
+            return {
+                width: Math.ceil(visual?.width || window.innerWidth),
+                height: Math.ceil(visual?.height || window.innerHeight)
+            };
+        }
+
+        function resizeTitleSparkCanvas() {
+            const canvas = $("title-spark-canvas");
+            if (!canvas) return;
+            const ratio = Math.min(devicePixelRatio || 1, 2);
+            const viewport = gateViewport();
+            canvas.width = Math.floor(viewport.width * ratio);
+            canvas.height = Math.floor(viewport.height * ratio);
+            canvas.style.width = `${viewport.width}px`;
+            canvas.style.height = `${viewport.height}px`;
+            canvas.getContext("2d").setTransform(ratio, 0, 0, ratio, 0, 0);
+        }
+
+        function emitTitleSparks(now) {
+            const title = $("title-drifter");
+            if (!title || !$("gate") || $("gate").classList.contains("open")) return;
+            const rect = title.getBoundingClientRect();
+            const x = rect.left + rect.width * (0.42 + Math.sin(now * 0.002) * 0.18);
+            const y = rect.top + rect.height * (0.42 + Math.cos(now * 0.0017) * 0.24);
+            const moved = Math.hypot(x - titleSparkState.lastX, y - titleSparkState.lastY);
+            if (moved > 2 || now - titleSparkState.lastEmit > 90) {
+                const mobile = window.matchMedia("(max-width: 620px)").matches;
+                const burst = mobile ? 1 : 3;
+                for (let i = 0; i < burst; i++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    titleSparkState.sparks.push({
+                        x: x + (Math.random() - 0.5) * rect.width * 0.72,
+                        y: y + (Math.random() - 0.5) * rect.height * 0.8,
+                        vx: Math.cos(angle) * (0.18 + Math.random() * 0.62),
+                        vy: Math.sin(angle) * (0.18 + Math.random() * 0.62) - 0.12,
+                        life: 1,
+                        size: 1.2 + Math.random() * 2.8,
+                        hue: Math.random() > 0.5 ? "246,204,114" : "255,109,158"
+                    });
+                }
+                const maxSparks = mobile ? 70 : 160;
+                if (titleSparkState.sparks.length > maxSparks) {
+                    titleSparkState.sparks.splice(0, titleSparkState.sparks.length - maxSparks);
+                }
+                titleSparkState.lastEmit = now;
+                titleSparkState.lastX = x;
+                titleSparkState.lastY = y;
+            }
+        }
+
+        function animateTitleSparks(now = performance.now()) {
+            const canvas = $("title-spark-canvas");
+            if (!canvas || !titleSparkState.active) return;
+            const ctx = canvas.getContext("2d");
+            const viewport = gateViewport();
+            ctx.clearRect(0, 0, viewport.width, viewport.height);
+            emitTitleSparks(now);
+            titleSparkState.sparks = titleSparkState.sparks.filter(spark => spark.life > 0.02);
+            titleSparkState.sparks.forEach(spark => {
+                spark.x += spark.vx;
+                spark.y += spark.vy;
+                spark.vy += 0.008;
+                spark.life *= 0.965;
+                ctx.fillStyle = `rgba(${spark.hue},${spark.life})`;
+                ctx.shadowColor = `rgba(${spark.hue},${spark.life})`;
+                ctx.shadowBlur = 12;
+                ctx.beginPath();
+                ctx.arc(spark.x, spark.y, spark.size * spark.life, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            requestAnimationFrame(animateTitleSparks);
+        }
 
         $("unlock-btn").addEventListener("click", () => {
             state.keeper = $("owner-key").value.trim().toLowerCase() === keeperHash;
@@ -1356,6 +1478,11 @@
             requestAnimationFrame(frame);
         }
 
+        window.addEventListener("resize", resizeTitleSparkCanvas);
+        window.visualViewport?.addEventListener("resize", resizeTitleSparkCanvas);
+
+        resizeTitleSparkCanvas();
+        requestAnimationFrame(animateTitleSparks);
         renderAll();
         loadPublishedOfferings();
     </script>
