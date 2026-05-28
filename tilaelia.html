@@ -74,11 +74,71 @@
             visibility: hidden;
             pointer-events: none;
         }
+        body.locked .shell {
+            opacity: 0;
+            transform: translateY(18px);
+        }
+        .shell {
+            opacity: 1;
+            transform: translateY(0);
+            transition: opacity 900ms ease, transform 900ms ease;
+        }
+        #gate.entering {
+            animation: gateDoorFade 1.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        #gate.entering .gate-copy {
+            animation: gateDive 1.3s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+        }
+        #gate.entering .word-space span {
+            animation-duration: 1.2s;
+        }
+        @keyframes gateDive {
+            0% { transform: translateZ(0) scale(1); opacity: 1; filter: blur(0); }
+            55% { transform: translateZ(220px) scale(1.65); opacity: 0.94; filter: blur(0.5px); }
+            100% { transform: translateZ(640px) scale(3.4); opacity: 0; filter: blur(12px); }
+        }
+        @keyframes gateDoorFade {
+            0%, 58% { opacity: 1; visibility: visible; }
+            100% { opacity: 0; visibility: hidden; }
+        }
         #gate-canvas {
             position: absolute;
             inset: 0;
             width: 100%;
             height: 100%;
+            display: none;
+        }
+        .word-space {
+            position: absolute;
+            inset: 0;
+            overflow: hidden;
+            perspective: 900px;
+            background:
+                radial-gradient(circle at 50% 48%, rgba(255,109,158,0.14), transparent 22rem),
+                radial-gradient(circle at 45% 60%, rgba(100,234,220,0.08), transparent 28rem),
+                #020103;
+        }
+        .word-space span {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            color: rgba(255,248,237,0.68);
+            font-family: var(--ritual);
+            font-size: clamp(0.8rem, 1.8vw, 1.2rem);
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            white-space: nowrap;
+            text-shadow: 0 0 18px rgba(255,109,158,0.42);
+            animation: wordDrift var(--duration, 13s) linear infinite;
+            animation-delay: var(--delay, 0s);
+            transform: translate3d(var(--x, 0), var(--y, 0), -760px) scale(0.22);
+            opacity: 0;
+        }
+        @keyframes wordDrift {
+            0% { transform: translate3d(var(--x), var(--y), -760px) scale(0.22); opacity: 0; }
+            12% { opacity: 0.72; }
+            76% { opacity: 0.62; }
+            100% { transform: translate3d(calc(var(--x) * 1.45), calc(var(--y) * 1.45), 280px) scale(1.45); opacity: 0; }
         }
         .gate-copy {
             position: relative;
@@ -86,6 +146,11 @@
             width: min(900px, calc(100% - 34px));
             text-align: center;
             padding: 42px 18px;
+            animation: gateFloat 6s ease-in-out infinite;
+        }
+        @keyframes gateFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
         }
         .gate-kicker {
             color: var(--rose);
@@ -102,7 +167,32 @@
             letter-spacing: 0;
             margin: 0;
             text-transform: uppercase;
-            text-shadow: 0 0 42px rgba(255, 109, 158, 0.32);
+            position: relative;
+            text-shadow: 0 0 22px rgba(255, 248, 237, 0.4), 0 0 52px rgba(255, 109, 158, 0.48), 0 0 82px rgba(246,204,114,0.18);
+        }
+        .gate-copy h1::before, .gate-copy h1::after {
+            content: "";
+            position: absolute;
+            inset: -28px -42px;
+            z-index: -1;
+            pointer-events: none;
+            background:
+                radial-gradient(circle, rgba(246,204,114,0.85) 0 1.5px, transparent 2px),
+                radial-gradient(circle, rgba(255,109,158,0.8) 0 1px, transparent 1.8px),
+                radial-gradient(circle, rgba(100,234,220,0.75) 0 1px, transparent 1.8px);
+            background-size: 74px 74px, 46px 46px, 118px 118px;
+            filter: drop-shadow(0 0 8px rgba(246,204,114,0.55));
+            animation: sparkleField 5s linear infinite;
+            opacity: 0.8;
+        }
+        .gate-copy h1::after {
+            animation-duration: 8s;
+            animation-direction: reverse;
+            opacity: 0.46;
+        }
+        @keyframes sparkleField {
+            from { transform: translate3d(0, 0, 0) rotate(0deg); }
+            to { transform: translate3d(18px, -22px, 0) rotate(6deg); }
         }
         .gate-copy p {
             width: min(620px, 100%);
@@ -132,6 +222,86 @@
             height: 100%;
             z-index: 0;
             opacity: 0.74;
+            display: none;
+        }
+        .living-bg {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            overflow: hidden;
+            background:
+                radial-gradient(circle at 18% 18%, rgba(246,204,114,0.22), transparent 28rem),
+                radial-gradient(circle at 78% 28%, rgba(255,109,158,0.18), transparent 32rem),
+                linear-gradient(180deg, #1a0b18 0%, #2a1021 34%, #070608 100%);
+        }
+        .living-bg video {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.54;
+            filter: saturate(1.1) contrast(1.08) brightness(0.76);
+        }
+        .living-bg::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background:
+                linear-gradient(90deg, rgba(6,5,7,0.72), rgba(6,5,7,0.12) 48%, rgba(6,5,7,0.78)),
+                linear-gradient(180deg, rgba(6,5,7,0.28), rgba(6,5,7,0.86));
+        }
+        .living-bg::after {
+            content: "";
+            position: absolute;
+            inset: -15%;
+            background:
+                radial-gradient(circle, rgba(246,204,114,0.8) 0 1px, transparent 1.8px),
+                radial-gradient(circle, rgba(100,234,220,0.7) 0 1px, transparent 1.9px),
+                radial-gradient(circle, rgba(255,109,158,0.72) 0 1.2px, transparent 2px);
+            background-size: 76px 76px, 124px 124px, 48px 48px;
+            opacity: 0.34;
+            animation: livingSparkles 18s linear infinite;
+        }
+        .thread-field, .living-words {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+        .thread-field span {
+            position: absolute;
+            width: 42vw;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(246,204,114,0.72), rgba(255,109,158,0.44), transparent);
+            transform: rotate(var(--r, -12deg));
+            left: var(--x, 0);
+            top: var(--y, 0);
+            filter: drop-shadow(0 0 8px rgba(246,204,114,0.36));
+            animation: threadDrift var(--d, 12s) ease-in-out infinite alternate;
+        }
+        .living-words span {
+            position: absolute;
+            left: var(--x, 10%);
+            top: var(--y, 10%);
+            color: rgba(255,248,237,0.16);
+            font-family: var(--ritual);
+            text-transform: uppercase;
+            letter-spacing: 0.22em;
+            font-size: clamp(0.72rem, 1.1vw, 1rem);
+            animation: livingWordFloat var(--d, 16s) ease-in-out infinite alternate;
+        }
+        @keyframes livingSparkles {
+            from { transform: translate3d(0, 0, 0) rotate(0deg); }
+            to { transform: translate3d(74px, -92px, 0) rotate(8deg); }
+        }
+        @keyframes threadDrift {
+            from { transform: translate3d(-4vw, 0, 0) rotate(var(--r)); opacity: 0.24; }
+            to { transform: translate3d(7vw, -4vh, 0) rotate(calc(var(--r) + 8deg)); opacity: 0.72; }
+        }
+        @keyframes livingWordFloat {
+            from { transform: translate3d(-1vw, 1vh, 0); opacity: 0.08; }
+            to { transform: translate3d(2vw, -2vh, 0); opacity: 0.24; }
         }
         .shell {
             position: relative;
@@ -353,6 +523,42 @@
             margin: 0;
             font-size: 0.94rem;
         }
+        .media-frame {
+            display: block;
+            width: 100%;
+            margin-top: 18px;
+            border: 1px solid rgba(255,255,255,0.12);
+            background: rgba(0,0,0,0.28);
+            overflow: hidden;
+        }
+        .media-frame img, .media-frame video, .media-frame audio {
+            display: block;
+            width: 100%;
+        }
+        .media-frame img, .media-frame video {
+            aspect-ratio: 16 / 10;
+            object-fit: cover;
+        }
+        .media-frame iframe {
+            display: block;
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            border: 0;
+        }
+        .media-link {
+            display: inline-flex;
+            align-items: center;
+            min-height: 42px;
+            padding: 0 13px;
+            color: var(--ink);
+            font-size: 0.76rem;
+            font-weight: 900;
+            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            border: 1px solid rgba(246,204,114,0.42);
+            background: rgba(246,204,114,0.09);
+        }
         .sound-card { --accent: var(--rose); }
         .track-card { --accent: var(--cyan); }
         .writing-card { --accent: var(--gold); }
@@ -435,6 +641,12 @@
             outline: none;
         }
         .field textarea { min-height: 116px; resize: vertical; }
+        .field small {
+            display: block;
+            margin-top: 6px;
+            color: #8d8295;
+            line-height: 1.45;
+        }
         .submit-actions {
             display: flex;
             flex-wrap: wrap;
@@ -485,21 +697,52 @@
         @media (prefers-reduced-motion: reduce) {
             *, *::before, *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; scroll-behavior: auto !important; }
             #world-canvas, #gate-canvas { display: none; }
+            .living-bg video { display: none; }
         }
     </style>
 </head>
 <body class="locked">
     <section id="gate" aria-label="Entrance gate">
         <canvas id="gate-canvas" aria-hidden="true"></canvas>
+        <div class="word-space" aria-hidden="true">
+            <span style="--x:-42vw;--y:-32vh;--duration:12s;--delay:-1s;">poems</span>
+            <span style="--x:24vw;--y:-36vh;--duration:15s;--delay:-5s;">songs</span>
+            <span style="--x:-8vw;--y:-24vh;--duration:13s;--delay:-8s;">essays</span>
+            <span style="--x:38vw;--y:-10vh;--duration:16s;--delay:-2s;">visions</span>
+            <span style="--x:-34vw;--y:2vh;--duration:14s;--delay:-6s;">sketches</span>
+            <span style="--x:6vw;--y:12vh;--duration:12s;--delay:-3s;">paintings</span>
+            <span style="--x:-22vw;--y:28vh;--duration:17s;--delay:-10s;">research</span>
+            <span style="--x:32vw;--y:30vh;--duration:13s;--delay:-7s;">sound</span>
+            <span style="--x:-4vw;--y:38vh;--duration:18s;--delay:-12s;">devotion</span>
+            <span style="--x:44vw;--y:8vh;--duration:15s;--delay:-9s;">creation</span>
+        </div>
         <div class="gate-copy">
             <div class="gate-kicker">The threshold opens</div>
-            <h1>Tilaelia's Thread</h1>
+            <h1>Tilleli's Thread</h1>
             <p>A black gate into a sacred archive of sound, image, thought, research, and the living act of creation.</p>
-            <button class="enter-btn" id="enter-btn">Enter the Sanctum</button>
+            <button class="enter-btn" id="enter-btn">Enter</button>
         </div>
     </section>
 
     <canvas id="world-canvas" aria-hidden="true"></canvas>
+    <div class="living-bg" aria-hidden="true">
+        <video autoplay muted loop playsinline poster="assets/tilleli-field-poster.jpg">
+            <source src="assets/tilleli-field.mp4" type="video/mp4">
+        </video>
+        <div class="thread-field">
+            <span style="--x:4%;--y:18%;--r:-10deg;--d:13s;"></span>
+            <span style="--x:44%;--y:24%;--r:16deg;--d:16s;"></span>
+            <span style="--x:14%;--y:62%;--r:8deg;--d:11s;"></span>
+            <span style="--x:52%;--y:72%;--r:-18deg;--d:15s;"></span>
+        </div>
+        <div class="living-words">
+            <span style="--x:8%;--y:14%;--d:14s;">thread</span>
+            <span style="--x:72%;--y:18%;--d:18s;">sacred</span>
+            <span style="--x:12%;--y:78%;--d:16s;">song</span>
+            <span style="--x:64%;--y:68%;--d:20s;">becoming</span>
+            <span style="--x:42%;--y:44%;--d:17s;">memory</span>
+        </div>
+    </div>
     <div class="shell">
         <header class="topbar">
             <a href="index.html" class="brand" aria-label="Return to command center">
@@ -593,7 +836,7 @@
             <section class="section" id="section-submissions">
                 <div class="section-head">
                     <h2>Keeper console</h2>
-                    <p>Local keeper controls for drafting display additions in this browser. This is not secure authentication yet; a future backend can make private publishing real across devices.</p>
+                    <p>Draft portfolio additions locally, export a publish pack, then commit it into the site so the public archive updates for everyone.</p>
                 </div>
                 <div class="owner-panel">
                     <div id="locked-panel">
@@ -619,7 +862,7 @@
                             </div>
                             <div class="field">
                                 <label for="submit-category">Category</label>
-                                <input id="submit-category" placeholder="poem, sounds, physics, gallery...">
+                                <input id="submit-category" placeholder="poem, sounds, tracks, physics, gallery...">
                             </div>
                             <div class="field">
                                 <label for="submit-title">Title</label>
@@ -629,6 +872,21 @@
                                 <label for="submit-meta">Meta</label>
                                 <input id="submit-meta" placeholder="date, medium, state, signal">
                             </div>
+                            <div class="field">
+                                <label for="submit-media-type">Media Type</label>
+                                <select id="submit-media-type">
+                                    <option value="">Text / Card Only</option>
+                                    <option value="audio">Audio</option>
+                                    <option value="video">Video</option>
+                                    <option value="image">Image</option>
+                                    <option value="link">External Link</option>
+                                </select>
+                            </div>
+                            <div class="field">
+                                <label for="submit-media-url">Content URL</label>
+                                <input id="submit-media-url" placeholder="https://...">
+                                <small>Use a public audio, video, image, essay, SoundCloud, YouTube, Drive, or archive URL. Browser-only file uploads cannot publish to GitHub Pages.</small>
+                            </div>
                         </div>
                         <div class="field" style="margin-top:12px;">
                             <label for="submit-body">Description</label>
@@ -637,6 +895,8 @@
                         <div class="submit-actions">
                             <button class="action" type="submit">Save Offering</button>
                             <button class="action ghost" type="button" id="export-local-btn">Export Local Additions</button>
+                            <button class="action ghost" type="button" id="import-local-btn">Import Additions</button>
+                            <input id="import-local-file" type="file" accept="application/json,.json" style="display:none;">
                         </div>
                     </form>
                 </div>
@@ -676,6 +936,7 @@
         };
 
         const state = {
+            published: [],
             local: loadLocalOfferings(),
             filters: { music: "all", writing: "all", research: "all" },
             keeper: false
@@ -698,15 +959,49 @@
         function normalizeOffering(item) {
             if (!item || !baseData[item.section] || !item.title) return null;
             const section = item.section;
-            const category = String(item.category || defaultCategory(section)).trim().toLowerCase() || defaultCategory(section);
+            const mediaType = String(item.mediaType || "").trim().toLowerCase();
+            const rawCategory = String(item.category || defaultCategory(section)).trim().toLowerCase();
+            const category = routeCategory(section, rawCategory, mediaType, item.mediaUrl);
+            const createdAt = item.createdAt || new Date().toISOString();
             return {
                 section,
                 category,
                 title: String(item.title).trim(),
-                meta: String(item.meta || category).trim(),
+                meta: withTimestamp(String(item.meta || category).trim(), createdAt),
                 body: String(item.body || "").trim(),
+                mediaType,
+                mediaUrl: String(item.mediaUrl || "").trim(),
+                createdAt,
                 kind: item.kind || defaultKind(section, category)
             };
+        }
+
+        function routeCategory(section, category, mediaType, mediaUrl) {
+            const inferred = mediaType || inferMediaType(String(mediaUrl || ""));
+            const imageWords = ["sketch", "sketches", "painting", "paintings", "drawing", "drawings", "visual", "visuals", "art", "gallery", "image"];
+            const musicWords = ["music", "song", "songs", "sound", "sounds", "leak", "leaks", "track", "tracks", "audio"];
+            const writingWords = ["essay", "essays", "poem", "poems", "story", "stories", "writing", "writings"];
+            if (section === "visuals" || inferred === "image" || imageWords.includes(category)) return "gallery";
+            if (section === "music" || inferred === "audio" || musicWords.includes(category)) return category === "track" || category === "tracks" ? "tracks" : "sounds";
+            if (section === "writing" || writingWords.includes(category)) {
+                if (["essay", "essays"].includes(category)) return "essay";
+                if (["poem", "poems"].includes(category)) return "poem";
+                if (["story", "stories"].includes(category)) return "story";
+                return "other";
+            }
+            if (section === "research") {
+                if (["philosophy", "physics", "mathematics", "history"].includes(category)) return category;
+                return "philosophy";
+            }
+            return category || defaultCategory(section);
+        }
+
+        function withTimestamp(meta, iso) {
+            const date = new Date(iso);
+            const stamp = Number.isNaN(date.getTime())
+                ? new Date().toLocaleString()
+                : date.toLocaleString([], { year: "numeric", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+            return meta.includes("Added ") ? meta : `${meta} / Added ${stamp}`;
         }
 
         function saveLocalOfferings() {
@@ -719,7 +1014,9 @@
         }
 
         function allItems(section) {
-            return baseData[section].concat(state.local.filter(item => item.section === section));
+            return baseData[section]
+                .concat(state.published.filter(item => item.section === section))
+                .concat(state.local.filter(item => item.section === section));
         }
 
         function createTextNode(tag, className, text) {
@@ -735,6 +1032,13 @@
                 const article = document.createElement("article");
                 article.className = "art-tile";
                 article.style.setProperty("--tilt", `${tilt}deg`);
+                if (item.mediaUrl && (item.mediaType === "image" || inferMediaType(item.mediaUrl) === "image")) {
+                    try {
+                        article.style.backgroundImage = `linear-gradient(0deg, rgba(10,8,13,0.72), rgba(10,8,13,0.14)), url("${new URL(item.mediaUrl, window.location.href).href}")`;
+                        article.style.backgroundSize = "cover";
+                        article.style.backgroundPosition = "center";
+                    } catch {}
+                }
                 const body = document.createElement("div");
                 body.append(
                     createTextNode("h3", "", item.title),
@@ -753,7 +1057,93 @@
                 createTextNode("h3", "", item.title),
                 createTextNode("p", "", item.body)
             );
+            const media = createMediaNode(item);
+            if (media) article.appendChild(media);
             return article;
+        }
+
+        function createMediaNode(item) {
+            if (!item.mediaUrl) return null;
+            let url;
+            try {
+                url = new URL(item.mediaUrl, window.location.href);
+            } catch {
+                return null;
+            }
+            const href = url.href;
+            const type = item.mediaType || inferMediaType(href);
+            const wrap = document.createElement("div");
+            wrap.className = "media-frame";
+            const embed = embedUrlFor(href);
+            if (embed) {
+                const iframe = document.createElement("iframe");
+                iframe.src = embed;
+                iframe.loading = "lazy";
+                iframe.allow = "autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture";
+                iframe.allowFullscreen = true;
+                wrap.appendChild(iframe);
+                return wrap;
+            }
+            if (type === "image") {
+                const img = document.createElement("img");
+                img.src = href;
+                img.alt = item.title;
+                img.loading = "lazy";
+                wrap.appendChild(img);
+                return wrap;
+            }
+            if (type === "video") {
+                const video = document.createElement("video");
+                video.src = href;
+                video.controls = true;
+                video.playsInline = true;
+                wrap.appendChild(video);
+                return wrap;
+            }
+            if (type === "audio") {
+                const audio = document.createElement("audio");
+                audio.src = href;
+                audio.controls = true;
+                wrap.appendChild(audio);
+                return wrap;
+            }
+            const link = document.createElement("a");
+            link.className = "media-link";
+            link.href = href;
+            link.target = "_blank";
+            link.rel = "noopener";
+            link.textContent = "Open Work";
+            return link;
+        }
+
+        function embedUrlFor(href) {
+            let url;
+            try {
+                url = new URL(href);
+            } catch {
+                return "";
+            }
+            const host = url.hostname.replace(/^www\./, "");
+            if (host === "youtu.be") {
+                const id = url.pathname.split("/").filter(Boolean)[0];
+                return id ? `https://www.youtube.com/embed/${encodeURIComponent(id)}` : "";
+            }
+            if (host.endsWith("youtube.com")) {
+                const id = url.searchParams.get("v") || url.pathname.split("/").filter(Boolean).pop();
+                return id ? `https://www.youtube.com/embed/${encodeURIComponent(id)}` : "";
+            }
+            if (host.endsWith("soundcloud.com")) {
+                return `https://w.soundcloud.com/player/?url=${encodeURIComponent(href)}&color=%23ff6d9e&auto_play=false&hide_related=true&show_comments=false&show_user=true&show_reposts=false`;
+            }
+            return "";
+        }
+
+        function inferMediaType(url) {
+            const path = url.split("?")[0].toLowerCase();
+            if (/\.(png|jpe?g|gif|webp|avif|svg)$/.test(path)) return "image";
+            if (/\.(mp4|webm|mov|m4v)$/.test(path)) return "video";
+            if (/\.(mp3|wav|ogg|m4a|flac)$/.test(path)) return "audio";
+            return "link";
         }
 
         function renderSection(section) {
@@ -787,8 +1177,14 @@
         });
 
         $("enter-btn").addEventListener("click", () => {
-            $("gate").classList.add("open");
-            document.body.classList.remove("locked");
+            const gate = $("gate");
+            gate.classList.add("entering");
+            window.setTimeout(() => {
+                document.body.classList.remove("locked");
+            }, 960);
+            window.setTimeout(() => {
+                gate.classList.add("open");
+            }, 1450);
         });
 
         $("unlock-btn").addEventListener("click", () => {
@@ -805,8 +1201,12 @@
         $("submission-form").addEventListener("submit", event => {
             event.preventDefault();
             if (!state.keeper) return;
-            const section = $("submit-section").value;
-            const category = $("submit-category").value.trim().toLowerCase() || defaultCategory(section);
+            let section = $("submit-section").value;
+            const mediaType = $("submit-media-type").value;
+            const mediaUrl = $("submit-media-url").value.trim();
+            const typedCategory = $("submit-category").value.trim().toLowerCase();
+            section = routeSection(section, typedCategory, mediaType, mediaUrl);
+            const category = routeCategory(section, typedCategory || defaultCategory(section), mediaType, mediaUrl);
             if (!baseData[section]) return;
             const item = {
                 section,
@@ -814,9 +1214,14 @@
                 title: $("submit-title").value.trim() || "Untitled Offering",
                 meta: $("submit-meta").value.trim() || category,
                 body: $("submit-body").value.trim(),
+                mediaType,
+                mediaUrl,
+                createdAt: new Date().toISOString(),
                 kind: defaultKind(section, category)
             };
-            state.local.push(item);
+            const normalized = normalizeOffering(item);
+            if (!normalized) return;
+            state.local.push(normalized);
             const saved = saveLocalOfferings();
             event.target.reset();
             renderAll();
@@ -844,8 +1249,49 @@
             URL.revokeObjectURL(url);
         });
 
+        $("import-local-btn").addEventListener("click", () => $("import-local-file").click());
+        $("import-local-file").addEventListener("change", async event => {
+            const file = event.target.files[0];
+            if (!file) return;
+            try {
+                const parsed = JSON.parse(await file.text());
+                const incoming = Array.isArray(parsed) ? parsed : parsed.offerings;
+                const normalized = Array.isArray(incoming) ? incoming.map(normalizeOffering).filter(Boolean) : [];
+                state.local = state.local.concat(normalized);
+                saveLocalOfferings();
+                renderAll();
+            } catch {
+                $("submit-body").placeholder = "That JSON file could not be imported.";
+            }
+            event.target.value = "";
+        });
+
+        async function loadPublishedOfferings() {
+            try {
+                const response = await fetch("content/tilaelia-offerings.json", { cache: "no-store" });
+                if (!response.ok) return;
+                const parsed = await response.json();
+                const incoming = Array.isArray(parsed) ? parsed : parsed.offerings;
+                state.published = Array.isArray(incoming) ? incoming.map(normalizeOffering).filter(Boolean) : [];
+                renderAll();
+            } catch {
+                state.published = [];
+            }
+        }
+
         function defaultCategory(section) {
             return { music: "sounds", writing: "other", visuals: "gallery", research: "philosophy" }[section] || "other";
+        }
+
+        function routeSection(section, category, mediaType, mediaUrl) {
+            const inferred = mediaType || inferMediaType(String(mediaUrl || ""));
+            const imageWords = ["sketch", "sketches", "painting", "paintings", "drawing", "drawings", "visual", "visuals", "art", "gallery", "image"];
+            const musicWords = ["music", "song", "songs", "sound", "sounds", "leak", "leaks", "track", "tracks", "audio"];
+            const writingWords = ["essay", "essays", "poem", "poems", "story", "stories", "writing", "writings"];
+            if (inferred === "image" || imageWords.includes(category)) return "visuals";
+            if (inferred === "audio" || musicWords.includes(category)) return "music";
+            if (writingWords.includes(category)) return "writing";
+            return section;
         }
 
         function defaultKind(section, category) {
@@ -911,8 +1357,7 @@
         }
 
         renderAll();
-        initThree("gate-canvas", "gate");
-        initThree("world-canvas", "world");
+        loadPublishedOfferings();
     </script>
 </body>
 </html>
