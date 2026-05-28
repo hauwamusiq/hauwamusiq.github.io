@@ -6,9 +6,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@200;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --bg-glass: rgba(20, 10, 35, 0.4); --border-glass: rgba(255, 0, 255, 0.25); --accent: #ff00ff; --accent-bright: #00ffff; --success: #00ff88; }
+        :root { --bg-glass: rgba(36, 0, 55, 0.56); --border-glass: rgba(255, 0, 255, 0.48); --accent: #ff00ff; --accent-bright: #00ffff; --success: #00ff88; --panel-glow: rgba(255, 0, 255, 0.22); }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Montserrat', sans-serif; }
-        body, html { width: 100%; height: 100%; overflow: hidden; background: #040209; color: #fff; position: fixed; }
+        body, html { width: 100%; height: 100%; overflow: hidden; background: radial-gradient(circle at 20% 15%, rgba(255,0,255,0.22), transparent 34rem), radial-gradient(circle at 80% 85%, rgba(0,255,255,0.12), transparent 30rem), #040209; color: #fff; position: fixed; }
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
         ::-webkit-scrollbar-thumb { background: var(--border-glass); border-radius: 10px; }
@@ -20,8 +20,8 @@
         .ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; display: grid; grid-template-columns: 290px 1fr 310px; padding: 25px; gap: 25px; pointer-events: none; transition: opacity 0.8s; }
         .ui-panels { transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); pointer-events: auto; }
         .ui-hidden .ui-panels, .ui-hidden #mobile-menu-btn { opacity: 0; transform: scale(0.97); pointer-events: none !important; }
-        .glass-panel { background: var(--bg-glass); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px); border: 1px solid var(--border-glass); border-radius: 24px; padding: 22px; box-shadow: 0 8px 32px rgba(255,0,255,0.05); margin-bottom: 20px; transition: border-color 0.3s; }
-        .glass-panel:hover { border-color: rgba(255, 0, 255, 0.4); }
+        .glass-panel { background: var(--bg-glass); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px); border: 1px solid var(--border-glass); border-radius: 24px; padding: 22px; box-shadow: 0 8px 32px var(--panel-glow), inset 0 1px 0 rgba(255,255,255,0.08); margin-bottom: 20px; transition: border-color 0.3s, box-shadow 0.3s; }
+        .glass-panel:hover { border-color: rgba(255, 0, 255, 0.75); box-shadow: 0 10px 36px rgba(255,0,255,0.32), inset 0 1px 0 rgba(255,255,255,0.12); }
         h3 { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 14px; color: var(--accent-bright); text-shadow: 0 0 10px rgba(0,255,255,0.3); display: flex; align-items: center; gap: 8px; }
         .btn { width: 100%; background: rgba(255, 0, 255, 0.08); border: 1px solid var(--border-glass); padding: 12px; border-radius: 12px; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.8rem; font-weight: 600; transition: all 0.3s; margin-bottom: 8px; }
         .btn:hover { background: rgba(255, 0, 255, 0.2); box-shadow: 0 0 15px rgba(255, 0, 255, 0.4); transform: translateY(-1px); }
@@ -30,7 +30,7 @@
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
         .center-col { display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; grid-column: 2; height: 100%; pointer-events: none; }
         #greeting { font-size: 1.7rem; font-weight: 200; letter-spacing: 3px; color: rgba(255,255,255,0.95); text-shadow: 0 0 15px rgba(255,0,255,0.4); }
-        #time { font-size: 6rem; font-weight: 200; letter-spacing: -1px; text-shadow: 0 0 20px rgba(0,255,255,0.3); line-height: 1.1; margin: 5px 0; }
+        #time { font-size: 6rem; font-weight: 200; letter-spacing: -1px; text-shadow: 0 0 24px rgba(255,0,255,0.52), 0 0 18px rgba(0,255,255,0.24); line-height: 1.1; margin: 5px 0; }
         #date { font-size: 1.05rem; letter-spacing: 4px; text-transform: uppercase; color: rgba(255,255,255,0.75); }
         #region, #sub-message { font-size: 0.85rem; color: var(--accent-bright); margin-top: 5px; letter-spacing: 1px; }
         #sub-message { color: #fff; text-transform: uppercase; text-shadow: 0 0 8px var(--accent); margin-top: 8px; }
@@ -38,8 +38,8 @@
         #quote-text { font-size: 0.95rem; font-style: italic; color: rgba(255,255,255,0.85); line-height: 1.5; }
         #quote-author { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 2px; color: var(--accent); margin-top: 8px; }
         .flex-in { display: flex; gap: 6px; margin-bottom: 12px; }
-        .flex-in input { flex: 1; background: rgba(0,0,0,0.4); border: 1px solid var(--border-glass); padding: 10px; border-radius: 10px; color: white; outline: none; font-size: 0.85rem; transition: all 0.3s; }
-        .flex-in input:focus { border-color: var(--accent-bright); }
+        .flex-in input, .field { flex: 1; width: 100%; background: rgba(0,0,0,0.4); border: 1px solid var(--border-glass); padding: 10px; border-radius: 10px; color: white; outline: none; font-size: 0.85rem; transition: all 0.3s; color-scheme: dark; }
+        .flex-in input:focus, .field:focus { border-color: var(--accent-bright); box-shadow: 0 0 0 3px rgba(0,255,255,0.12); }
         .rem-list { max-height: 180px; overflow-y: auto; font-size: 0.8rem; }
         .rem-item { background: rgba(255,255,255,0.03); padding: 10px 12px; border-radius: 10px; margin-bottom: 6px; display: flex; flex-direction: column; gap: 2px; border-left: 3px solid var(--accent); transition: all 0.3s; }
         .rem-item.fired { border-left-color: var(--accent-bright); background: rgba(0, 255, 255, 0.05); animation: pulseAlert 2s infinite alternate; }
@@ -52,6 +52,14 @@
         .rem-actions i:hover { transform: scale(1.2); }
         .rem-time-lbl { font-size: 0.7rem; color: var(--accent-bright); font-weight: 600; }
         .rem-item.completed .rem-time-lbl { color: var(--success); }
+        .event-list { max-height: 220px; overflow-y: auto; font-size: 0.8rem; }
+        .event-item { background: rgba(255,0,255,0.06); border: 1px solid rgba(255,0,255,0.18); border-left: 3px solid var(--accent); border-radius: 12px; padding: 10px 12px; margin-bottom: 8px; }
+        .event-meta { display: flex; justify-content: space-between; gap: 10px; align-items: start; }
+        .event-title { font-weight: 600; color: #fff; overflow-wrap: anywhere; }
+        .event-date { display: block; color: var(--accent-bright); font-size: 0.7rem; font-weight: 600; margin-top: 4px; }
+        .event-actions { display: flex; gap: 8px; color: rgba(255,255,255,0.65); flex-shrink: 0; }
+        .event-actions i { cursor: pointer; }
+        .cal-help { font-size: 0.72rem; line-height: 1.45; color: rgba(255,255,255,0.62); margin: 8px 0 10px; }
         #notif-center { position: absolute; top: 15px; right: 15px; z-index: 100; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
         .toast { width: 290px; background: rgba(15, 5, 25, 0.92); backdrop-filter: blur(20px); border: 1px solid var(--accent-bright); border-radius: 14px; padding: 14px; box-shadow: 0 10px 25px rgba(0,255,255,0.15); display: flex; gap: 10px; color: #fff; animation: sIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; pointer-events: auto; position: relative; transition: opacity 0.4s; }
         @keyframes sIn { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
@@ -62,9 +70,11 @@
         .t-close { position: absolute; top: 12px; right: 14px; color: rgba(255,255,255,0.4); cursor: pointer; font-size: 0.95rem; }
         #mobile-menu-btn { display: none; position: fixed; top: 15px; left: 15px; z-index: 100; width: 45px; height: 45px; border-radius: 12px; background: var(--bg-glass); border: 1px solid var(--border-glass); backdrop-filter: blur(20px); color: white; font-size: 1.1rem; justify-content: center; align-items: center; }
         @media (max-width: 900px) {
-            #mobile-menu-btn { display: flex; } .ui-layer { display: block; padding: 0; }
-            .center-col { width: 100%; padding-top: 80px; } #time { font-size: 4.2rem; }
-            .left-col, .right-col { position: fixed; top: 75px; left: 15px; width: 290px; max-height: calc(100% - 90px); overflow-y: auto; z-index: 90; display: none; }
+            #mobile-menu-btn { display: flex; }
+            .ui-layer { display: block; padding: 75px 15px 18px; overflow-y: auto; pointer-events: none; }
+            .ui-layer.mobile-open { pointer-events: auto; }
+            .center-col { position: fixed; inset: 0; width: 100%; height: 100%; padding: 80px 16px 16px; } #time { font-size: 4.2rem; }
+            .left-col, .right-col { position: relative; top: auto; left: auto; width: min(360px, 100%); max-height: none; overflow: visible; z-index: 90; display: none; margin-bottom: 14px; }
             .mobile-open .left-col, .mobile-open .right-col { display: block; animation: mFade 0.25s ease forwards; }
         }
         @keyframes mFade { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
@@ -116,14 +126,27 @@
             </div>
             <div class="glass-panel">
                 <h3><i class="fa-solid fa-calendar"></i> Calendar</h3>
-                <button class="btn" onclick="initGoogleCalendar()"><i class="fa-brands fa-google"></i> Sync Google Calendar</button>
+                <div class="flex-in" style="margin-bottom:6px;">
+                    <input type="text" id="event-title" placeholder="Event title..." onkeydown="if(event.key==='Enter') addCalendarEvent()">
+                </div>
+                <div class="grid-2" style="margin-bottom:8px;">
+                    <input class="field" type="date" id="event-date">
+                    <input class="field" type="time" id="event-time">
+                </div>
+                <button class="btn" onclick="addCalendarEvent()"><i class="fa-solid fa-plus"></i> Add Event</button>
+                <input type="file" id="ics-in" accept=".ics,text/calendar" style="display:none;">
+                <button class="btn secondary" onclick="document.getElementById('ics-in').click()"><i class="fa-solid fa-file-import"></i> Import Google .ics</button>
+                <button class="btn secondary" onclick="initGoogleCalendar()"><i class="fa-brands fa-google"></i> Connect Google</button>
+                <p class="cal-help">The dashboard calendar works locally now. Google sync needs a real OAuth client ID, or you can import a Google Calendar .ics export.</p>
+                <div class="event-list" id="event-box"></div>
             </div>
         </div>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script>
-        let ctx, analyser, data, active = false, shouldRender = true, hideTimeout, lastX = 0, lastY = 0, lastTap = 0, isTouchDevice = false, bdayActive = false, audioLoadingLock = false, confetti = [], bdayAnimationId, scene, camera, renderer, system, rems = [], lastDayChecked = "", lastMinChecked = "";
+        let ctx, analyser, data, active = false, shouldRender = true, hideTimeout, lastX = 0, lastY = 0, lastTap = 0, isTouchDevice = false, bdayActive = false, audioLoadingLock = false, confetti = [], bdayAnimationId, scene, camera, renderer, system, rems = [], calEvents = [], lastDayChecked = "", lastMinChecked = "";
         let isMuted = false, titleFlashInterval = null, baseTitle = "Chic Dashboard", audioSourceBound = false;
+        const GOOGLE_CLIENT_ID = "";
         const uiWrapper = document.getElementById('ui-wrapper'), bCanvas = document.getElementById('bday-canvas'), bCtx = bCanvas.getContext('2d'), fIn = document.getElementById('f-in'), p = document.getElementById('player'), bgIn = document.getElementById('bg-in'), cBg = document.getElementById('custom-bg'), cCon = document.getElementById('canvas-container');
         const quotes = [{ text: "The path to paradise begins in hell.", author: "Dante Alighieri" }, { text: "Out of difficulties grow miracles.", author: "Jean de La Bruyère" }, { text: "He who has a why to live can bear almost any how.", author: "Friedrich Nietzsche" }, { text: "Yesterday I was clever, so I wanted to change the world. Today I am wise, so I am changing myself.", author: "Rumi" }, { text: "Accept the challenges so that you can feel the exhilaration of victory.", author: "General George S. Patton" }];
 
@@ -132,17 +155,59 @@
             if(savedName) document.getElementById('user-name').value = savedName;
             try { 
                 const savedRems = localStorage.getItem('dashboard-reminders'); 
-                rems = savedRems ? JSON.parse(savedRems) : getDefaultRems();
+                rems = normalizeReminders(savedRems ? JSON.parse(savedRems) : getDefaultRems());
                 if(!Array.isArray(rems)) rems = getDefaultRems();
             } catch(e) { rems = getDefaultRems(); }
+            try {
+                const savedEvents = localStorage.getItem('dashboard-events');
+                calEvents = normalizeEvents(savedEvents ? JSON.parse(savedEvents) : []);
+            } catch(e) { calEvents = []; }
             if(localStorage.getItem('dashboard-muted') === 'true') { isMuted = true; updateMuteUI(); }
-            resetTimeInput(); drawRems(); setInterval(updateClock, 1000);
+            resetTimeInput(); resetEventInputs(); drawRems(); drawCalendarEvents(); updateClock(); setInterval(updateClock, 1000);
         });
 
         function getDefaultRems() { return [{id:1, txt:"Hydrate beautifully", time:"08:00", triggered:false, activeAlert:false, completed:false}]; }
+        function normalizeReminders(items) {
+            if (!Array.isArray(items)) return getDefaultRems();
+            return items.map(r => ({
+                id: Number(r.id) || Date.now() + Math.floor(Math.random() * 10000),
+                txt: String(r.txt || "Untitled reminder"),
+                time: r.time || null,
+                triggered: Boolean(r.triggered),
+                activeAlert: Boolean(r.activeAlert),
+                completed: Boolean(r.completed),
+                lastFiredKey: r.lastFiredKey || ""
+            }));
+        }
+        function normalizeEvents(items) {
+            if (!Array.isArray(items)) return [];
+            return items
+                .filter(ev => ev && ev.title && ev.date)
+                .map(ev => ({
+                    id: Number(ev.id) || Date.now() + Math.floor(Math.random() * 10000),
+                    title: String(ev.title),
+                    date: ev.date,
+                    time: ev.time || "",
+                    source: ev.source || "local",
+                    lastFiredKey: ev.lastFiredKey || ""
+                }))
+                .filter(ev => Number.isFinite(eventSortValue(ev)))
+                .sort((a, b) => eventSortValue(a) - eventSortValue(b));
+        }
+        function escapeHTML(value) {
+            return String(value).replace(/[&<>"']/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]));
+        }
+        function saveReminders() { localStorage.setItem('dashboard-reminders', JSON.stringify(rems)); }
+        function saveEvents() { localStorage.setItem('dashboard-events', JSON.stringify(calEvents.slice(0, 200))); }
         function ensureAudioContext() { if(!ctx || ctx.state === 'closed') ctx = new (window.AudioContext || window.webkitAudioContext)(); if(ctx && ctx.state === 'suspended') ctx.resume(); }
         window.addEventListener('click', ensureAudioContext, { once: true });
         function resetTimeInput() { const now = new Date(); document.getElementById('rem-time').value = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`; }
+        function localDateKey(date) { return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`; }
+        function resetEventInputs() {
+            const now = new Date();
+            document.getElementById('event-date').value = localDateKey(now);
+            document.getElementById('event-time').value = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+        }
 
         function toggleMute() {
             isMuted = !isMuted; localStorage.setItem('dashboard-muted', isMuted); updateMuteUI();
@@ -181,30 +246,38 @@
 
         let tokenClient, gapiInited = false, gisInited = false;
         function initGoogleCalendar() {
+            if (!GOOGLE_CLIENT_ID) {
+                msg("Calendar", "Google OAuth needs a real client ID. Import a Google .ics file or set GOOGLE_CLIENT_ID in the code.");
+                return;
+            }
             if (window.gapi && gapiInited && gisInited) { checkAuthReady(); return; }
             msg("Google Auth", "Initializing...");
             if (!document.getElementById('gapi-script')) { const s1 = document.createElement('script'); s1.id = 'gapi-script'; s1.src = "https://apis.google.com/js/api.js"; s1.onload = () => gapi.load('client', startGapi); document.body.appendChild(s1); }
             if (!document.getElementById('gis-script')) { const s2 = document.createElement('script'); s2.id = 'gis-script'; s2.src = "https://accounts.google.com/gsi/client"; s2.onload = startGis; document.body.appendChild(s2); }
         }
         async function startGapi() { await gapi.client.init({}); gapiInited = true; checkAuthReady(); }
-        function startGis() { const cid = 'YOUR_CLIENT_ID.apps.googleusercontent.com'; if(cid.startsWith('YOUR_')) { msg("Config Error", "Set Calendar ID."); return; } try { tokenClient = google.accounts.oauth2.initTokenClient({ client_id: cid, scope: 'https://www.googleapis.com/auth/calendar.events.readonly', callback: (resp) => { if(!resp.error) fetchCalendarEvents(); } }); gisInited = true; checkAuthReady(); } catch(e) {} }
+        function startGis() { try { tokenClient = google.accounts.oauth2.initTokenClient({ client_id: GOOGLE_CLIENT_ID, scope: 'https://www.googleapis.com/auth/calendar.events.readonly', callback: (resp) => { if(!resp.error) fetchCalendarEvents(); } }); gisInited = true; checkAuthReady(); } catch(e) { msg("Google Auth", "Connection failed. Check the client ID and allowed origin."); } }
         function checkAuthReady() { if(gapiInited && gisInited && tokenClient) tokenClient.requestAccessToken({prompt: 'consent'}); }
         async function fetchCalendarEvents() {
             try {
                 await gapi.client.load('https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest');
-                const resp = await gapi.client.calendar.events.list({ calendarId: 'primary', timeMin: (new Date()).toISOString(), maxResults: 5, singleEvents: true, orderBy: 'startTime' });
+                const resp = await gapi.client.calendar.events.list({ calendarId: 'primary', timeMin: (new Date()).toISOString(), maxResults: 20, singleEvents: true, orderBy: 'startTime' });
                 const items = resp.result.items; if (!items || items.length === 0) { msg("Calendar", "No upcoming events."); return; }
-                items.forEach(ev => { const s = ev.start.dateTime || ev.start.date; msg("Event Alert", `${ev.summary} (${new Date(s).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})})`); });
-            } catch(e) {}
+                const imported = items.map(ev => googleEventToLocal(ev)).filter(Boolean);
+                mergeCalendarEvents(imported);
+                msg("Google Calendar", `${imported.length} events imported`);
+            } catch(e) { msg("Google Calendar", "Could not load events from Google."); }
         }
 
-        function toggleMobileMenu(e) { e.stopPropagation(); uiWrapper.classList.toggle('mobile-open'); document.querySelector('#mobile-menu-btn i').className = uiWrapper.classList.contains('mobile-open') ? "fa-solid fa-xmark" : "fa-solid fa-bars"; }
-        window.addEventListener('touchstart', (e) => { isTouchDevice = true; const now = Date.now(); if (now - lastTap < 300) { e.preventDefault(); uiWrapper.classList.remove('mobile-open'); if (uiWrapper.classList.contains('ui-hidden')) wakeUI(); else sleepUI(); } lastTap = now; }, { passive: false });
+        function syncMobileMenuIcon() { document.querySelector('#mobile-menu-btn i').className = uiWrapper.classList.contains('mobile-open') ? "fa-solid fa-xmark" : "fa-solid fa-bars"; }
+        function closeMobileMenu() { uiWrapper.classList.remove('mobile-open'); syncMobileMenuIcon(); }
+        function toggleMobileMenu(e) { e.stopPropagation(); uiWrapper.classList.toggle('mobile-open'); syncMobileMenuIcon(); }
+        window.addEventListener('touchstart', (e) => { isTouchDevice = true; const now = Date.now(); if (now - lastTap < 300) { e.preventDefault(); closeMobileMenu(); if (uiWrapper.classList.contains('ui-hidden')) wakeUI(); else sleepUI(); } lastTap = now; }, { passive: false });
         function wakeUI() { uiWrapper.classList.remove('ui-hidden'); resetInactivityTimeout(); }
         function sleepUI() { uiWrapper.classList.add('ui-hidden'); clearTimeout(hideTimeout); }
         function resetInactivityTimeout() { clearTimeout(hideTimeout); if (!uiWrapper.classList.contains('ui-hidden')) hideTimeout = setTimeout(sleepUI, 120000); }
         window.addEventListener('mousemove', (e) => { if (isTouchDevice || (Math.abs(e.clientX - lastX) < 2 && Math.abs(e.clientY - lastY) < 2)) return; lastX = e.clientX; lastY = e.clientY; if (uiWrapper.classList.contains('ui-hidden')) wakeUI(); else resetInactivityTimeout(); });
-        window.addEventListener('click', (e) => { if (e.target.closest('.ui-panels') || e.target.closest('#mobile-menu-btn')) { resetInactivityTimeout(); return; } uiWrapper.classList.remove('mobile-open'); if (uiWrapper.classList.contains('ui-hidden')) wakeUI(); else sleepUI(); });
+        window.addEventListener('click', (e) => { if (e.target.closest('.ui-panels') || e.target.closest('#mobile-menu-btn')) { resetInactivityTimeout(); return; } closeMobileMenu(); if (uiWrapper.classList.contains('ui-hidden')) wakeUI(); else sleepUI(); });
 
         function generateDailyQuote(force = false) {
             const todayStr = new Date().toDateString();
@@ -217,13 +290,23 @@
 
         function updateClock() {
             const timeEl = document.getElementById('time'); if(!timeEl) return;
-            const now = new Date(), hrs = now.getHours(), m = now.getMonth() + 1, d = now.getDate(), name = localStorage.getItem('dashboard-user-name') || 'Guest', curTimeStr = now.toTimeString().split(' ')[0], curHM = curTimeStr.substring(0, 5);
-            timeEl.innerText = curTimeStr; document.getElementById('date').innerText = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }); generateDailyQuote();
+            const now = new Date(), hrs = now.getHours(), m = now.getMonth() + 1, d = now.getDate(), name = localStorage.getItem('dashboard-user-name') || 'Guest', curHM = `${String(hrs).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`, todayKey = localDateKey(now), minuteKey = `${todayKey} ${curHM}`;
+            timeEl.innerText = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true });
+            document.getElementById('date').innerText = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }); generateDailyQuote();
             
             let updated = false;
-            rems.forEach(r => { if(r.time === curHM && !r.triggered && !r.completed) { r.triggered = true; r.activeAlert = true; updated = true; playSynthAlert(); msg("Reminder Due", r.txt, r.id); startTabTitleFlash(); } });
-            if(updated) { localStorage.setItem('dashboard-reminders', JSON.stringify(rems)); drawRems(); }
-            if(curHM !== lastMinChecked) { lastMinChecked = curHM; let rst = false; rems.forEach(r => { if(r.time !== curHM && r.triggered) { r.triggered = false; rst = true; } }); if(rst) localStorage.setItem('dashboard-reminders', JSON.stringify(rems)); }
+            rems.forEach(r => {
+                if(r.time === curHM && r.lastFiredKey !== minuteKey && !r.completed) {
+                    r.triggered = true; r.activeAlert = true; r.lastFiredKey = minuteKey; updated = true;
+                    playSynthAlert(); msg("Reminder Due", r.txt, r.id); startTabTitleFlash();
+                }
+            });
+            updated = checkCalendarEvents(todayKey, curHM, minuteKey) || updated;
+            if(curHM !== lastMinChecked) {
+                lastMinChecked = curHM;
+                rems.forEach(r => { if(r.time !== curHM && r.triggered) { r.triggered = false; updated = true; } });
+            }
+            if(updated) { saveReminders(); saveEvents(); drawRems(); drawCalendarEvents(); }
 
             let greet = hrs >= 5 && hrs < 12 ? "Good morning" : hrs >= 12 && hrs < 17 ? "Good afternoon" : hrs >= 17 && hrs < 22 ? "Good evening" : "Good night";
             let hTxt = m===1&&d===1 ? "✨ New Year ✨" : m===10&&d===31 ? "🎃 Halloween 🎃" : m===12&&d===25 ? "🎄 Christmas 🎄" : "";
@@ -244,25 +327,154 @@
 
         function msg(title, text, trackingId = null) { 
             const box = document.getElementById('notif-center'), t = document.createElement('div'); t.className = 'toast'; if(trackingId) t.setAttribute('data-rem-id', trackingId);
-            t.innerHTML = `<div class="t-ico"><i class="fa-solid fa-comment"></i></div><div><div class="t-head"><span>ALERT</span><span>${new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</span></div><div class="t-title">${title}</div><div class="t-body">${text}</div></div><div class="t-close" onclick="closeToast(this, ${trackingId})"><i class="fa-solid fa-xmark"></i></div>`; 
+            t.innerHTML = `<div class="t-ico"><i class="fa-solid fa-comment"></i></div><div><div class="t-head"><span>ALERT</span><span>${new Date().toLocaleTimeString([],{hour:'numeric',minute:'2-digit'})}</span></div><div class="t-title">${escapeHTML(title)}</div><div class="t-body">${escapeHTML(text)}</div></div><div class="t-close" onclick="closeToast(this, ${trackingId})"><i class="fa-solid fa-xmark"></i></div>`;
             box.appendChild(t); if(!trackingId) setTimeout(() => { if(t && t.parentElement) { t.style.opacity = '0'; setTimeout(() => t.remove(), 400); } }, 5000);
         }
-        function closeToast(btn, trackingId) { const toast = btn.parentElement; toast.style.opacity = '0'; setTimeout(() => toast.remove(), 400); if(trackingId) { rems = rems.map(r => r.id === trackingId ? { ...r, activeAlert: false, completed: true } : r); localStorage.setItem('dashboard-reminders', JSON.stringify(rems)); drawRems(); checkRemainingAlerts(); } }
+        function closeToast(btn, trackingId) { const toast = btn.parentElement; toast.style.opacity = '0'; setTimeout(() => toast.remove(), 400); if(trackingId) { rems = rems.map(r => r.id === trackingId ? { ...r, activeAlert: false, completed: true } : r); saveReminders(); drawRems(); checkRemainingAlerts(); } }
         function checkRemainingAlerts() { if (!rems.some(r => r.activeAlert)) stopTabTitleFlash(); }
+
+        function eventSortValue(ev) {
+            return new Date(`${ev.date}T${ev.time || "23:59"}`).getTime();
+        }
+
+        function formatEventDate(ev) {
+            const date = new Date(`${ev.date}T${ev.time || "00:00"}`);
+            const dateText = date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+            return ev.time ? `${dateText} at ${date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}` : dateText;
+        }
+
+        function checkCalendarEvents(todayKey, curHM, minuteKey) {
+            let updated = false;
+            calEvents.forEach(ev => {
+                if (ev.date === todayKey && ev.time === curHM && ev.lastFiredKey !== minuteKey) {
+                    ev.lastFiredKey = minuteKey;
+                    updated = true;
+                    playSynthAlert();
+                    msg("Calendar Event", ev.title);
+                }
+            });
+            return updated;
+        }
+
+        function drawCalendarEvents() {
+            const box = document.getElementById('event-box'); if(!box) return;
+            box.innerHTML = '';
+            const upcoming = calEvents
+                .filter(ev => eventSortValue(ev) >= Date.now() - 86400000)
+                .sort((a, b) => eventSortValue(a) - eventSortValue(b))
+                .slice(0, 30);
+            if (!upcoming.length) {
+                box.innerHTML = `<div class="event-item"><span class="event-title">No upcoming events yet.</span><span class="event-date">Add one above or import a Google .ics file.</span></div>`;
+                return;
+            }
+            upcoming.forEach(ev => {
+                const d = document.createElement('div');
+                d.className = 'event-item';
+                d.innerHTML = `<div class="event-meta"><div><div class="event-title">${escapeHTML(ev.title)}</div><span class="event-date">${escapeHTML(formatEventDate(ev))}${ev.source === "google" ? " · Google" : ""}</span></div><div class="event-actions"><i class="fa-solid fa-bell" title="Create reminder" onclick="eventToReminder(${ev.id})"></i><i class="fa-solid fa-trash-can" title="Delete event" onclick="deleteCalendarEvent(${ev.id})"></i></div></div>`;
+                box.appendChild(d);
+            });
+        }
+
+        function addCalendarEvent() {
+            const titleInput = document.getElementById('event-title'), dateInput = document.getElementById('event-date'), timeInput = document.getElementById('event-time');
+            const title = titleInput.value.trim();
+            if (!title || !dateInput.value) return;
+            calEvents.push({ id: Date.now(), title, date: dateInput.value, time: timeInput.value || "", source: "local", lastFiredKey: "" });
+            calEvents = normalizeEvents(calEvents);
+            saveEvents();
+            drawCalendarEvents();
+            msg("Calendar", "Event added");
+            titleInput.value = '';
+        }
+
+        function deleteCalendarEvent(id) {
+            calEvents = calEvents.filter(ev => ev.id !== id);
+            saveEvents();
+            drawCalendarEvents();
+        }
+
+        function eventToReminder(id) {
+            const ev = calEvents.find(item => item.id === id);
+            if (!ev || !ev.time) { msg("Calendar", "Timed events can become reminders."); return; }
+            rems.push({ id: Date.now(), txt: ev.title, time: ev.time, triggered: false, activeAlert: false, completed: false, lastFiredKey: "" });
+            saveReminders();
+            drawRems();
+            msg("Reminders", "Calendar event added as reminder");
+        }
+
+        function mergeCalendarEvents(items) {
+            const existingKeys = new Set(calEvents.map(ev => `${ev.source}|${ev.title}|${ev.date}|${ev.time}`));
+            items.forEach(ev => {
+                const key = `${ev.source}|${ev.title}|${ev.date}|${ev.time}`;
+                if (!existingKeys.has(key)) calEvents.push(ev);
+            });
+            calEvents = normalizeEvents(calEvents);
+            saveEvents();
+            drawCalendarEvents();
+        }
+
+        function googleEventToLocal(ev) {
+            const rawStart = ev.start?.dateTime || ev.start?.date;
+            if (!rawStart) return null;
+            const date = ev.start?.dateTime ? new Date(rawStart) : new Date(`${rawStart}T00:00`);
+            return {
+                id: Date.now() + Math.floor(Math.random() * 100000),
+                title: ev.summary || "Untitled Google event",
+                date: ev.start?.dateTime ? localDateKey(date) : rawStart,
+                time: ev.start?.dateTime ? `${String(date.getHours()).padStart(2,'0')}:${String(date.getMinutes()).padStart(2,'0')}` : "",
+                source: "google",
+                lastFiredKey: ""
+            };
+        }
+
+        function parseIcsDate(value) {
+            if (!value) return null;
+            const clean = value.trim();
+            if (/^\d{8}$/.test(clean)) return { date: `${clean.slice(0,4)}-${clean.slice(4,6)}-${clean.slice(6,8)}`, time: "" };
+            const match = clean.match(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})/);
+            if (!match) return null;
+            const isUtc = clean.endsWith("Z");
+            const date = isUtc
+                ? new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3]), Number(match[4]), Number(match[5])))
+                : new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]), Number(match[4]), Number(match[5]));
+            return { date: localDateKey(date), time: `${String(date.getHours()).padStart(2,'0')}:${String(date.getMinutes()).padStart(2,'0')}` };
+        }
+
+        function parseIcsEvents(text) {
+            return text
+                .replace(/\r?\n[ \t]/g, "")
+                .split("BEGIN:VEVENT")
+                .slice(1)
+                .map(block => {
+                    const summary = (block.match(/\nSUMMARY(?:;[^:]*)?:(.*)/) || [])[1];
+                    const start = (block.match(/\nDTSTART(?:;[^:]*)?:(.*)/) || [])[1];
+                    const parsedStart = parseIcsDate(start);
+                    if (!summary || !parsedStart) return null;
+                    return {
+                        id: Date.now() + Math.floor(Math.random() * 100000),
+                        title: summary.replace(/\\,/g, ",").replace(/\\n/g, " ").trim(),
+                        date: parsedStart.date,
+                        time: parsedStart.time,
+                        source: "google",
+                        lastFiredKey: ""
+                    };
+                })
+                .filter(Boolean);
+        }
 
         function drawRems() { 
             const b = document.getElementById('rem-box'); b.innerHTML = ''; 
             rems.forEach(r => { 
                 const d = document.createElement('div'); d.className = `rem-item ${r.activeAlert ? 'fired' : ''} ${r.completed ? 'completed' : ''}`; 
                 let act = r.completed ? `<i class="fa-solid fa-rotate-left" style="color:var(--accent-bright);" onclick="toggleRemState(${r.id})"></i>` : `<i class="fa-solid fa-circle-check" style="color:var(--success);" onclick="toggleRemState(${r.id})"></i>`;
-                d.innerHTML = `<div class="rem-meta"><span>${r.txt}</span><div class="rem-actions">${act}<i class="fa-solid fa-trash-can" style="color:rgba(255,255,255,0.4);" onclick="delRem(${r.id})"></i></div></div><span class="rem-time-lbl"><i class="fa-regular fa-clock"></i> ${r.time || 'Persistent'} ${r.activeAlert ? '[DUE]' : ''}</span>`;
+                d.innerHTML = `<div class="rem-meta"><span>${escapeHTML(r.txt)}</span><div class="rem-actions">${act}<i class="fa-solid fa-trash-can" style="color:rgba(255,255,255,0.4);" onclick="delRem(${r.id})"></i></div></div><span class="rem-time-lbl"><i class="fa-regular fa-clock"></i> ${escapeHTML(r.time || 'Persistent')} ${r.activeAlert ? '[DUE]' : ''}</span>`;
                 b.appendChild(d); 
             }); 
         }
-        function toggleRemState(id) { rems = rems.map(r => r.id === id ? { ...r, completed: !r.completed, activeAlert: !r.completed ? false : r.activeAlert } : r); const mt = document.querySelector(`.toast[data-rem-id="${id}"]`); if(mt) { mt.style.opacity = '0'; mt.remove(); } localStorage.setItem('dashboard-reminders', JSON.stringify(rems)); drawRems(); checkRemainingAlerts(); }
-        function addRem() { const i = document.getElementById('rem-txt'), tInput = document.getElementById('rem-time'); if(!i.value.trim()) return; rems.push({ id: Date.now(), txt: i.value.trim(), time: tInput.value || null, triggered: false, activeAlert: false, completed: false }); localStorage.setItem('dashboard-reminders', JSON.stringify(rems)); msg("Reminders", "Added successfully"); i.value = ''; resetTimeInput(); drawRems(); }
-        function delRem(id) { rems = rems.filter(r => r.id !== id); localStorage.setItem('dashboard-reminders', JSON.stringify(rems)); const mt = document.querySelector(`.toast[data-rem-id="${id}"]`); if(mt) { mt.style.opacity = '0'; mt.remove(); } drawRems(); checkRemainingAlerts(); }
-        function clearCompletedRems() { rems = rems.filter(r => !r.completed); localStorage.setItem('dashboard-reminders', JSON.stringify(rems)); msg("Reminders", "History cleared"); drawRems(); }
+        function toggleRemState(id) { rems = rems.map(r => r.id === id ? { ...r, completed: !r.completed, activeAlert: !r.completed ? false : r.activeAlert } : r); const mt = document.querySelector(`.toast[data-rem-id="${id}"]`); if(mt) { mt.style.opacity = '0'; mt.remove(); } saveReminders(); drawRems(); checkRemainingAlerts(); }
+        function addRem() { const i = document.getElementById('rem-txt'), tInput = document.getElementById('rem-time'); if(!i.value.trim()) return; rems.push({ id: Date.now(), txt: i.value.trim(), time: tInput.value || null, triggered: false, activeAlert: false, completed: false, lastFiredKey: "" }); saveReminders(); msg("Reminders", "Added successfully"); i.value = ''; resetTimeInput(); drawRems(); }
+        function delRem(id) { rems = rems.filter(r => r.id !== id); saveReminders(); const mt = document.querySelector(`.toast[data-rem-id="${id}"]`); if(mt) { mt.style.opacity = '0'; mt.remove(); } drawRems(); checkRemainingAlerts(); }
+        function clearCompletedRems() { rems = rems.filter(r => !r.completed); saveReminders(); msg("Reminders", "History cleared"); drawRems(); }
 
         function init3D() { scene = new THREE.Scene(); camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.1, 1000); camera.position.z = 40; renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true }); renderer.setSize(window.innerWidth, window.innerHeight); document.getElementById('canvas-container').appendChild(renderer.domElement); const geo = new THREE.BufferGeometry(), pos = new Float32Array(1500); for(let i=0; i<1500; i++) pos[i] = (Math.random() - 0.5) * 80; geo.setAttribute('position', new THREE.BufferAttribute(pos, 3)); system = new THREE.Points(geo, new THREE.PointsMaterial({ color: 0xff00ff, size: 0.4, transparent: true, opacity: 0.85 })); scene.add(system); loop(); }
         function loop() { requestAnimationFrame(loop); if (!system || !shouldRender) return; system.rotation.x += 0.0008; system.rotation.y += 0.0012; renderer.render(scene, camera); }
@@ -274,6 +486,17 @@
                 try { analyser = ctx.createAnalyser(); ctx.createMediaElementSource(p).connect(analyser); analyser.connect(ctx.destination); analyser.fftSize = 64; data = new Uint8Array(analyser.frequencyBinCount); audioSourceBound = true; } catch(err) {}
             }
             active = true; audioLoadingLock = false; msg("Audio Engine", "Playback active"); 
+        });
+        document.getElementById('ics-in').addEventListener('change', async (e) => {
+            const file = e.target.files[0]; if(!file) return;
+            try {
+                const events = parseIcsEvents(await file.text());
+                mergeCalendarEvents(events);
+                msg("Calendar Import", `${events.length} events imported`);
+            } catch(err) {
+                msg("Calendar Import", "Could not read that calendar file.");
+            }
+            e.target.value = "";
         });
         bgIn.addEventListener('change', (e) => { 
             const f = e.target.files[0]; if(!f) return; const url = URL.createObjectURL(f), ov = cBg.querySelector('video'); if(ov) { ov.pause(); ov.src = ""; }
