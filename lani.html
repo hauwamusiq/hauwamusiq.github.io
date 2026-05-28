@@ -31,9 +31,9 @@
             min-height: 100vh;
             font-family: Inter, system-ui, sans-serif;
             background:
-                radial-gradient(circle at 8% 8%, rgba(34, 211, 238, 0.14), transparent 30rem),
-                radial-gradient(circle at 92% 12%, rgba(129, 140, 248, 0.14), transparent 30rem),
-                linear-gradient(135deg, #080b12, #101420 58%, #070a11);
+                radial-gradient(circle at 50% 36%, rgba(34, 211, 238, 0.11), transparent 28rem),
+                radial-gradient(circle at 78% 8%, rgba(251, 191, 36, 0.08), transparent 24rem),
+                linear-gradient(135deg, #04060c, #0a0d15 58%, #03050a);
             color: var(--text);
         }
         body::before {
@@ -47,23 +47,89 @@
             background-size: 54px 54px;
             mask-image: linear-gradient(to bottom, rgba(0,0,0,.9), rgba(0,0,0,.18));
         }
-        .glass {
-            background: var(--panel);
-            border: 1px solid var(--line);
-            backdrop-filter: blur(16px);
+        #blackhole-bg {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.86;
+            pointer-events: none;
         }
+        .cosmic-vignette {
+            position: fixed;
+            inset: 0;
+            z-index: 1;
+            pointer-events: none;
+            background:
+                radial-gradient(circle at 50% 43%, transparent 0 16rem, rgba(3,5,10,0.08) 23rem, rgba(3,5,10,0.72) 100%),
+                linear-gradient(90deg, rgba(3,5,10,0.74), transparent 34%, transparent 66%, rgba(3,5,10,0.72));
+        }
+        .glass {
+            background: linear-gradient(180deg, rgba(15, 23, 42, 0.82), rgba(5, 9, 18, 0.66));
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            backdrop-filter: blur(20px);
+            box-shadow: 0 24px 80px rgba(0,0,0,0.24);
+        }
+        header, main { position: relative; z-index: 10; }
         .mono { font-family: "Fira Code", ui-monospace, SFMono-Regular, Menlo, monospace; }
-        .nav-btn.active { background: #4f46e5; color: white; box-shadow: 0 12px 32px rgba(79,70,229,.24); }
+        .nav-btn.active { background: linear-gradient(135deg, rgba(79,70,229,.9), rgba(34,211,238,.52)); color: white; box-shadow: 0 12px 32px rgba(34,211,238,.18); }
         .nav-btn { color: #cbd5e1; }
         .level-pill { border: 1px solid var(--line); color: #cbd5e1; }
         .level-pill.active { border-color: rgba(34,211,238,.55); background: rgba(34,211,238,.1); color: var(--cyan); }
         .topic-card.active { border-color: rgba(34,211,238,.6); background: rgba(34,211,238,.08); }
         .hidden-tab { display: none; }
+        .cockpit {
+            min-height: 620px;
+            display: grid;
+            align-items: end;
+            position: relative;
+            overflow: hidden;
+        }
+        .cockpit::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background:
+                radial-gradient(circle at 70% 22%, rgba(251,191,36,0.18), transparent 18rem),
+                radial-gradient(circle at 46% 38%, rgba(34,211,238,0.14), transparent 22rem);
+        }
+        .cockpit > * { position: relative; z-index: 1; }
+        .mission-title {
+            font-size: clamp(2.7rem, 7vw, 7.2rem);
+            line-height: 0.88;
+            letter-spacing: -0.02em;
+        }
+        .mission-card {
+            background: rgba(2, 6, 14, 0.58);
+            border: 1px solid rgba(148,163,184,0.16);
+            border-radius: 18px;
+            padding: 18px;
+        }
+        .launch-btn {
+            min-height: 48px;
+            border-radius: 14px;
+            border: 1px solid rgba(34,211,238,0.28);
+            background: rgba(34,211,238,0.08);
+            color: #dffbff;
+            font-weight: 900;
+            text-align: left;
+            padding: 0 14px;
+            transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
+        }
+        .launch-btn:hover {
+            transform: translateY(-2px);
+            border-color: rgba(34,211,238,0.68);
+            background: rgba(34,211,238,0.16);
+        }
         input[type="range"] { accent-color: var(--cyan); }
         canvas { touch-action: none; }
     </style>
 </head>
 <body>
+    <canvas id="blackhole-bg" aria-hidden="true"></canvas>
+    <div class="cosmic-vignette" aria-hidden="true"></div>
     <header class="sticky top-0 z-40 glass border-x-0 border-t-0">
         <div class="max-w-[1500px] mx-auto px-4 md:px-6 py-4 flex flex-col lg:flex-row gap-4 lg:items-center lg:justify-between">
             <div class="flex items-center gap-3 min-w-0">
@@ -76,7 +142,8 @@
                 </div>
             </div>
             <nav class="flex flex-wrap gap-2" aria-label="Workspace sections">
-                <button class="nav-btn active px-3 py-2 rounded-lg text-sm font-bold transition" data-tab="learn"><i class="fa-solid fa-book-open mr-2"></i>Learn</button>
+                <button class="nav-btn active px-3 py-2 rounded-lg text-sm font-bold transition" data-tab="overview"><i class="fa-solid fa-circle-nodes mr-2"></i>Overview</button>
+                <button class="nav-btn px-3 py-2 rounded-lg text-sm font-bold transition" data-tab="learn"><i class="fa-solid fa-book-open mr-2"></i>Learn</button>
                 <button class="nav-btn px-3 py-2 rounded-lg text-sm font-bold transition" data-tab="lab"><i class="fa-solid fa-flask-vial mr-2"></i>Lab</button>
                 <button class="nav-btn px-3 py-2 rounded-lg text-sm font-bold transition" data-tab="simulator"><i class="fa-solid fa-chart-line mr-2"></i>Simulate</button>
                 <button class="nav-btn px-3 py-2 rounded-lg text-sm font-bold transition" data-tab="research"><i class="fa-solid fa-magnifying-glass-chart mr-2"></i>Research</button>
@@ -110,7 +177,43 @@
                 </div>
             </aside>
 
-            <section id="tab-learn" class="space-y-6">
+            <section id="tab-overview" class="space-y-6">
+                <div class="glass cockpit rounded-2xl p-5 md:p-8">
+                    <div class="grid grid-cols-1 xl:grid-cols-[1fr_390px] gap-8 items-end">
+                        <div>
+                            <p class="text-[10px] uppercase tracking-[0.32em] font-black text-cyan-300 mb-4">Aletheia mission control</p>
+                            <h2 class="mission-title font-black">Turn wonder into physics.</h2>
+                            <p class="mt-5 max-w-3xl text-slate-300 leading-relaxed text-base md:text-lg">Use the black hole as the mood and the method: orbit the big ideas, fall into the math, test intuition in simulation, then climb back out with notes sharp enough to become research questions.</p>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-7">
+                                <button class="launch-btn" data-jump="learn"><i class="fa-solid fa-book-open mr-2"></i>Start learning</button>
+                                <button class="launch-btn" data-jump="lab"><i class="fa-solid fa-flask-vial mr-2"></i>Open lab bench</button>
+                                <button class="launch-btn" data-jump="simulator"><i class="fa-solid fa-chart-line mr-2"></i>Run simulation</button>
+                                <button class="launch-btn" data-jump="research"><i class="fa-solid fa-magnifying-glass-chart mr-2"></i>Read papers</button>
+                            </div>
+                        </div>
+                        <div class="space-y-3">
+                            <div class="mission-card">
+                                <span class="block text-[10px] uppercase tracking-widest text-slate-500 font-black">Current path</span>
+                                <strong id="overview-focus" class="block mt-2 text-2xl text-cyan-100">Mathematical Language of Physics</strong>
+                                <p class="mt-3 text-sm leading-relaxed text-slate-300">Choose a topic on the left, then move between intuition, formal structure, computation, and research practice.</p>
+                            </div>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div class="mission-card">
+                                    <span class="block text-[10px] uppercase tracking-widest text-slate-500 font-black">Mastered</span>
+                                    <strong id="overview-mastered" class="block mt-1 text-2xl text-emerald-300">0%</strong>
+                                </div>
+                                <div class="mission-card">
+                                    <span class="block text-[10px] uppercase tracking-widest text-slate-500 font-black">Accuracy</span>
+                                    <strong id="overview-accuracy" class="block mt-1 text-2xl text-amber-300">0%</strong>
+                                </div>
+                            </div>
+                            <button class="launch-btn w-full" data-jump="notebook"><i class="fa-solid fa-clipboard-list mr-2"></i>Open research notebook</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="tab-learn" class="hidden-tab space-y-6">
                 <div class="glass rounded-2xl p-5 md:p-7">
                     <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
                         <div>
@@ -647,10 +750,11 @@
 
         let activeLevel = "All";
         let activeTopic = 0;
-        let activeTab = "learn";
+        let activeTab = "overview";
         let flashFlipped = false;
         let progress = loadProgress();
         let paperNotes = loadPaperNotes();
+        let blackholeState = { stars: [], lastWidth: 0, lastHeight: 0 };
         let pendulum = {
             theta: Math.PI / 4,
             omega: 0,
@@ -680,6 +784,100 @@
             } catch {
                 $("recommendation").textContent = "Progress could not be saved in this browser session, but the lab still works.";
             }
+        }
+
+        function resizeBlackhole() {
+            const canvas = $("blackhole-bg");
+            if (!canvas) return;
+            const ratio = Math.min(devicePixelRatio || 1, 2);
+            const w = window.innerWidth;
+            const h = window.innerHeight;
+            if (blackholeState.lastWidth === w && blackholeState.lastHeight === h) return;
+            blackholeState.lastWidth = w;
+            blackholeState.lastHeight = h;
+            canvas.width = Math.floor(w * ratio);
+            canvas.height = Math.floor(h * ratio);
+            canvas.style.width = `${w}px`;
+            canvas.style.height = `${h}px`;
+            const ctx = canvas.getContext("2d");
+            ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+            blackholeState.stars = Array.from({ length: Math.min(180, Math.floor((w * h) / 6000)) }, () => ({
+                r: 0.24 + Math.random() * 0.76,
+                a: Math.random() * Math.PI * 2,
+                d: 90 + Math.random() * Math.max(w, h) * 0.68,
+                s: 0.08 + Math.random() * 0.26,
+                o: 0.2 + Math.random() * 0.65
+            }));
+        }
+
+        function drawBlackhole(now = performance.now()) {
+            const canvas = $("blackhole-bg");
+            if (!canvas) return;
+            resizeBlackhole();
+            const ctx = canvas.getContext("2d");
+            const w = window.innerWidth;
+            const h = window.innerHeight;
+            const cx = w * 0.52;
+            const cy = h * 0.42;
+            ctx.clearRect(0, 0, w, h);
+
+            const halo = ctx.createRadialGradient(cx, cy, 30, cx, cy, Math.min(w, h) * 0.58);
+            halo.addColorStop(0, "rgba(0,0,0,0)");
+            halo.addColorStop(0.24, "rgba(34,211,238,0.07)");
+            halo.addColorStop(0.48, "rgba(129,140,248,0.08)");
+            halo.addColorStop(1, "rgba(0,0,0,0)");
+            ctx.fillStyle = halo;
+            ctx.fillRect(0, 0, w, h);
+
+            blackholeState.stars.forEach(star => {
+                const angle = star.a + now * 0.00002 * star.s;
+                const warp = Math.sin(angle * 3 + now * 0.0004) * 16;
+                const x = cx + Math.cos(angle) * (star.d + warp);
+                const y = cy + Math.sin(angle) * (star.d * 0.48 + warp * 0.2);
+                ctx.fillStyle = `rgba(226,244,255,${star.o})`;
+                ctx.beginPath();
+                ctx.arc(x, y, star.r, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            ctx.save();
+            ctx.translate(cx, cy);
+            ctx.rotate(-0.18 + Math.sin(now * 0.00018) * 0.02);
+            const disk = ctx.createLinearGradient(-Math.min(w, h) * 0.48, 0, Math.min(w, h) * 0.48, 0);
+            disk.addColorStop(0, "rgba(34,211,238,0)");
+            disk.addColorStop(0.18, "rgba(34,211,238,0.18)");
+            disk.addColorStop(0.42, "rgba(251,191,36,0.48)");
+            disk.addColorStop(0.5, "rgba(255,255,255,0.78)");
+            disk.addColorStop(0.58, "rgba(251,191,36,0.48)");
+            disk.addColorStop(0.82, "rgba(129,140,248,0.2)");
+            disk.addColorStop(1, "rgba(34,211,238,0)");
+            ctx.fillStyle = disk;
+            ctx.beginPath();
+            ctx.ellipse(0, 0, Math.min(w, h) * 0.46, Math.min(w, h) * 0.068, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.globalCompositeOperation = "screen";
+            ctx.strokeStyle = "rgba(34,211,238,0.32)";
+            ctx.lineWidth = 1.2;
+            for (let i = 0; i < 5; i++) {
+                ctx.beginPath();
+                ctx.ellipse(0, 0, Math.min(w, h) * (0.25 + i * 0.055), Math.min(w, h) * (0.035 + i * 0.011), 0, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+            ctx.restore();
+
+            const core = ctx.createRadialGradient(cx, cy, 4, cx, cy, Math.min(w, h) * 0.15);
+            core.addColorStop(0, "#000");
+            core.addColorStop(0.48, "rgba(0,0,0,0.98)");
+            core.addColorStop(0.64, "rgba(3,6,14,0.88)");
+            core.addColorStop(0.82, "rgba(34,211,238,0.18)");
+            core.addColorStop(1, "rgba(34,211,238,0)");
+            ctx.fillStyle = core;
+            ctx.beginPath();
+            ctx.arc(cx, cy, Math.min(w, h) * 0.15, 0, Math.PI * 2);
+            ctx.fill();
+
+            requestAnimationFrame(drawBlackhole);
         }
 
         function loadPaperNotes() {
@@ -814,6 +1012,9 @@
             const accuracy = answers.length ? Math.round((answers.filter(a => a.correct).length / answers.length) * 100) : 0;
             $("stat-mastered").textContent = `${mastery}%`;
             $("stat-accuracy").textContent = `${accuracy}%`;
+            $("overview-mastered").textContent = `${mastery}%`;
+            $("overview-accuracy").textContent = `${accuracy}%`;
+            $("overview-focus").textContent = topics[activeTopic].title;
             const t = topics[activeTopic];
             if (t.level === "Graduate" && !progress.mastered["math-methods"]) {
                 $("recommendation").textContent = "This is advanced terrain. Keep the ambition, but build the math-methods base alongside it.";
@@ -826,7 +1027,7 @@
 
         function switchTab(tab) {
             activeTab = tab;
-            ["learn", "lab", "simulator", "research", "notebook", "roadmap"].forEach(name => {
+            ["overview", "learn", "lab", "simulator", "research", "notebook", "roadmap"].forEach(name => {
                 $(`tab-${name}`).classList.toggle("hidden-tab", name !== tab);
             });
             document.querySelectorAll(".nav-btn").forEach(btn => btn.classList.toggle("active", btn.dataset.tab === tab));
@@ -1161,6 +1362,7 @@
         }
 
         document.querySelectorAll(".nav-btn").forEach(btn => btn.addEventListener("click", () => switchTab(btn.dataset.tab)));
+        document.querySelectorAll("[data-jump]").forEach(btn => btn.addEventListener("click", () => switchTab(btn.dataset.jump)));
         $("topic-search").addEventListener("input", renderTopicList);
         $("flash-card").addEventListener("click", () => { flashFlipped = !flashFlipped; renderFlash(); });
         $("practice-flash-btn").addEventListener("click", () => {
@@ -1209,7 +1411,10 @@
             savePaperNotes();
             renderPaperNotes();
         });
-        window.addEventListener("resize", resizeCanvases);
+        window.addEventListener("resize", () => {
+            resizeCanvases();
+            resizeBlackhole();
+        });
 
         renderLevelFilters();
         renderTopicList();
@@ -1221,7 +1426,9 @@
         resetPendulum();
         updateResearchLinks();
         renderPaperNotes();
+        resizeBlackhole();
         resizeCanvases();
+        requestAnimationFrame(drawBlackhole);
         animateLabs();
     </script>
 </body>
