@@ -211,9 +211,11 @@
             inset: 0;
             width: 100%;
             height: 100%;
-            z-index: 0;
-            opacity: 0.74;
-            display: none;
+            z-index: 1;
+            opacity: 0.72;
+            display: block;
+            pointer-events: none;
+            mix-blend-mode: screen;
         }
         .living-bg {
             position: fixed;
@@ -231,7 +233,7 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
-            opacity: 0.54;
+            opacity: 0;
             filter: saturate(1.1) contrast(1.08) brightness(0.76);
         }
         .living-bg::before {
@@ -247,9 +249,9 @@
             position: absolute;
             inset: -15%;
             background:
-                radial-gradient(circle, rgba(246,204,114,0.8) 0 1px, transparent 1.8px),
-                radial-gradient(circle, rgba(100,234,220,0.7) 0 1px, transparent 1.9px),
-                radial-gradient(circle, rgba(255,109,158,0.72) 0 1.2px, transparent 2px);
+                radial-gradient(circle, rgba(255,255,255,0.82) 0 1px, transparent 1.8px),
+                radial-gradient(circle, rgba(255,255,255,0.68) 0 1px, transparent 1.9px),
+                radial-gradient(circle, rgba(255,255,255,0.72) 0 1.2px, transparent 2px);
             background-size: 76px 76px, 124px 124px, 48px 48px;
             opacity: 0.34;
             animation: livingSparkles 18s linear infinite;
@@ -296,7 +298,7 @@
         }
         .shell {
             position: relative;
-            z-index: 2;
+            z-index: 3;
             width: min(1280px, calc(100% - 32px));
             margin: 0 auto;
         }
@@ -662,7 +664,7 @@
         }
         footer {
             position: relative;
-            z-index: 2;
+            z-index: 3;
             border-top: 1px solid var(--line);
             padding: 48px 0;
             color: #706878;
@@ -768,9 +770,6 @@
 
     <canvas id="world-canvas" aria-hidden="true"></canvas>
     <div class="living-bg" aria-hidden="true">
-        <video autoplay muted loop playsinline poster="assets/tilleli-field-poster.jpg">
-            <source src="assets/tilleli-field.mp4" type="video/mp4">
-        </video>
         <div class="thread-field">
             <span style="--x:4%;--y:18%;--r:-10deg;--d:13s;"></span>
             <span style="--x:44%;--y:24%;--r:16deg;--d:16s;"></span>
@@ -1233,6 +1232,13 @@
         });
 
         const titleSparkState = { sparks: [], lastX: 0, lastY: 0, lastEmit: 0, active: true };
+        const worldState = {
+            threads: [],
+            embers: [],
+            width: 0,
+            height: 0,
+            pointer: { x: 0, y: 0, active: false }
+        };
 
         function gateViewport() {
             const visual = window.visualViewport;
@@ -1273,7 +1279,7 @@
                         vy: Math.sin(angle) * (0.18 + Math.random() * 0.62) - 0.12,
                         life: 1,
                         size: 1.2 + Math.random() * 2.8,
-                        hue: Math.random() > 0.5 ? "246,204,114" : "255,109,158"
+                        hue: "255,255,255"
                     });
                 }
                 const maxSparks = mobile ? 70 : 160;
@@ -1307,6 +1313,88 @@
                 ctx.fill();
             });
             requestAnimationFrame(animateTitleSparks);
+        }
+
+        function resizeWorldCanvas() {
+            const canvas = $("world-canvas");
+            if (!canvas) return;
+            const ratio = Math.min(devicePixelRatio || 1, 2);
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+            if (worldState.width === width && worldState.height === height) return;
+            worldState.width = width;
+            worldState.height = height;
+            canvas.width = Math.floor(width * ratio);
+            canvas.height = Math.floor(height * ratio);
+            canvas.style.width = `${width}px`;
+            canvas.style.height = `${height}px`;
+            canvas.getContext("2d").setTransform(ratio, 0, 0, ratio, 0, 0);
+            const threadCount = Math.max(10, Math.min(22, Math.floor(width / 74)));
+            const emberCount = Math.max(56, Math.min(150, Math.floor((width * height) / 11000)));
+            worldState.threads = Array.from({ length: threadCount }, (_, index) => ({
+                y: (height * (index + 0.5)) / threadCount,
+                amp: 18 + (index % 5) * 8,
+                speed: 0.00016 + (index % 4) * 0.000045,
+                phase: index * 0.78,
+                color: index % 3
+            }));
+            worldState.embers = Array.from({ length: emberCount }, (_, index) => ({
+                x: (index * 173) % width,
+                y: (index * 89) % height,
+                r: 0.6 + (index % 5) * 0.18,
+                drift: 0.12 + (index % 7) * 0.035,
+                phase: index * 0.41,
+                color: index % 4
+            }));
+        }
+
+        function animateWorld(now = performance.now()) {
+            const canvas = $("world-canvas");
+            if (!canvas || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+            resizeWorldCanvas();
+            const ctx = canvas.getContext("2d");
+            const width = worldState.width;
+            const height = worldState.height;
+            ctx.clearRect(0, 0, width, height);
+
+            const wash = ctx.createLinearGradient(0, 0, width, height);
+            wash.addColorStop(0, "rgba(246,204,114,0.06)");
+            wash.addColorStop(0.42, "rgba(255,109,158,0.05)");
+            wash.addColorStop(1, "rgba(100,234,220,0.045)");
+            ctx.fillStyle = wash;
+            ctx.fillRect(0, 0, width, height);
+
+            const threadColors = ["rgba(246,204,114,.26)", "rgba(255,109,158,.2)", "rgba(100,234,220,.18)"];
+            worldState.threads.forEach((thread, index) => {
+                const lift = Math.sin(now * thread.speed + thread.phase) * 24;
+                ctx.strokeStyle = threadColors[thread.color];
+                ctx.lineWidth = index % 4 === 0 ? 1.8 : 1;
+                ctx.beginPath();
+                for (let x = -80; x <= width + 80; x += 28) {
+                    const pointerPull = worldState.pointer.active
+                        ? Math.max(0, 1 - Math.hypot(x - worldState.pointer.x, thread.y - worldState.pointer.y) / 320) * 34
+                        : 0;
+                    const y = thread.y + lift + Math.sin(x * 0.008 + now * thread.speed * 4 + thread.phase) * thread.amp - pointerPull;
+                    if (x === -80) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+                }
+                ctx.stroke();
+            });
+
+            worldState.embers.forEach(ember => {
+                ember.y -= ember.drift;
+                ember.x += Math.sin(now * 0.00055 + ember.phase) * 0.08;
+                if (ember.y < -12) {
+                    ember.y = height + 12;
+                    ember.x = Math.random() * width;
+                }
+                const alpha = 0.2 + Math.sin(now * 0.0012 + ember.phase) * 0.14;
+                ctx.fillStyle = `rgba(255,255,255,${alpha})`;
+                ctx.beginPath();
+                ctx.arc(ember.x, ember.y, ember.r, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            requestAnimationFrame(animateWorld);
         }
 
         $("unlock-btn").addEventListener("click", () => {
@@ -1478,11 +1566,25 @@
             requestAnimationFrame(frame);
         }
 
-        window.addEventListener("resize", resizeTitleSparkCanvas);
-        window.visualViewport?.addEventListener("resize", resizeTitleSparkCanvas);
+        window.addEventListener("pointermove", event => {
+            worldState.pointer = { x: event.clientX, y: event.clientY, active: true };
+        });
+        window.addEventListener("pointerleave", () => {
+            worldState.pointer.active = false;
+        });
+        window.addEventListener("resize", () => {
+            resizeTitleSparkCanvas();
+            resizeWorldCanvas();
+        });
+        window.visualViewport?.addEventListener("resize", () => {
+            resizeTitleSparkCanvas();
+            resizeWorldCanvas();
+        });
 
         resizeTitleSparkCanvas();
+        resizeWorldCanvas();
         requestAnimationFrame(animateTitleSparks);
+        requestAnimationFrame(animateWorld);
         renderAll();
         loadPublishedOfferings();
     </script>

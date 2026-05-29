@@ -68,7 +68,8 @@
             z-index: 0;
             width: 100%;
             height: 100%;
-            opacity: 0.54;
+            opacity: 0.78;
+            pointer-events: none;
         }
 
         .shell {
@@ -634,6 +635,7 @@
         let width = 0;
         let height = 0;
         let animationId = 0;
+        let pointer = { x: 0, y: 0, active: false };
         const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
         function resizeScene() {
@@ -653,24 +655,45 @@
             points = Array.from({ length: count }, (_, index) => ({
                 x: (index * 97) % width,
                 y: (index * 53) % height,
-                vx: ((index % 5) - 2) * 0.08,
-                vy: (((index + 2) % 5) - 2) * 0.07,
-                hue: index % 4
+                baseX: (index * 97) % width,
+                baseY: (index * 53) % height,
+                vx: ((index % 5) - 2) * 0.14,
+                vy: (((index + 2) % 5) - 2) * 0.12,
+                hue: index % 4,
+                phase: index * 0.47
             }));
             drawScene();
         }
 
-        function drawScene() {
+        function drawScene(now = performance.now()) {
             ctx.clearRect(0, 0, width, height);
             ctx.lineWidth = 1;
+            const pulse = 0.5 + Math.sin(now * 0.0006) * 0.5;
+            const glow = ctx.createRadialGradient(width * 0.64, height * 0.42, 0, width * 0.64, height * 0.42, Math.max(width, height) * 0.62);
+            glow.addColorStop(0, `rgba(100,216,212,${0.08 + pulse * 0.03})`);
+            glow.addColorStop(0.32, "rgba(255,95,135,0.045)");
+            glow.addColorStop(1, "rgba(0,0,0,0)");
+            ctx.fillStyle = glow;
+            ctx.fillRect(0, 0, width, height);
+
             points.forEach((point, index) => {
                 if (!reduceMotion) {
-                    point.x += point.vx;
-                    point.y += point.vy;
+                    point.x += point.vx + Math.sin(now * 0.00042 + point.phase) * 0.045;
+                    point.y += point.vy + Math.cos(now * 0.00038 + point.phase) * 0.038;
                     if (point.x < -20) point.x = width + 20;
                     if (point.x > width + 20) point.x = -20;
                     if (point.y < -20) point.y = height + 20;
                     if (point.y > height + 20) point.y = -20;
+                    if (pointer.active) {
+                        const dx = point.x - pointer.x;
+                        const dy = point.y - pointer.y;
+                        const dist = Math.hypot(dx, dy);
+                        if (dist < 180 && dist > 0) {
+                            const force = (1 - dist / 180) * 0.72;
+                            point.x += (dx / dist) * force;
+                            point.y += (dy / dist) * force;
+                        }
+                    }
                 }
 
                 for (let j = index + 1; j < points.length; j++) {
@@ -695,11 +718,29 @@
                 ctx.fill();
             });
 
+            const ribbonColors = ["rgba(201,242,95,.16)", "rgba(100,216,212,.14)", "rgba(255,95,135,.12)"];
+            ribbonColors.forEach((color, ribbon) => {
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 1.2;
+                ctx.beginPath();
+                for (let x = -40; x <= width + 40; x += 24) {
+                    const y = height * (0.24 + ribbon * 0.22) + Math.sin(x * 0.009 + now * 0.00042 + ribbon * 1.8) * (28 + ribbon * 10);
+                    if (x === -40) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+                }
+                ctx.stroke();
+            });
+
             if (!reduceMotion) {
                 animationId = window.requestAnimationFrame(drawScene);
             }
         }
 
+        window.addEventListener("pointermove", event => {
+            pointer = { x: event.clientX, y: event.clientY, active: true };
+        });
+        window.addEventListener("pointerleave", () => {
+            pointer.active = false;
+        });
         window.addEventListener("resize", resizeScene);
         resizeScene();
         if (reduceMotion) {
