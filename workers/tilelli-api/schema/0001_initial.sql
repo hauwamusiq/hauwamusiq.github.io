@@ -1,0 +1,67 @@
+-- Form: SQL
+-- Runtime: Cloudflare D1 / SQLite
+-- Purpose: Initial persistent memory schema for the Tilelli edge backend.
+-- Inputs: wrangler d1 execute, Cloudflare D1 binding.
+-- Outputs: audit_events, portfolio_entries, physics_notes, dashboard_reminders, and agent_runs tables.
+-- Safety: Uses CREATE TABLE IF NOT EXISTS and CREATE INDEX IF NOT EXISTS to keep first migration idempotent.
+-- Relations: workers/tilelli-api/src/index.js, workers/tilelli-api/wrangler.toml.
+
+CREATE TABLE IF NOT EXISTS audit_events (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  event_type TEXT NOT NULL,
+  project TEXT NOT NULL DEFAULT 'tilelli',
+  payload TEXT NOT NULL DEFAULT '{}',
+  source_ip_hash TEXT,
+  user_agent TEXT,
+  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+);
+
+CREATE TABLE IF NOT EXISTS portfolio_entries (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  section TEXT NOT NULL CHECK (section IN ('music', 'writing', 'visuals', 'research')),
+  category TEXT NOT NULL,
+  title TEXT NOT NULL,
+  meta TEXT NOT NULL DEFAULT '',
+  body TEXT NOT NULL DEFAULT '',
+  media_type TEXT NOT NULL DEFAULT 'none',
+  media_url TEXT NOT NULL DEFAULT '',
+  visibility TEXT NOT NULL DEFAULT 'draft' CHECK (visibility IN ('draft', 'published', 'archived')),
+  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+);
+
+CREATE TABLE IF NOT EXISTS physics_notes (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  title TEXT NOT NULL,
+  topic TEXT NOT NULL DEFAULT '',
+  claim TEXT NOT NULL DEFAULT '',
+  prerequisites TEXT NOT NULL DEFAULT '',
+  reproduce TEXT NOT NULL DEFAULT '',
+  status TEXT NOT NULL DEFAULT 'queue' CHECK (status IN ('queue', 'active', 'mastered', 'archived')),
+  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+);
+
+CREATE TABLE IF NOT EXISTS dashboard_reminders (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  title TEXT NOT NULL,
+  body TEXT NOT NULL DEFAULT '',
+  due_at TEXT,
+  status TEXT NOT NULL DEFAULT 'open' CHECK (status IN ('open', 'done', 'archived')),
+  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+);
+
+CREATE TABLE IF NOT EXISTS agent_runs (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  run_type TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'ok',
+  details TEXT NOT NULL DEFAULT '{}',
+  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_audit_events_created_at ON audit_events(created_at);
+CREATE INDEX IF NOT EXISTS idx_portfolio_entries_visibility ON portfolio_entries(visibility, section, category);
+CREATE INDEX IF NOT EXISTS idx_physics_notes_status ON physics_notes(status, created_at);
+CREATE INDEX IF NOT EXISTS idx_dashboard_reminders_status_due ON dashboard_reminders(status, due_at);
+CREATE INDEX IF NOT EXISTS idx_agent_runs_type_created ON agent_runs(run_type, created_at);

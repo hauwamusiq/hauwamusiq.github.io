@@ -1,0 +1,84 @@
+# Tilelli Edge Backend
+
+This repo now has the base structure for Cloudflare-backed edge endpoints:
+
+- `workers/tilelli-api/src/index.js`: Worker API.
+- `workers/tilelli-api/schema/0001_initial.sql`: D1 schema.
+- `workers/tilelli-api/wrangler.toml`: Worker, D1, and cron config.
+- `agents/tilelli/base-agent.json`: Base capability map.
+- `scripts/tilelli-cloudflare.mjs`: Cloudflare account discovery, permission group lookup, and scoped token minting.
+- `docs/tilelli-edge.workflow.yml.template`: GitHub Actions check/deploy/heartbeat workflow template.
+
+Live Worker:
+
+```txt
+https://tilelli-api.hauwamusiq.workers.dev
+```
+
+## Environment Namespace
+
+All project variables use the `TILELLI_` prefix.
+
+Required local bootstrap values:
+
+```sh
+TILELLI_CLOUDFLARE_EMAIL=hauwamusiq@gmail.com
+TILELLI_CLOUDFLARE_GLOBAL_API_KEY=...
+TILELLI_CLOUDFLARE_ACCOUNT_ID=...
+```
+
+Preferred deployment value after bootstrap:
+
+```sh
+TILELLI_CLOUDFLARE_API_TOKEN=...
+```
+
+## Token Minting
+
+Use the global key only to mint narrower tokens:
+
+```sh
+source ~/.zshrc.local
+node scripts/tilelli-cloudflare.mjs mint-token agents/tilelli/forms/deployer-token.request.json
+```
+
+The returned token is written to `.tilelli/*.token`, which is ignored by git.
+
+## D1 Lifecycle
+
+Create the remote database once:
+
+```sh
+scripts/tilelli-wrangler.sh d1 create tilelli-core --config workers/tilelli-api/wrangler.toml
+```
+
+Copy the database ID into `workers/tilelli-api/wrangler.toml`, then apply schema:
+
+```sh
+npm run d1:apply:remote
+```
+
+## Worker Secrets
+
+Set the owner write key as a Worker secret:
+
+```sh
+scripts/tilelli-wrangler.sh secret put TILELLI_OWNER_WRITE_KEY --config workers/tilelli-api/wrangler.toml
+```
+
+## GitHub Actions
+
+The workflow is currently stored as:
+
+```txt
+docs/tilelli-edge.workflow.yml.template
+```
+
+It can be copied to `.github/workflows/tilelli-edge.yml` after GitHub authentication has `workflow` scope.
+
+Add repository secrets/variables:
+
+- Secret: `TILELLI_CLOUDFLARE_API_TOKEN`
+- Variable: `TILELLI_API_BASE_URL`
+
+The workflow checks HTML/Worker syntax, deploys on `main`, and performs a scheduled health ping.

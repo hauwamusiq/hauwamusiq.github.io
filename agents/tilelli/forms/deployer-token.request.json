@@ -1,0 +1,6 @@
+{
+  "name": "tilelli-workers-d1-deployer",
+  "profile": "cloudflare_workers_d1_deployer",
+  "reason": "Deploy the Tilelli API Worker and apply D1 schema migrations from local scripts or GitHub Actions.",
+  "ttlDays": 180
+}

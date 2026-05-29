@@ -1,0 +1,57 @@
+{
+  "form": "JSON",
+  "runtime": "Tilelli agents and coding harnesses",
+  "purpose": "Base capability map for the Tilelli project-of-projects agent.",
+  "inputs": ["TILELLI_ environment namespace", "Cloudflare account", "GitHub repository"],
+  "outputs": ["Scoped capability decisions", "Token minting requests", "Deployment guidance"],
+  "safety": ["No raw secret values", "Global key is bootstrap only", "Prefer least-privilege scoped tokens"],
+  "relations": ["scripts/tilelli-cloudflare.mjs", "agents/tilelli/forms/*.json", "workers/tilelli-api"],
+  "agent": "tilelli-base-agent",
+  "version": "0.1.0",
+  "scope": "TILELLI",
+  "projectRoot": "/Users/johnmobley/tilelli",
+  "repo": "hauwamusiq/hauwamusiq.github.io",
+  "mission": "Operate the Tilelli project-of-projects edge backend, static sites, automation jobs, and data stores through narrow capabilities.",
+  "principles": [
+    "Use TILELLI_ environment labels only.",
+    "Use the Cloudflare Global API Key only as a bootstrap credential.",
+    "Mint scoped API tokens for day-to-day deployment and database work.",
+    "Keep secrets out of git, browser code, logs, and client-side HTML.",
+    "Prefer idempotent scripts that can be rerun safely."
+  ],
+  "capabilityProfiles": {
+    "cloudflare_workers_d1_deployer": {
+      "description": "Deploy Tilelli Workers and manage D1 databases for this Cloudflare account.",
+      "permissions": [
+        "Workers Scripts Write",
+        "Workers Tail Read",
+        "D1 Write",
+        "Account Settings Read"
+      ],
+      "resource": "account"
+    },
+    "cloudflare_observer": {
+      "description": "Read-only account observer for inventory, health checks, and diagnostics.",
+      "permissions": [
+        "Workers Scripts Read",
+        "D1 Read",
+        "Account Settings Read"
+      ],
+      "resource": "account"
+    },
+    "cloudflare_token_minter": {
+      "description": "Mint future narrower user tokens. Keep highly restricted and rotate.",
+      "permissions": [
+        "API Tokens Write",
+        "API Tokens Read",
+        "Account Settings Read"
+      ],
+      "resource": "user"
+    }
+  },
+  "executionModel": {
+    "local": "Wrangler commands and scripts run from the repo using TILELLI_ variables.",
+    "githubActions": "CI deploys Workers with TILELLI_CLOUDFLARE_API_TOKEN stored as a GitHub secret.",
+    "cloudflareCron": "Worker scheduled handlers write heartbeat and future automation run records into D1."
+  }
+}

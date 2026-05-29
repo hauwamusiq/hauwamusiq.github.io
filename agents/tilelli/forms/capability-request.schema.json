@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Tilelli Capability Request",
+  "type": "object",
+  "required": ["name", "profile", "reason"],
+  "additionalProperties": false,
+  "properties": {
+    "name": {
+      "type": "string",
+      "pattern": "^tilelli-[a-z0-9-]+$",
+      "description": "Stable machine name for the capability token."
+    },
+    "profile": {
+      "type": "string",
+      "enum": [
+        "cloudflare_workers_d1_deployer",
+        "cloudflare_observer",
+        "cloudflare_token_minter"
+      ]
+    },
+    "reason": {
+      "type": "string",
+      "minLength": 8,
+      "description": "Why this token should exist and what workflow uses it."
+    },
+    "ttlDays": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 365,
+      "default": 180
+    }
+  }
+}

@@ -1,0 +1,102 @@
+{
+  "form": "JSON",
+  "runtime": "Tilelli agents and validation scripts",
+  "purpose": "Machine-readable registry for the Tilelli executable specification system.",
+  "safety": [
+    "This file must not contain secret values.",
+    "Strict JSON does not allow comments, so documentation is represented as data."
+  ],
+  "namespace": "TILELLI",
+  "requiredHeaderFields": [
+    "Form",
+    "Runtime",
+    "Purpose",
+    "Inputs",
+    "Outputs",
+    "Safety",
+    "Relations"
+  ],
+  "forms": {
+    "html": {
+      "extensions": [".html"],
+      "commentStart": "<!--",
+      "commentEnd": "-->",
+      "runtime": "Browser",
+      "secretPolicy": "forbidden"
+    },
+    "css": {
+      "extensions": [".css"],
+      "commentStart": "/*",
+      "commentEnd": "*/",
+      "runtime": "Browser style engine",
+      "secretPolicy": "forbidden"
+    },
+    "javascript": {
+      "extensions": [".js", ".mjs"],
+      "commentStart": "/*",
+      "commentEnd": "*/",
+      "runtime": "Browser, Node, or Cloudflare Workers",
+      "secretPolicy": "server-only"
+    },
+    "sql": {
+      "extensions": [".sql"],
+      "commentStart": "--",
+      "commentEnd": "\n",
+      "runtime": "Cloudflare D1 / SQLite",
+      "secretPolicy": "forbidden"
+    },
+    "toml": {
+      "extensions": [".toml"],
+      "commentStart": "#",
+      "commentEnd": "\n",
+      "runtime": "Wrangler",
+      "secretPolicy": "forbidden"
+    },
+    "yaml": {
+      "extensions": [".yml", ".yaml"],
+      "commentStart": "#",
+      "commentEnd": "\n",
+      "runtime": "GitHub Actions",
+      "secretPolicy": "references-only"
+    },
+    "json": {
+      "extensions": [".json"],
+      "commentStart": null,
+      "commentEnd": null,
+      "runtime": "Agent or validator",
+      "secretPolicy": "forbidden",
+      "metadataAsData": true
+    },
+    "markdown": {
+      "extensions": [".md"],
+      "commentStart": "<!--",
+      "commentEnd": "-->",
+      "runtime": "Human reader, renderer, agent context",
+      "secretPolicy": "descriptions-only"
+    },
+    "shell": {
+      "extensions": [".sh", ".env", ".example"],
+      "commentStart": "#",
+      "commentEnd": "\n",
+      "runtime": "Shell",
+      "secretPolicy": "templates-only"
+    },
+    "svg": {
+      "extensions": [".svg"],
+      "commentStart": "<!--",
+      "commentEnd": "-->",
+      "runtime": "Browser / image renderer",
+      "secretPolicy": "forbidden"
+    }
+  },
+  "initialArtifacts": [
+    "spec/specification-system.md",
+    "spec/specification-system.manifest.json",
+    "workers/tilelli-api/src/index.js",
+    "workers/tilelli-api/schema/0001_initial.sql",
+    "workers/tilelli-api/wrangler.toml",
+    "docs/tilelli-edge.workflow.yml.template",
+    "agents/tilelli/base-agent.json",
+    "scripts/tilelli-cloudflare.mjs"
+  ]
+}

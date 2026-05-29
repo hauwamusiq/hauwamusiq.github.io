@@ -70,6 +70,9 @@
             height: 100%;
             opacity: 0.78;
             pointer-events: none;
+            display: block;
+            contain: strict;
+            transform: translateZ(0);
         }
 
         .shell {
@@ -596,6 +599,7 @@
         </main>
     </div>
 
+    <script src="tilelli-edge-client.js"></script>
     <script>
         const destinations = {
             portfolio: "tilaelia.html",
@@ -630,122 +634,163 @@
         });
 
         const canvas = document.getElementById("scene");
-        const ctx = canvas.getContext("2d");
-        let points = [];
+        const ctx = canvas.getContext("2d", { alpha: true });
+        let nodes = [];
+        let glints = [];
         let width = 0;
         let height = 0;
         let animationId = 0;
-        let pointer = { x: 0, y: 0, active: false };
-        const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        let resizeTimer = 0;
+        const pointer = { x: 0, y: 0, active: false, lastMove: 0 };
+        const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+        let reduceMotion = motionQuery.matches;
 
-        function resizeScene() {
+        function stopScene() {
             if (animationId) {
                 window.cancelAnimationFrame(animationId);
                 animationId = 0;
             }
+        }
+
+        function startScene() {
+            if (!reduceMotion && !animationId) {
+                animationId = window.requestAnimationFrame(drawScene);
+            }
+        }
+
+        function resizeScene() {
+            stopScene();
             const ratio = Math.min(window.devicePixelRatio || 1, 2);
             width = window.innerWidth;
             height = window.innerHeight;
+            if (!width || !height) return;
             canvas.width = Math.floor(width * ratio);
             canvas.height = Math.floor(height * ratio);
             canvas.style.width = `${width}px`;
             canvas.style.height = `${height}px`;
             ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
-            const count = Math.max(48, Math.min(118, Math.floor((width * height) / 14000)));
-            points = Array.from({ length: count }, (_, index) => ({
-                x: (index * 97) % width,
-                y: (index * 53) % height,
-                baseX: (index * 97) % width,
-                baseY: (index * 53) % height,
-                vx: ((index % 5) - 2) * 0.14,
-                vy: (((index + 2) % 5) - 2) * 0.12,
+            const count = Math.max(64, Math.min(150, Math.floor((width * height) / 10500)));
+            nodes = Array.from({ length: count }, (_, index) => ({
+                x: ((index * 127) % 1000) / 1000,
+                y: ((index * 283) % 1000) / 1000,
+                orbit: 10 + (index % 9) * 5,
+                drift: 0.00007 + (index % 7) * 0.000014,
                 hue: index % 4,
-                phase: index * 0.47
+                phase: index * 0.73,
+                size: 0.8 + (index % 5) * 0.24
             }));
-            drawScene();
+            glints = Array.from({ length: 18 }, (_, index) => ({
+                y: 0.14 + (index % 9) * 0.09,
+                amp: 18 + (index % 4) * 12,
+                speed: 0.00012 + (index % 5) * 0.000025,
+                phase: index * 0.91,
+                color: index % 3
+            }));
+            drawScene(performance.now());
+            startScene();
         }
 
         function drawScene(now = performance.now()) {
+            animationId = 0;
             ctx.clearRect(0, 0, width, height);
-            ctx.lineWidth = 1;
             const pulse = 0.5 + Math.sin(now * 0.0006) * 0.5;
             const glow = ctx.createRadialGradient(width * 0.64, height * 0.42, 0, width * 0.64, height * 0.42, Math.max(width, height) * 0.62);
-            glow.addColorStop(0, `rgba(100,216,212,${0.08 + pulse * 0.03})`);
-            glow.addColorStop(0.32, "rgba(255,95,135,0.045)");
+            glow.addColorStop(0, `rgba(100,216,212,${0.1 + pulse * 0.04})`);
+            glow.addColorStop(0.32, "rgba(255,95,135,0.06)");
             glow.addColorStop(1, "rgba(0,0,0,0)");
             ctx.fillStyle = glow;
             ctx.fillRect(0, 0, width, height);
 
-            points.forEach((point, index) => {
-                if (!reduceMotion) {
-                    point.x += point.vx + Math.sin(now * 0.00042 + point.phase) * 0.045;
-                    point.y += point.vy + Math.cos(now * 0.00038 + point.phase) * 0.038;
-                    if (point.x < -20) point.x = width + 20;
-                    if (point.x > width + 20) point.x = -20;
-                    if (point.y < -20) point.y = height + 20;
-                    if (point.y > height + 20) point.y = -20;
-                    if (pointer.active) {
-                        const dx = point.x - pointer.x;
-                        const dy = point.y - pointer.y;
-                        const dist = Math.hypot(dx, dy);
-                        if (dist < 180 && dist > 0) {
-                            const force = (1 - dist / 180) * 0.72;
-                            point.x += (dx / dist) * force;
-                            point.y += (dy / dist) * force;
-                        }
-                    }
-                }
-
-                for (let j = index + 1; j < points.length; j++) {
-                    const other = points[j];
-                    const dx = point.x - other.x;
-                    const dy = point.y - other.y;
-                    const dist = Math.hypot(dx, dy);
-                    if (dist < 132) {
-                        const alpha = (1 - dist / 132) * 0.16;
-                        ctx.strokeStyle = `rgba(246, 242, 236, ${alpha})`;
-                        ctx.beginPath();
-                        ctx.moveTo(point.x, point.y);
-                        ctx.lineTo(other.x, other.y);
-                        ctx.stroke();
-                    }
-                }
-
-                const colors = ["201, 242, 95", "100, 216, 212", "255, 95, 135", "159, 134, 255"];
-                ctx.fillStyle = `rgba(${colors[point.hue]}, 0.75)`;
+            const ribbonColors = ["rgba(201,242,95,.2)", "rgba(100,216,212,.18)", "rgba(255,95,135,.15)"];
+            glints.forEach((glint, index) => {
+                ctx.strokeStyle = ribbonColors[glint.color];
+                ctx.lineWidth = index % 6 === 0 ? 1.4 : 0.8;
                 ctx.beginPath();
-                ctx.arc(point.x, point.y, 1.6, 0, Math.PI * 2);
-                ctx.fill();
-            });
-
-            const ribbonColors = ["rgba(201,242,95,.16)", "rgba(100,216,212,.14)", "rgba(255,95,135,.12)"];
-            ribbonColors.forEach((color, ribbon) => {
-                ctx.strokeStyle = color;
-                ctx.lineWidth = 1.2;
-                ctx.beginPath();
-                for (let x = -40; x <= width + 40; x += 24) {
-                    const y = height * (0.24 + ribbon * 0.22) + Math.sin(x * 0.009 + now * 0.00042 + ribbon * 1.8) * (28 + ribbon * 10);
-                    if (x === -40) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+                for (let x = -80; x <= width + 80; x += 24) {
+                    const y = height * glint.y + Math.sin(x * 0.008 + now * glint.speed + glint.phase) * glint.amp;
+                    if (x === -80) ctx.moveTo(x, y); else ctx.lineTo(x, y);
                 }
                 ctx.stroke();
             });
 
+            const colors = ["201, 242, 95", "100, 216, 212", "255, 95, 135", "159, 134, 255"];
+            nodes.forEach(node => {
+                const time = reduceMotion ? 0 : now;
+                let x = node.x * width + Math.cos(time * node.drift + node.phase) * node.orbit;
+                let y = node.y * height + Math.sin(time * node.drift * 1.4 + node.phase) * node.orbit * 0.72;
+                if (pointer.active && now - pointer.lastMove < 2600) {
+                    const dx = x - pointer.x;
+                    const dy = y - pointer.y;
+                    const dist = Math.hypot(dx, dy);
+                    if (dist < 210 && dist > 0) {
+                        const force = (1 - dist / 210) * 28;
+                        x += (dx / dist) * force;
+                        y += (dy / dist) * force;
+                    }
+                }
+                node.px = x;
+                node.py = y;
+            });
+
+            ctx.lineWidth = 1;
+            nodes.forEach((point, index) => {
+                for (let j = index + 1; j < nodes.length; j++) {
+                    const other = nodes[j];
+                    const dx = point.px - other.px;
+                    const dy = point.py - other.py;
+                    const dist = Math.hypot(dx, dy);
+                    if (dist < 126) {
+                        const alpha = (1 - dist / 126) * 0.18;
+                        ctx.strokeStyle = `rgba(246, 242, 236, ${alpha})`;
+                        ctx.beginPath();
+                        ctx.moveTo(point.px, point.py);
+                        ctx.lineTo(other.px, other.py);
+                        ctx.stroke();
+                    }
+                }
+
+                const twinkle = 0.58 + Math.sin(now * 0.002 + point.phase) * 0.22;
+                ctx.fillStyle = `rgba(${colors[point.hue]}, ${twinkle})`;
+                ctx.beginPath();
+                ctx.arc(point.px, point.py, point.size, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
             if (!reduceMotion) {
-                animationId = window.requestAnimationFrame(drawScene);
+                startScene();
             }
         }
 
         window.addEventListener("pointermove", event => {
-            pointer = { x: event.clientX, y: event.clientY, active: true };
+            pointer.x = event.clientX;
+            pointer.y = event.clientY;
+            pointer.active = true;
+            pointer.lastMove = performance.now();
         });
         window.addEventListener("pointerleave", () => {
             pointer.active = false;
         });
-        window.addEventListener("resize", resizeScene);
+        window.addEventListener("resize", () => {
+            window.clearTimeout(resizeTimer);
+            resizeTimer = window.setTimeout(resizeScene, 120);
+        });
+        window.visualViewport?.addEventListener("resize", () => {
+            window.clearTimeout(resizeTimer);
+            resizeTimer = window.setTimeout(resizeScene, 120);
+        });
+        document.addEventListener("visibilitychange", () => {
+            if (document.hidden) {
+                stopScene();
+            } else {
+                resizeScene();
+            }
+        });
+        window.addEventListener("pageshow", resizeScene);
+        motionQuery.addEventListener?.("change", event => {
+            reduceMotion = event.matches;
+            resizeScene();
+        });
         resizeScene();
-        if (reduceMotion) {
-            window.cancelAnimationFrame(animationId);
-        }
     </script>
 </body>
 </html>

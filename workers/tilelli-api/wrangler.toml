@@ -1,0 +1,25 @@
+# Form: TOML
+# Runtime: Wrangler / Cloudflare Workers
+# Purpose: Bind Tilelli Worker code to account, D1 database, variables, and Cloudflare cron triggers.
+# Inputs: Cloudflare account, D1 database ID, Worker secrets.
+# Outputs: Deployed tilelli-api Worker and scheduled events.
+# Safety: Do not store secret values here; use wrangler secret put or CI secrets.
+# Relations: workers/tilelli-api/src/index.js, workers/tilelli-api/schema/0001_initial.sql, docs/tilelli-edge.workflow.yml.template.
+
+name = "tilelli-api"
+main = "src/index.js"
+compatibility_date = "2026-05-29"
+account_id = "db60e03876e32f97c690a562ef51b4aa"
+workers_dev = true
+preview_urls = false
+
+[vars]
+TILELLI_ALLOWED_ORIGINS = "https://hauwamusiq.github.io,http://localhost:8787,http://127.0.0.1:8787,null"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "tilelli-core"
+database_id = "3562f82a-b281-4420-9651-d86b669620ca"
+
+[triggers]
+crons = ["*/30 * * * *", "0 8 * * *"]
