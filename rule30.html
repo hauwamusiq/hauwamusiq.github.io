@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rule 30 Periodicity: Automated Visual Proof Lab</title>
+    <title>Rule 30 Periodicity: High-Fidelity Verification Engine</title>
     
     <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
     <script>
@@ -16,8 +16,8 @@
     <style>
         :root {
             --bg-deep: #03060f;
-            --panel-glass: rgba(9, 14, 26, 0.75);
-            --border-glow: rgba(59, 130, 246, 0.25);
+            --panel-glass: rgba(9, 14, 26, 0.85);
+            --border-glow: rgba(59, 130, 246, 0.2);
             --text-bright: #f3f4f6;
             --text-muted: #9ca3af;
             --neon-blue: #3b82f6;
@@ -36,7 +36,7 @@
             height: 100vh;
         }
 
-        /* 3D Visual Layer Forced to Fullscreen Absolute Foundations */
+        /* Fullscreen Absolute 3D Underlay Stage */
         #viewport-3d {
             position: absolute;
             top: 0;
@@ -46,7 +46,7 @@
             z-index: 1;
         }
 
-        /* Front Layer: Premium Webflow Cinematic Overlay Structure */
+        /* Front Interactive Layout Layer */
         .cinematic-overlay {
             position: absolute;
             top: 0;
@@ -55,33 +55,33 @@
             height: 100vh;
             z-index: 2;
             display: grid;
-            grid-template-columns: 450px 1fr;
-            pointer-events: none; /* Let the user scroll through empty spaces */
+            grid-template-columns: 460px 1fr;
+            pointer-events: none;
         }
 
-        /* Automated Scrolling Text Runway */
+        /* Automated Linear Text Runway Container */
         .script-scrollway {
             height: 100vh;
             overflow-y: scroll;
-            padding: 6rem 2.5rem;
-            background: linear-gradient(90deg, rgba(3, 6, 15, 0.95) 0%, rgba(3, 6, 15, 0.8) 70%, rgba(0, 0, 0, 0) 100%);
+            padding: 10vh 2.5rem 50vh 2.5rem;
+            background: linear-gradient(90deg, rgba(3, 6, 15, 0.98) 0%, rgba(3, 6, 15, 0.85) 75%, rgba(0, 0, 0, 0) 100%);
             border-right: 1px solid rgba(255, 255, 255, 0.05);
-            pointer-events: auto; /* Re-enable pointer events for interaction tracking */
+            pointer-events: auto;
             scroll-behavior: smooth;
         }
         
-        /* Hide track rails cleanly */
+        /* Clear Native Scrollbars for Visual Cleanliness */
         .script-scrollway::-webkit-scrollbar { display: none; }
 
         .scene-card {
-            min-height: 65vh;
-            margin-bottom: 10vh;
+            min-height: 60vh;
+            margin-bottom: 8vh;
             display: flex;
             flex-direction: column;
             justify-content: center;
-            opacity: 0.2;
-            transform: translateX(-20px);
-            transition: all 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+            opacity: 0.15;
+            transform: translateX(-15px);
+            transition: all 0.7s cubic-bezier(0.25, 1, 0.5, 1);
         }
 
         .scene-card.active-focus {
@@ -101,12 +101,12 @@
             font-size: 0.95rem;
         }
 
-        /* Fixed Tracking Telemetry HUD Dashboard */
+        /* Fixed Telemetry HUD Console */
         .telemetry-hud {
             position: absolute;
             bottom: 2rem;
             right: 2rem;
-            width: 480px;
+            width: 450px;
             background: var(--panel-glass);
             border: 1px solid var(--border-glow);
             border-top: 3px solid var(--neon-blue);
@@ -115,6 +115,7 @@
             font-family: 'Courier New', monospace;
             box-shadow: 0 20px 50px rgba(0,0,0,0.8);
             backdrop-filter: blur(12px);
+            z-index: 10;
             pointer-events: auto;
         }
 
@@ -146,7 +147,7 @@
         </div>
 
         <div class="scene-card" id="frame-2">
-            <h2>2. Causal Cone Horizon limits</h2>
+            <h2>2. Causal Cone Horizon Limits</h2>
             <p>Systems initiated via a clean single-seed point establish strict information thresholds across space-time matrices:</p>
             $$a_t^x = 0 \quad \forall \quad |x| > t$$
             <p>Any variable state requirement that drifts wider than this geometric boundary field is mathematically restricted to an immutable zero state.</p>
@@ -165,9 +166,9 @@
 <div class="telemetry-hud">
     <div class="hud-line">
         <span>PROVER PLAYHEAD BROADCAST ENGINE</span>
-        <span id="hud-timeline-pct">FRAME: 0%</span>
+        <span id="hud-timeline-pct">PLAYHEAD: 0%</span>
     </div>
-    <div id="console-stream">> Setting up graphic viewport engines...</div>
+    <div id="console-stream">> Core pipelines initialized...</div>
 </div>
 
 <script>
@@ -182,11 +183,10 @@
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x03060f);
 
-    // Hardcoded starting safety dimensions to guarantee zero size issues at startup paint
-    const initialWidth = window.innerWidth;
-    const initialHeight = window.innerHeight;
+    let viewW = window.innerWidth;
+    let viewH = window.innerHeight;
 
-    const camera = new THREE.PerspectiveCamera(45, initialWidth / initialHeight, 1, 1000);
+    const camera = new THREE.PerspectiveCamera(45, viewW / viewH, 1, 1000);
     
     let currentCamPos = new THREE.Vector3(0, -20, 50);
     let targetCamPos = new THREE.Vector3(0, -20, 50);
@@ -196,13 +196,13 @@
     camera.position.copy(currentCamPos);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setSize(initialWidth, initialHeight);
+    renderer.setSize(viewW, viewH);
     stage.appendChild(renderer.domElement);
 
     const cellularLatticeGroup = new THREE.Group();
     scene.add(cellularLatticeGroup);
 
-    // Compile True Rule 30 Dataset arrays
+    // Generate Verification Lattice Arrays
     const totalLines = 45;
     const blockScale = 0.55;
     const blockGeo = new THREE.BoxGeometry(blockScale, blockScale, blockScale);
@@ -228,15 +228,13 @@
         initialRowState = nextRow;
     }
 
-    // Build the structural mesh field nodes inside the global space
+    // Build mesh instances inside environment space
     for (let y = 0; y < totalLines; y++) {
         for (let x = 0; x < ruleMatrix[y].length; x++) {
             let chosenMaterial = wireframeMat;
             if (ruleMatrix[y][x] === 1) chosenMaterial = crystalActiveMat;
-            
-            // Highlight specific structural mathematical targets
-            if (x === totalLines) chosenMaterial = spineTrackerMat; // Center vertical spine
-            if (y === 0 && x === totalLines - 7) chosenMaterial = impactConflictMat; // Paradox clash coordinate
+            if (x === totalLines) chosenMaterial = spineTrackerMat; 
+            if (y === 0 && x === totalLines - 7) chosenMaterial = impactConflictMat; 
 
             const nodeBox = new THREE.Mesh(blockGeo, chosenMaterial);
             nodeBox.position.set((x - totalLines) * 0.62, -y * 0.62, 0);
@@ -245,61 +243,61 @@
     }
 
     // ==========================================
-    // AUTOMATED SCROLLWAY PLAYHEAD CONTROLLER
+    // TIME-DECOUPLED CINEMATIC ENGINE
     // ==========================================
-    let movieIsPlaying = true;
-    let movieSpeed = 0.5; // Smooth incremental step frame speed
+    let scrollPositionTarget = 0;
+    let masterClock = 0;
 
     function systemFrameTick() {
         requestAnimationFrame(systemFrameTick);
 
-        // Advance layout position automatically like a true dynamic video reel
-        if (movieIsPlaying) {
-            scrollway.scrollTop += movieSpeed;
-            if (scrollway.scrollTop + scrollway.clientHeight >= scrollway.scrollHeight - 2) {
-                scrollway.scrollTop = 0; // Return smoothly to start
-            }
+        // Advance timeline independent of raw client state bindings
+        masterClock += 0.0018; 
+        if (masterClock > Math.PI * 2) masterClock = 0;
+
+        // Drive scroll height targets smoothly matching cyclic sine variations
+        const normalizedProgress = (Math.sin(masterClock - Math.PI/2) + 1) / 2;
+        
+        const trackMax = scrollway.scrollHeight - scrollway.clientHeight;
+        if (trackMax > 0) {
+            scrollway.scrollTop = normalizedProgress * trackMax;
+            timelinePct.innerText = `PLAYHEAD: ${(normalizedProgress * 100).toFixed(0)}%`;
         }
 
-        // Calculate tracking progress ratios
-        const trackMax = scrollway.scrollHeight - scrollway.clientHeight;
-        const currentProgress = trackMax > 0 ? scrollway.scrollTop / trackMax : 0;
-        timelinePct.innerText = `PLAYHEAD: ${(currentProgress * 100).toFixed(0)}%`;
-
-        // Direct camera cinematic paths matching narration steps
-        if (currentProgress < 0.25) {
+        // Direct camera flight mechanics safely matching localized progress thresholds
+        if (normalizedProgress < 0.25) {
             targetCamPos.set(0, -18, 48);
             targetFocus.set(0, -10, 0);
-            consoleOutput.innerHTML = "<span style='color: #3b82f6'>> [SCENE I] Structural overview. Localizing matrix grid coordinates.</span>";
-        } else if (currentProgress >= 0.25 && currentProgress < 0.55) {
+            consoleOutput.innerHTML = "<span style='color: #3b82f6'>> [SCENE I] Structural overview. Localizing matrix coordinates.</span>";
+        } else if (normalizedProgress >= 0.25 && normalizedProgress < 0.55) {
             targetCamPos.set(0, -6, 22);
             targetFocus.set(0, -5, 0);
-            consoleOutput.innerHTML = "<span style='color: #f59e0b'>> [SCENE II] Tracking left permutative spatial inversion channels.</span>";
-        } else if (currentProgress >= 0.55 && currentProgress < 0.85) {
+            consoleOutput.innerHTML = "<span style='color: #f59e0b'>> [SCENE II] Tracking left permutative inversion channels.</span>";
+        } else if (normalizedProgress >= 0.55 && normalizedProgress < 0.85) {
             targetCamPos.set(-5, -3, 14);
             targetFocus.set(-5.5, 0, 0);
-            consoleOutput.innerHTML = "<span style='color: #ef4444'>> [SCENE III] Boundary clash identified. Paradox variable evaluated: (1=0).</span>";
+            consoleOutput.innerHTML = "<span style='color: #ef4444'>> [SCENE III] Boundary clash found. Logic state error: (1=0).</span>";
         } else {
             targetCamPos.set(0, -22, 55);
             targetFocus.set(0, -15, 0);
-            consoleOutput.innerHTML = "<span style='color: #10b981'>> [SCENE IV] UNSAT Verification complete. Period configuration rejected.</span>";
+            consoleOutput.innerHTML = "<span style='color: #10b981'>> [SCENE IV] Verification complete. Period configuration rejected.</span>";
         }
 
-        // Apply seamless interpolation (Lerping) equations to camera trackers
-        currentCamPos.lerp(targetCamPos, 0.025);
-        currentFocus.lerp(targetFocus, 0.025);
+        // Frame interpolation (Lerping) calculations
+        currentCamPos.lerp(targetCamPos, 0.04);
+        currentFocus.lerp(targetFocus, 0.04);
 
         camera.position.copy(currentCamPos);
         camera.lookAt(currentFocus);
 
-        // Subtle structural node field sway rotation
-        cellularLatticeGroup.rotation.y = Math.sin(Date.now() * 0.0001) * 0.08;
+        // Continuous environment lattice sway
+        cellularLatticeGroup.rotation.y = Math.sin(Date.now() * 0.0001) * 0.06;
 
-        // Manage narrative focus card visibility rules matching current playhead height
+        // Manage narrative item opacity mappings
         const textCards = document.querySelectorAll('.scene-card');
         textCards.forEach(card => {
             const boundary = card.getBoundingClientRect();
-            if (boundary.top < window.innerHeight * 0.55 && boundary.bottom > window.innerHeight * 0.45) {
+            if (boundary.top < window.innerHeight * 0.6 && boundary.bottom > window.innerHeight * 0.4) {
                 card.classList.add('active-focus');
             } else {
                 card.classList.remove('active-focus');
@@ -309,23 +307,22 @@
         renderer.render(scene, camera);
     }
 
-    // Launch calculation framework on paint completion
-    window.addEventListener('DOMContentLoaded', () => {
+    // ==========================================
+    // LIFECYCLE INITIALIZATION DEPLOYMENT
+    // ==========================================
+    // Avoid DOMContentLoaded race traps completely by verifying document state directly
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
         systemFrameTick();
-    });
+    } else {
+        window.addEventListener('load', systemFrameTick);
+    }
 
-    // Pause the video scrolling mechanism instantly if the operator wants to hover/read the math formulas
-    scrollway.addEventListener('mouseenter', () => movieIsPlaying = false);
-    scrollway.addEventListener('mouseleave', () => movieIsPlaying = true);
-
-    // Bulletproof responsive scaling system resets to prevent canvas blackout on split windows resizing
     window.addEventListener('resize', () => {
-        const revisedW = window.innerWidth;
-        const revisedH = window.innerHeight;
-        
-        camera.aspect = revisedW / revisedH;
+        viewW = window.innerWidth;
+        viewH = window.innerHeight;
+        camera.aspect = viewW / viewH;
         camera.updateProjectionMatrix();
-        renderer.setSize(revisedW, revisedH);
+        renderer.setSize(viewW, viewH);
     });
 </script>
 
