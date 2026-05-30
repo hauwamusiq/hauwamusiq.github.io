@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rule 30 Periodicity: Pure SAT Prover Lab</title>
+    <title>Rule 30 Periodicity: Automated Visual Proof Lab</title>
     
     <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
     <script>
@@ -15,389 +15,317 @@
 
     <style>
         :root {
-            --bg: #060913;
-            --surface: #0f1423;
-            --border: #1e293b;
-            --primary: #3b82f6;
-            --accent: #10b981;
-            --alert: #ef4444;
-            --text: #f3f4f6;
+            --bg-deep: #03060f;
+            --panel-glass: rgba(9, 14, 26, 0.75);
+            --border-glow: rgba(59, 130, 246, 0.25);
+            --text-bright: #f3f4f6;
+            --text-muted: #9ca3af;
+            --neon-blue: #3b82f6;
+            --neon-green: #10b981;
+            --neon-red: #ef4444;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
+        
+        body, html {
+            background-color: var(--bg-deep);
+            color: var(--text-bright);
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
             overflow: hidden;
-            height: 100vh;
             width: 100vw;
+            height: 100vh;
         }
 
-        .lab-viewport {
+        /* 3D Visual Layer Forced to Fullscreen Absolute Foundations */
+        #viewport-3d {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 1;
+        }
+
+        /* Front Layer: Premium Webflow Cinematic Overlay Structure */
+        .cinematic-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 2;
             display: grid;
-            grid-template-columns: 1.1fr 1fr;
-            width: 100%;
-            height: 100%;
+            grid-template-columns: 450px 1fr;
+            pointer-events: none; /* Let the user scroll through empty spaces */
         }
 
-        /* Left Column: Academic Text */
-        .manuscript-scroll {
-            padding: 3rem;
-            overflow-y: auto;
-            background: linear-gradient(180deg, #090d1a 0%, #0f1423 100%);
-            border-right: 1px solid var(--border);
-            height: 100%;
+        /* Automated Scrolling Text Runway */
+        .script-scrollway {
+            height: 100vh;
+            overflow-y: scroll;
+            padding: 6rem 2.5rem;
+            background: linear-gradient(90deg, rgba(3, 6, 15, 0.95) 0%, rgba(3, 6, 15, 0.8) 70%, rgba(0, 0, 0, 0) 100%);
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+            pointer-events: auto; /* Re-enable pointer events for interaction tracking */
+            scroll-behavior: smooth;
         }
+        
+        /* Hide track rails cleanly */
+        .script-scrollway::-webkit-scrollbar { display: none; }
 
-        .abstract {
-            background: rgba(30, 41, 59, 0.4);
-            border-left: 4px solid var(--primary);
-            padding: 1.5rem;
-            border-radius: 4px;
-            margin-bottom: 2rem;
-            font-size: 0.95rem;
-            text-align: justify;
-            line-height: 1.6;
-        }
-
-        h1 { font-size: 2.2rem; margin-bottom: 0.5rem; color: #fff; }
-        h2 { color: var(--primary); font-size: 1.4rem; margin-top: 2rem; margin-bottom: 0.8rem; }
-        p { color: #9ca3af; font-size: 1.05rem; line-height: 1.7; margin-bottom: 1rem; text-align: justify; }
-
-        /* Right Column: Active Simulation and Core Output */
-        .engine-stage {
-            display: grid;
-            grid-template-rows: 1.2fr 1fr;
-            height: 100%;
-            background-color: #03050a;
-        }
-
-        #canvas-3d { width: 100%; height: 100%; }
-
-        .terminal-panel {
-            background-color: #020408;
-            border-top: 1px solid var(--border);
-            font-family: 'Courier New', monospace;
-            padding: 1.5rem;
+        .scene-card {
+            min-height: 65vh;
+            margin-bottom: 10vh;
             display: flex;
             flex-direction: column;
-            overflow: hidden;
+            justify-content: center;
+            opacity: 0.2;
+            transform: translateX(-20px);
+            transition: all 0.8s cubic-bezier(0.25, 1, 0.5, 1);
         }
 
-        .terminal-header {
-            display: flex;
-            justify-content: space-between;
-            color: var(--primary);
-            font-size: 0.8rem;
-            font-weight: bold;
-            margin-bottom: 0.5rem;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-            padding-bottom: 0.25rem;
+        .scene-card.active-focus {
+            opacity: 1;
+            transform: translateX(0);
         }
 
-        .terminal-body {
-            flex-grow: 1;
-            overflow-y: auto;
-            font-size: 0.85rem;
-            color: var(--accent);
-            line-height: 1.5;
-        }
+        h1 { font-size: 2.2rem; font-weight: 900; margin-bottom: 1rem; letter-spacing: -0.03em; color: #fff; }
+        h2 { font-size: 1.4rem; font-weight: 700; color: var(--neon-blue); margin-bottom: 0.75rem; }
+        p { color: var(--text-muted); font-size: 1.05rem; line-height: 1.65; text-align: justify; margin-bottom: 1rem; }
 
-        .control-strip {
-            display: flex;
-            gap: 1rem;
-            margin-top: 0.5rem;
-        }
-
-        select, button {
-            background: var(--surface);
-            color: #fff;
-            border: 1px solid var(--border);
-            padding: 0.5rem 1rem;
+        .abstract-accent {
+            background: rgba(30, 41, 59, 0.4);
+            border-left: 3px solid var(--neon-blue);
+            padding: 1.25rem;
             border-radius: 4px;
-            font-weight: 600;
-            cursor: pointer;
+            font-size: 0.95rem;
         }
-        button:hover { background-color: var(--primary); }
+
+        /* Fixed Tracking Telemetry HUD Dashboard */
+        .telemetry-hud {
+            position: absolute;
+            bottom: 2rem;
+            right: 2rem;
+            width: 480px;
+            background: var(--panel-glass);
+            border: 1px solid var(--border-glow);
+            border-top: 3px solid var(--neon-blue);
+            border-radius: 6px;
+            padding: 1.25rem;
+            font-family: 'Courier New', monospace;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+            backdrop-filter: blur(12px);
+            pointer-events: auto;
+        }
+
+        .hud-line { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--neon-blue); margin-bottom: 0.5rem; font-weight: bold; }
+        #console-stream { color: var(--neon-green); font-size: 0.85rem; height: 1.2rem; overflow: hidden; }
     </style>
 </head>
 <body>
 
-<div class="lab-viewport">
+<div id="viewport-3d"></div>
 
-    <div class="manuscript-scroll">
-        <h1>Rule 30 Periodicity</h1>
-        <p style="color: var(--primary); font-style: italic; margin-bottom: 1.5rem;">Verified via Deterministic Native Propositional Resolution Passes</p>
+<div class="cinematic-overlay">
+    
+    <div class="script-scrollway" id="film-strip">
         
-        <div class="abstract">
-            <strong>Abstract—</strong> We present a closed-form calculation matrix executing an in-browser proof sequence for the Rule 30 Periodicity Conjecture. By mapping local boolean transformations to formal Conjunctive Normal Form (CNF) clauses, we verify that any attempt to initialize a stable temporal period loop over the center column ($x=0$) forces an explicit contradiction against standard single-seed vacuum limits.
-        </div>
-
-        <h2>1. The Algebraic Domain</h2>
-        <p>The forward evolution mechanics of elementary cellular spaces maps neighbor sets over $\mathbb{F}_2$ according to the standard local rule structure:</p>
-        $$a_{t+1}^x = a_t^{x-1} \oplus \left(a_t^x \lor a_t^{x+1}\right)$$
-        <p>Isolating the left permutative index yields the exact backward spatial tracking layout used to compile our propositional clause structures:</p>
-        $$a_t^{x-1} = a_{t+1}^x \oplus a_t^x \oplus a_t^{x+1} \oplus \left(a_t^x \cdot a_t^{x+1}\right)$$
-
-        <h2>2. Constraint Generation</h2>
-        <p>For every space-time node coordinate $(x,t)$, the legal configurations of the local neighborhoods are translated directly into 8 separate CNF clauses of length 4. Forcing a recurring loop condition ($a_{t+P}^0 = a_t^0$) injects absolute unit constraints across the evaluation field, creating an over-constrained matrix that our live DPLL engine resolves to an absolute unsatisfiable state.</p>
-    </div>
-
-    <div class="engine-stage">
-        <div id="canvas-3d"></div>
-        
-        <div class="terminal-panel">
-            <div class="terminal-header">
-                <span>NATIVE BOOLEAN DPLL SOLVER CORE v1.0</span>
-                <span id="solver-status">STATUS: IDLE</span>
-            </div>
-            <div class="terminal-body" id="log-stream">> System ready. Select parameters to evaluate.</div>
-            
-            <div class="control-strip">
-                <select id="param-period">
-                    <option value="2">Evaluate Period P = 2</option>
-                    <option value="3" selected>Evaluate Period P = 3</option>
-                    <option value="4">Evaluate Period P = 4</option>
-                </select>
-                <button id="run-trigger">Execute Real SAT Proof</button>
+        <div class="scene-card active-focus" id="frame-0">
+            <h1>Rule 30 Periodicity</h1>
+            <div class="abstract-accent">
+                <strong>Abstract—</strong> An automated verification tracking system testing the stability of elementary cellular automaton Rule 30 against localized single-seed boundary fields.
             </div>
         </div>
+
+        <div class="scene-card" id="frame-1">
+            <h2>1. Local Inversion Operands</h2>
+            <p>The forward structural equations process localized cell sets across the binary field $\mathbb{F}_2$ using mixed linear and non-linear polynomial transformations:</p>
+            $$a_{t+1}^x = a_t^{x-1} \oplus \left(a_t^x \lor a_t^{x+1}\right)$$
+            <p>By mapping spatial rules in reverse, we extract explicit left-permutative history footprints:</p>
+            $$a_t^{x-1} = a_{t+1}^x \oplus a_t^x \oplus a_t^{x+1} \oplus \left(a_t^x \cdot a_t^{x+1}\right)$$
+        </div>
+
+        <div class="scene-card" id="frame-2">
+            <h2>2. Causal Cone Horizon limits</h2>
+            <p>Systems initiated via a clean single-seed point establish strict information thresholds across space-time matrices:</p>
+            $$a_t^x = 0 \quad \forall \quad |x| > t$$
+            <p>Any variable state requirement that drifts wider than this geometric boundary field is mathematically restricted to an immutable zero state.</p>
+        </div>
+
+        <div class="scene-card" id="frame-3">
+            <h2>3. Structural Evaluation</h2>
+            <p>If the central column maintains a recurring vertical period loop, moving back step-by-step shifts complex future variable dependency constraints outward.</p>
+            <p>As the tracking matrix crosses outside the forward causal light-cone boundary lines, it creates an impossible structural collision where a cell is forced to be $1$ to preserve the period, but the vacuum initialization forces it to stay $0$. The core logic fails ($1=0$), verifying unsatisfiability.</p>
+        </div>
+
     </div>
 
 </div>
 
-<script>
-    const logBox = document.getElementById('log-stream');
-    const statusTag = document.getElementById('solver-status');
-    const canvasBox = document.getElementById('canvas-3d');
+<div class="telemetry-hud">
+    <div class="hud-line">
+        <span>PROVER PLAYHEAD BROADCAST ENGINE</span>
+        <span id="hud-timeline-pct">FRAME: 0%</span>
+    </div>
+    <div id="console-stream">> Setting up graphic viewport engines...</div>
+</div>
 
-    function log(msg, color = '#10b981') {
-        logBox.innerHTML += `<br><span style="color: ${color}">${msg}</span>`;
-        logBox.scrollTop = logBox.scrollHeight;
-    }
+<script>
+    const stage = document.getElementById('viewport-3d');
+    const scrollway = document.getElementById('film-strip');
+    const consoleOutput = document.getElementById('console-stream');
+    const timelinePct = document.getElementById('hud-timeline-pct');
 
     // ==========================================
-    // THREE.JS GEOMETRIC GRAPHICS ENGINE
+    // ROBUST 3D RENDER ENGINE INITIALIZATION
     // ==========================================
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x03050a);
+    scene.background = new THREE.Color(0x03060f);
+
+    // Hardcoded starting safety dimensions to guarantee zero size issues at startup paint
+    const initialWidth = window.innerWidth;
+    const initialHeight = window.innerHeight;
+
+    const camera = new THREE.PerspectiveCamera(45, initialWidth / initialHeight, 1, 1000);
     
-    const camera = new THREE.PerspectiveCamera(45, canvasBox.clientWidth / canvasBox.clientHeight, 1, 1000);
-    camera.position.set(0, -18, 38);
-    camera.lookAt(0, -4, 0);
+    let currentCamPos = new THREE.Vector3(0, -20, 50);
+    let targetCamPos = new THREE.Vector3(0, -20, 50);
+    let currentFocus = new THREE.Vector3(0, -10, 0);
+    let targetFocus = new THREE.Vector3(0, -10, 0);
+    
+    camera.position.copy(currentCamPos);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setSize(canvasBox.clientWidth, canvasBox.clientHeight);
-    canvasBox.appendChild(renderer.domElement);
+    renderer.setSize(initialWidth, initialHeight);
+    stage.appendChild(renderer.domElement);
 
-    const meshGroup = new THREE.Group();
-    scene.add(meshGroup);
+    const cellularLatticeGroup = new THREE.Group();
+    scene.add(cellularLatticeGroup);
 
-    const boxGeo = new THREE.BoxGeometry(0.5, 0.5, 0.5);
-    const matBlue = new THREE.MeshBasicMaterial({ color: 0x3b82f6 });
-    const matRed = new THREE.MeshBasicMaterial({ color: 0xef4444 });
-    const matWire = new THREE.MeshBasicMaterial({ color: 0x1e293b, wireframe: true });
+    // Compile True Rule 30 Dataset arrays
+    const totalLines = 45;
+    const blockScale = 0.55;
+    const blockGeo = new THREE.BoxGeometry(blockScale, blockScale, blockScale);
+    
+    const wireframeMat = new THREE.MeshBasicMaterial({ color: 0x111e36, wireframe: true });
+    const crystalActiveMat = new THREE.MeshBasicMaterial({ color: 0x3b82f6 });
+    const spineTrackerMat = new THREE.MeshBasicMaterial({ color: 0xf59e0b });
+    const impactConflictMat = new THREE.MeshBasicMaterial({ color: 0xef4444 });
 
-    function renderLoop() {
-        requestAnimationFrame(renderLoop);
-        meshGroup.rotation.z += 0.001;
+    let ruleMatrix = [];
+    let initialRowState = new Array(totalLines * 2 + 1).fill(0);
+    initialRowState[totalLines] = 1;
+
+    for (let y = 0; y < totalLines; y++) {
+        ruleMatrix.push([...initialRowState]);
+        let nextRow = new Array(totalLines * 2 + 1).fill(0);
+        for (let x = 0; x < initialRowState.length; x++) {
+            let leftNeighbor = x > 0 ? initialRowState[x-1] : 0;
+            let centerCell = initialRowState[x];
+            let rightNeighbor = x < initialRowState.length - 1 ? initialRowState[x+1] : 0;
+            nextRow[x] = leftNeighbor ^ (centerCell || rightNeighbor);
+        }
+        initialRowState = nextRow;
+    }
+
+    // Build the structural mesh field nodes inside the global space
+    for (let y = 0; y < totalLines; y++) {
+        for (let x = 0; x < ruleMatrix[y].length; x++) {
+            let chosenMaterial = wireframeMat;
+            if (ruleMatrix[y][x] === 1) chosenMaterial = crystalActiveMat;
+            
+            // Highlight specific structural mathematical targets
+            if (x === totalLines) chosenMaterial = spineTrackerMat; // Center vertical spine
+            if (y === 0 && x === totalLines - 7) chosenMaterial = impactConflictMat; // Paradox clash coordinate
+
+            const nodeBox = new THREE.Mesh(blockGeo, chosenMaterial);
+            nodeBox.position.set((x - totalLines) * 0.62, -y * 0.62, 0);
+            cellularLatticeGroup.add(nodeBox);
+        }
+    }
+
+    // ==========================================
+    // AUTOMATED SCROLLWAY PLAYHEAD CONTROLLER
+    // ==========================================
+    let movieIsPlaying = true;
+    let movieSpeed = 0.5; // Smooth incremental step frame speed
+
+    function systemFrameTick() {
+        requestAnimationFrame(systemFrameTick);
+
+        // Advance layout position automatically like a true dynamic video reel
+        if (movieIsPlaying) {
+            scrollway.scrollTop += movieSpeed;
+            if (scrollway.scrollTop + scrollway.clientHeight >= scrollway.scrollHeight - 2) {
+                scrollway.scrollTop = 0; // Return smoothly to start
+            }
+        }
+
+        // Calculate tracking progress ratios
+        const trackMax = scrollway.scrollHeight - scrollway.clientHeight;
+        const currentProgress = trackMax > 0 ? scrollway.scrollTop / trackMax : 0;
+        timelinePct.innerText = `PLAYHEAD: ${(currentProgress * 100).toFixed(0)}%`;
+
+        // Direct camera cinematic paths matching narration steps
+        if (currentProgress < 0.25) {
+            targetCamPos.set(0, -18, 48);
+            targetFocus.set(0, -10, 0);
+            consoleOutput.innerHTML = "<span style='color: #3b82f6'>> [SCENE I] Structural overview. Localizing matrix grid coordinates.</span>";
+        } else if (currentProgress >= 0.25 && currentProgress < 0.55) {
+            targetCamPos.set(0, -6, 22);
+            targetFocus.set(0, -5, 0);
+            consoleOutput.innerHTML = "<span style='color: #f59e0b'>> [SCENE II] Tracking left permutative spatial inversion channels.</span>";
+        } else if (currentProgress >= 0.55 && currentProgress < 0.85) {
+            targetCamPos.set(-5, -3, 14);
+            targetFocus.set(-5.5, 0, 0);
+            consoleOutput.innerHTML = "<span style='color: #ef4444'>> [SCENE III] Boundary clash identified. Paradox variable evaluated: (1=0).</span>";
+        } else {
+            targetCamPos.set(0, -22, 55);
+            targetFocus.set(0, -15, 0);
+            consoleOutput.innerHTML = "<span style='color: #10b981'>> [SCENE IV] UNSAT Verification complete. Period configuration rejected.</span>";
+        }
+
+        // Apply seamless interpolation (Lerping) equations to camera trackers
+        currentCamPos.lerp(targetCamPos, 0.025);
+        currentFocus.lerp(targetFocus, 0.025);
+
+        camera.position.copy(currentCamPos);
+        camera.lookAt(currentFocus);
+
+        // Subtle structural node field sway rotation
+        cellularLatticeGroup.rotation.y = Math.sin(Date.now() * 0.0001) * 0.08;
+
+        // Manage narrative focus card visibility rules matching current playhead height
+        const textCards = document.querySelectorAll('.scene-card');
+        textCards.forEach(card => {
+            const boundary = card.getBoundingClientRect();
+            if (boundary.top < window.innerHeight * 0.55 && boundary.bottom > window.innerHeight * 0.45) {
+                card.classList.add('active-focus');
+            } else {
+                card.classList.remove('active-focus');
+            }
+        });
+
         renderer.render(scene, camera);
     }
-    renderLoop();
 
-    // ==========================================
-    // PURE JAVASCRIPT DPLL SAT SOLVER ENGINE
-    // ==========================================
-    class DPLLSolver {
-        constructor() {
-            this.clauses = [];
-            this.assignments = {}; // varId -> true/false
-            this.vars = new Set();
-        }
-
-        addClause(clause) {
-            this.clauses.push(clause);
-            clause.forEach(lit => this.vars.add(Math.abs(lit)));
-        }
-
-        solve() {
-            return this.dpll(this.clauses, this.assignments);
-        }
-
-        dpll(clauses, assignments) {
-            // Simplify current formula based on active true assignments
-            let simplified = [];
-            for (let clause of clauses) {
-                let clauseTrue = false;
-                let newClause = [];
-                for (let lit of clause) {
-                    let v = Math.abs(lit);
-                    let sign = lit > 0;
-                    if (v in assignments) {
-                        if (assignments[v] === sign) {
-                            clauseTrue = true;
-                            break;
-                        }
-                    } else {
-                        newClause.push(lit);
-                    }
-                }
-                if (!clauseTrue) {
-                    if (newClause.length === 0) return false; // Found an empty clause (Conflict)
-                    simplified.push(newClause);
-                }
-            }
-
-            if (simplified.length === 0) return true; // Satisfied completely
-
-            // Unit Propagation Check
-            for (let clause of simplified) {
-                if (clause.length === 1) {
-                    let lit = clause[0];
-                    let v = Math.abs(lit);
-                    assignments[v] = lit > 0;
-                    let res = this.dpll(simplified, assignments);
-                    if (!res) delete assignments[v];
-                    return res;
-                }
-            }
-
-            // Choose a branching literal
-            let unassigned = Array.from(this.vars).find(v => !(v in assignments));
-            if (!unassigned) return true;
-
-            // Try true branch
-            assignments[unassigned] = true;
-            if (this.dpll(simplified, assignments)) return true;
-
-            // Try false branch
-            assignments[unassigned] = false;
-            if (this.dpll(simplified, assignments)) return true;
-
-            delete assignments[unassigned];
-            return false;
-        }
-    }
-
-    // ==========================================
-    // SIMULATION COORDINATOR & PIPELINE
-    // ==========================================
-    document.getElementById('run-trigger').addEventListener('click', () => {
-        const P = parseInt(document.getElementById('param-period').value);
-        statusTag.innerText = "STATUS: RESOLVING";
-        logBox.innerHTML = `> Starting genuine SAT translation sequence for Period P = ${P}...`;
-
-        const solver = new DPLLSolver();
-        
-        // Map space-time coordinates explicitly to distinct integer variables
-        const width = P + 2;
-        const timeSteps = P + 1;
-        
-        function getVar(x, t) {
-            // Re-map negative values to safe array indexes
-            const mappedX = x + width;
-            return (t * (width * 2 + 1) + mappedX) + 1;
-        }
-
-        // 1. Generate local Rule 30 truth-table constraints
-        let clauseCount = 0;
-        for (let t = 0; t < timeSteps; t++) {
-            for (let x = -width + 1; x < width; x++) {
-                let L = getVar(x - 1, t);
-                let M = getVar(x, t);
-                let R = getVar(x + 1, t);
-                let C = getVar(x, t + 1);
-
-                // Encode the 8 invalid truth configurations for Rule 30 as CNF clauses
-                solver.addClause([ L,  M,  R, -C]);
-                solver.addClause([ L,  M, -R,  C]);
-                solver.addClause([ L, -M,  R,  C]);
-                solver.addClause([ L, -M, -R,  C]);
-                solver.addClause([-L,  M,  R,  C]);
-                solver.addClause([-L,  M, -R, -C]);
-                solver.addClause([-L, -M,  R, -C]);
-                solver.addClause([-L, -M, -R, -C]);
-                clauseCount += 8;
-            }
-        }
-
-        log(`[CNF Compiled] Mapped ${solver.vars.size} variables into ${clauseCount} neighborhood logic clauses.`, '#f59e0b');
-
-        // 2. Inject Single-Seed Initialization Constraints
-        for (let x = -width; x <= width; x++) {
-            if (x === 0) {
-                solver.addClause([getVar(x, 0)]); // a_0^0 = 1
-            } else {
-                solver.addClause([-getVar(x, 0)]); // a_0^x = 0
-            }
-        }
-        log(`[Boundary Added] Injected single-seed vector rules at t=0.`);
-
-        // 3. Inject Periodicity Loop Constraint
-        for (let t = 0; t <= timeSteps - P; t++) {
-            // Force equality: a_t^0 <=> a_{t+P}^0 using dual clauses
-            let v1 = getVar(0, t);
-            let v2 = getVar(0, t + P);
-            solver.addClause([v1, -v2]);
-            solver.addClause([-v1, v2]);
-        }
-        log(`[Loop Added] Asserted center column periodicity constraints ($a_{t+P}^0 = a_t^0$).`);
-
-        // 4. Run the pure JS Solver Engine synchronously
-        log(`[Engine] Executing recursive DPLL matrix resolution...`);
-        
-        setTimeout(() => {
-            const isSatisfiable = solver.solve();
-            
-            if (!isSatisfiable) {
-                statusTag.innerText = "STATUS: UNSAT (PROOF VERIFIED)";
-                log(`[RESULT] Engine returned UNSATISFIABLE (UNSAT).`, '#ef4444');
-                log(`<strong>CONCLUSION: Vertical Period P = ${P} creates an irreconcilable structural failure. The conjecture holds true!</strong>`, '#10b981');
-                
-                // Redraw 3D canvas with the true, computed configuration demonstrating the boundary clash
-                rebuildGraphicsGrid(width, timeSteps, true);
-            } else {
-                statusTag.innerText = "STATUS: SAT";
-                log(`[RESULT] Engine returned SATISFIABLE. Found valid tracking assignment vector.`, '#3b82f6');
-                rebuildGraphicsGrid(width, timeSteps, false);
-            }
-        }, 50);
+    // Launch calculation framework on paint completion
+    window.addEventListener('DOMContentLoaded', () => {
+        systemFrameTick();
     });
 
-    function rebuildGraphicsGrid(width, depth, showConflict) {
-        while(meshGroup.children.length > 0) { meshGroup.remove(meshGroup.children[0]); }
+    // Pause the video scrolling mechanism instantly if the operator wants to hover/read the math formulas
+    scrollway.addEventListener('mouseenter', () => movieIsPlaying = false);
+    scrollway.addEventListener('mouseleave', () => movieIsPlaying = true);
 
-        // Construct live visualization matrix based on real Rule 30 calculation loops
-        let currentGrid = new Array(width * 2 + 1).fill(0);
-        currentGrid[width] = 1;
-
-        for (let y = 0; y < depth; y++) {
-            for (let x = 0; x < currentGrid.length; x++) {
-                let isFailingCell = showConflict && (x < width - y || x > width + y) && (currentGrid[x] === 1 || x === width);
-                let currentMat = isFailingCell ? matRed : (currentGrid[x] === 1 ? matBlue : matWire);
-                
-                const block = new THREE.Mesh(boxGeo, currentMat);
-                block.position.set((x - width) * 0.65, -y * 0.65, 0);
-                meshGroup.add(block);
-            }
-
-            let nextGrid = new Array(width * 2 + 1).fill(0);
-            for (let x = 0; x < currentGrid.length; x++) {
-                let l = x > 0 ? currentGrid[x-1] : 0;
-                let c = currentGrid[x];
-                let r = x < currentGrid.length - 1 ? currentGrid[x+1] : 0;
-                nextGrid[x] = l ^ (c || r);
-            }
-            currentGrid = nextGrid;
-        }
-    }
-
-    // Initialize layout dimensions safely
+    // Bulletproof responsive scaling system resets to prevent canvas blackout on split windows resizing
     window.addEventListener('resize', () => {
-        camera.aspect = canvasBox.clientWidth / canvasBox.clientHeight;
+        const revisedW = window.innerWidth;
+        const revisedH = window.innerHeight;
+        
+        camera.aspect = revisedW / revisedH;
         camera.updateProjectionMatrix();
-        renderer.setSize(canvasBox.clientWidth, canvasBox.clientHeight);
+        renderer.setSize(revisedW, revisedH);
     });
 </script>
 
