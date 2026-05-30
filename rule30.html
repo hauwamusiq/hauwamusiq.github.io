@@ -3,328 +3,352 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rule 30 Periodicity: High-Fidelity Verification Engine</title>
-    
-    <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
-    <script>
-        window.MathJax = {
-            tex: { inlineMath: [['$', '$']], displayMath: [['$$', '$$']] }
-        };
-    </script>
-    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-
+    <title>Rule 30 Explainer Lab</title>
     <style>
         :root {
-            --bg-deep: #03060f;
-            --panel-glass: rgba(9, 14, 26, 0.85);
-            --border-glow: rgba(59, 130, 246, 0.2);
-            --text-bright: #f3f4f6;
-            --text-muted: #9ca3af;
-            --neon-blue: #3b82f6;
-            --neon-green: #10b981;
-            --neon-red: #ef4444;
+            --bg: #0b0f19;
+            --surface: #131a2c;
+            --border: #222f4d;
+            --text: #f3f4f6;
+            --text-dim: #9ca3af;
+            --blue: #3b82f6;
+            --orange: #f59e0b;
+            --red: #ef4444;
+            --green: #10b981;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        
-        body, html {
-            background-color: var(--bg-deep);
-            color: var(--text-bright);
+        body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            height: 100vh;
+            width: 100vw;
+            display: flex;
             overflow: hidden;
-            width: 100vw;
-            height: 100vh;
         }
 
-        /* Fullscreen Absolute 3D Underlay Stage */
-        #viewport-3d {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            z-index: 1;
-        }
-
-        /* Front Interactive Layout Layer */
-        .cinematic-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            z-index: 2;
-            display: grid;
-            grid-template-columns: 460px 1fr;
-            pointer-events: none;
-        }
-
-        /* Automated Linear Text Runway Container */
-        .script-scrollway {
-            height: 100vh;
-            overflow-y: scroll;
-            padding: 10vh 2.5rem 50vh 2.5rem;
-            background: linear-gradient(90deg, rgba(3, 6, 15, 0.98) 0%, rgba(3, 6, 15, 0.85) 75%, rgba(0, 0, 0, 0) 100%);
-            border-right: 1px solid rgba(255, 255, 255, 0.05);
-            pointer-events: auto;
-            scroll-behavior: smooth;
-        }
-        
-        /* Clear Native Scrollbars for Visual Cleanliness */
-        .script-scrollway::-webkit-scrollbar { display: none; }
-
-        .scene-card {
-            min-height: 60vh;
-            margin-bottom: 8vh;
+        /* Two Column Screen Split */
+        .story-side {
+            width: 450px;
+            background-color: var(--surface);
+            border-right: 1px solid var(--border);
+            padding: 2.5rem;
             display: flex;
             flex-direction: column;
+            justify-content: space-between;
+            height: 100%;
+            z-index: 10;
+        }
+
+        .canvas-side {
+            flex-grow: 1;
+            height: 100%;
+            display: flex;
+            align-items: center;
             justify-content: center;
-            opacity: 0.15;
-            transform: translateX(-15px);
-            transition: all 0.7s cubic-bezier(0.25, 1, 0.5, 1);
+            background-color: #070a12;
+            position: relative;
+            padding: 2rem;
         }
 
-        .scene-card.active-focus {
-            opacity: 1;
-            transform: translateX(0);
+        /* Typography & Story Cards */
+        .step-badge {
+            display: inline-block;
+            background: rgba(59, 130, 246, 0.2);
+            color: var(--blue);
+            padding: 0.25rem 0.75rem;
+            border-radius: 99px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 1rem;
         }
 
-        h1 { font-size: 2.2rem; font-weight: 900; margin-bottom: 1rem; letter-spacing: -0.03em; color: #fff; }
-        h2 { font-size: 1.4rem; font-weight: 700; color: var(--neon-blue); margin-bottom: 0.75rem; }
-        p { color: var(--text-muted); font-size: 1.05rem; line-height: 1.65; text-align: justify; margin-bottom: 1rem; }
-
-        .abstract-accent {
-            background: rgba(30, 41, 59, 0.4);
-            border-left: 3px solid var(--neon-blue);
-            padding: 1.25rem;
+        h1 { font-size: 1.8rem; margin-bottom: 1.5rem; color: #fff; letter-spacing: -0.02em; }
+        p { color: var(--text-dim); font-size: 1.05rem; line-height: 1.6; margin-bottom: 1.5rem; }
+        
+        .highlight-box {
+            background: rgba(255, 255, 255, 0.03);
+            border-left: 3px solid var(--orange);
+            padding: 1rem;
             border-radius: 4px;
             font-size: 0.95rem;
+            color: #e5e7eb;
         }
 
-        /* Fixed Telemetry HUD Console */
-        .telemetry-hud {
+        /* Navigation Buttons */
+        .button-bar {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        button {
+            flex-grow: 1;
+            background: var(--border);
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 0.8rem;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        button:hover { background: #2c3b61; }
+        button#next-btn { background: var(--blue); }
+        button#next-btn:hover { background: #2563eb; }
+        button:disabled { opacity: 0.3; cursor: not-allowed; }
+
+        /* Canvas Elements */
+        canvas {
+            background-color: #090d16;
+            border-radius: 8px;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+            max-width: 100%;
+            max-height: 100%;
+        }
+
+        .legend-hud {
             position: absolute;
             bottom: 2rem;
             right: 2rem;
-            width: 450px;
-            background: var(--panel-glass);
-            border: 1px solid var(--border-glow);
-            border-top: 3px solid var(--neon-blue);
+            background: rgba(19, 26, 44, 0.9);
+            border: 1px solid var(--border);
+            padding: 1rem;
             border-radius: 6px;
-            padding: 1.25rem;
-            font-family: 'Courier New', monospace;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.8);
-            backdrop-filter: blur(12px);
-            z-index: 10;
-            pointer-events: auto;
+            backdrop-filter: blur(8px);
+            display: flex;
+            gap: 1.5rem;
+            font-size: 0.85rem;
         }
-
-        .hud-line { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--neon-blue); margin-bottom: 0.5rem; font-weight: bold; }
-        #console-stream { color: var(--neon-green); font-size: 0.85rem; height: 1.2rem; overflow: hidden; }
+        .legend-item { display: flex; align-items: center; gap: 0.5rem; }
+        .color-dot { width: 12px; height: 12px; border-radius: 3px; }
     </style>
 </head>
 <body>
 
-<div id="viewport-3d"></div>
-
-<div class="cinematic-overlay">
-    
-    <div class="script-scrollway" id="film-strip">
-        
-        <div class="scene-card active-focus" id="frame-0">
-            <h1>Rule 30 Periodicity</h1>
-            <div class="abstract-accent">
-                <strong>Abstract—</strong> An automated verification tracking system testing the stability of elementary cellular automaton Rule 30 against localized single-seed boundary fields.
-            </div>
+    <div class="story-side">
+        <div>
+            <div class="step-badge" id="step-label">Step 1 of 5</div>
+            <h1 id="step-title">The Lonely Starting Block</h1>
+            
+            <div id="step-text-container">
+                </div>
         </div>
 
-        <div class="scene-card" id="frame-1">
-            <h2>1. Local Inversion Operands</h2>
-            <p>The forward structural equations process localized cell sets across the binary field $\mathbb{F}_2$ using mixed linear and non-linear polynomial transformations:</p>
-            $$a_{t+1}^x = a_t^{x-1} \oplus \left(a_t^x \lor a_t^{x+1}\right)$$
-            <p>By mapping spatial rules in reverse, we extract explicit left-permutative history footprints:</p>
-            $$a_t^{x-1} = a_{t+1}^x \oplus a_t^x \oplus a_t^{x+1} \oplus \left(a_t^x \cdot a_t^{x+1}\right)$$
+        <div class="button-bar">
+            <button id="back-btn" disabled>← Back</button>
+            <button id="next-btn">Next Step →</button>
         </div>
-
-        <div class="scene-card" id="frame-2">
-            <h2>2. Causal Cone Horizon Limits</h2>
-            <p>Systems initiated via a clean single-seed point establish strict information thresholds across space-time matrices:</p>
-            $$a_t^x = 0 \quad \forall \quad |x| > t$$
-            <p>Any variable state requirement that drifts wider than this geometric boundary field is mathematically restricted to an immutable zero state.</p>
-        </div>
-
-        <div class="scene-card" id="frame-3">
-            <h2>3. Structural Evaluation</h2>
-            <p>If the central column maintains a recurring vertical period loop, moving back step-by-step shifts complex future variable dependency constraints outward.</p>
-            <p>As the tracking matrix crosses outside the forward causal light-cone boundary lines, it creates an impossible structural collision where a cell is forced to be $1$ to preserve the period, but the vacuum initialization forces it to stay $0$. The core logic fails ($1=0$), verifying unsatisfiability.</p>
-        </div>
-
     </div>
 
-</div>
+    <div class="canvas-side">
+        <canvas id="explainer-canvas"></canvas>
 
-<div class="telemetry-hud">
-    <div class="hud-line">
-        <span>PROVER PLAYHEAD BROADCAST ENGINE</span>
-        <span id="hud-timeline-pct">PLAYHEAD: 0%</span>
+        <div class="legend-hud">
+            <div class="legend-item"><div class="color-dot" style="background: var(--blue)"></div> Active Cell (1)</div>
+            <div class="legend-item"><div class="color-dot" style="background: var(--orange)"></div> Center Stripe</div>
+            <div class="legend-item"><div class="color-dot" style="background: var(--red)"></div> The Pattern Crash</div>
+        </div>
     </div>
-    <div id="console-stream">> Core pipelines initialized...</div>
-</div>
 
 <script>
-    const stage = document.getElementById('viewport-3d');
-    const scrollway = document.getElementById('film-strip');
-    const consoleOutput = document.getElementById('console-stream');
-    const timelinePct = document.getElementById('hud-timeline-pct');
+    const canvas = document.getElementById('explainer-canvas');
+    const ctx = canvas.getContext('2d');
 
-    // ==========================================
-    // ROBUST 3D RENDER ENGINE INITIALIZATION
-    // ==========================================
-    const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x03060f);
-
-    let viewW = window.innerWidth;
-    let viewH = window.innerHeight;
-
-    const camera = new THREE.PerspectiveCamera(45, viewW / viewH, 1, 1000);
+    const label = document.getElementById('step-label');
+    const title = document.getElementById('step-title');
+    const textContainer = document.getElementById('step-text-container');
     
-    let currentCamPos = new THREE.Vector3(0, -20, 50);
-    let targetCamPos = new THREE.Vector3(0, -20, 50);
-    let currentFocus = new THREE.Vector3(0, -10, 0);
-    let targetFocus = new THREE.Vector3(0, -10, 0);
-    
-    camera.position.copy(currentCamPos);
+    const backBtn = document.getElementById('back-btn');
+    const nextBtn = document.getElementById('next-btn');
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setSize(viewW, viewH);
-    stage.appendChild(renderer.domElement);
+    let currentStep = 0;
+    const totalRows = 32;
+    const gridWidth = totalRows * 2 + 1;
+    const cellSize = 16;
 
-    const cellularLatticeGroup = new THREE.Group();
-    scene.add(cellularLatticeGroup);
+    // Set canvas resolutions explicitly
+    canvas.width = gridWidth * cellSize;
+    canvas.height = totalRows * cellSize;
 
-    // Generate Verification Lattice Arrays
-    const totalLines = 45;
-    const blockScale = 0.55;
-    const blockGeo = new THREE.BoxGeometry(blockScale, blockScale, blockScale);
-    
-    const wireframeMat = new THREE.MeshBasicMaterial({ color: 0x111e36, wireframe: true });
-    const crystalActiveMat = new THREE.MeshBasicMaterial({ color: 0x3b82f6 });
-    const spineTrackerMat = new THREE.MeshBasicMaterial({ color: 0xf59e0b });
-    const impactConflictMat = new THREE.MeshBasicMaterial({ color: 0xef4444 });
+    // Pre-calculate standard Rule 30 layout grid matrix
+    let matrix = [];
+    let initialRow = new Array(gridWidth).fill(0);
+    initialRow[totalRows] = 1; // Put the single active cell right in the middle
 
-    let ruleMatrix = [];
-    let initialRowState = new Array(totalLines * 2 + 1).fill(0);
-    initialRowState[totalLines] = 1;
-
-    for (let y = 0; y < totalLines; y++) {
-        ruleMatrix.push([...initialRowState]);
-        let nextRow = new Array(totalLines * 2 + 1).fill(0);
-        for (let x = 0; x < initialRowState.length; x++) {
-            let leftNeighbor = x > 0 ? initialRowState[x-1] : 0;
-            let centerCell = initialRowState[x];
-            let rightNeighbor = x < initialRowState.length - 1 ? initialRowState[x+1] : 0;
-            nextRow[x] = leftNeighbor ^ (centerCell || rightNeighbor);
+    for (let r = 0; r < totalRows; r++) {
+        matrix.push([...initialRow]);
+        let nextRow = new Array(gridWidth).fill(0);
+        for (let c = 0; c < initialRow.length; c++) {
+            let left = c > 0 ? initialRow[c-1] : 0;
+            let center = initialRow[c];
+            let right = c < initialRow.length - 1 ? initialRow[c+1] : 0;
+            // Native Rule 30 logic gate binary configuration
+            nextRow[c] = left ^ (center || right);
         }
-        initialRowState = nextRow;
+        initialRow = nextRow;
     }
 
-    // Build mesh instances inside environment space
-    for (let y = 0; y < totalLines; y++) {
-        for (let x = 0; x < ruleMatrix[y].length; x++) {
-            let chosenMaterial = wireframeMat;
-            if (ruleMatrix[y][x] === 1) chosenMaterial = crystalActiveMat;
-            if (x === totalLines) chosenMaterial = spineTrackerMat; 
-            if (y === 0 && x === totalLines - 7) chosenMaterial = impactConflictMat; 
-
-            const nodeBox = new THREE.Mesh(blockGeo, chosenMaterial);
-            nodeBox.position.set((x - totalLines) * 0.62, -y * 0.62, 0);
-            cellularLatticeGroup.add(nodeBox);
+    // Storybook step configurations written for absolute clarity
+    const steps = [
+        {
+            title: "The Lonely Block",
+            label: "Step 1 of 5",
+            text: `
+                <p>Imagine a completely blank grid of white paper. We start by coloring just <strong>one single block blue</strong> right in the middle of the very top row.</p>
+                <p>Everything else on the sides is completely empty. We call this empty space the "vacuum".</p>
+            `
+        },
+        {
+            title: "The Secret Family Rule",
+            label: "Step 2 of 5",
+            text: `
+                <p>To build the next row down, every block looks at its <strong>three neighbors directly above it</strong> (Left, Center, and Right).</p>
+                <p>Rule 30 is like a game of telephone: if the blocks above look a certain way, the block below turns blue. If they don't, it stays white.</p>
+                <div class="highlight-box">Watch how this simple rule makes rows naturally widen step-by-step!</div>
+            `
+        },
+        {
+            title: "The Growing Triangle",
+            label: "Step 3 of 5",
+            text: `
+                <p>As we repeat this row by row, it builds a giant triangle. Notice the <strong>Orange Center Stripe</strong> running straight down the middle.</p>
+                <p>Because information can only travel one step left or right per row, the outside walls stay perfectly quiet and white. Nothing can exist outside this triangle.</p>
+            `
+        },
+        {
+            title: "The Repeating Loop Trap",
+            label: "Step 4 of 5",
+            text: `
+                <p>Stephen Wolfram wondered: <em>Does that center stripe ever repeat itself like a pattern on a shirt (e.g., Blue, White, Blue, White forever)?</em></p>
+                <p>If a pattern repeats over time, it means information has to loop. But because of our rules, to keep a loop going down the center, that pattern is forced to stretch outward to the left.</p>
+            `
+        },
+        {
+            title: "The Giant Crash (The Proof)",
+            label: "Step 5 of 5",
+            text: `
+                <p>Here is why it can never repeat: as that pattern tries to stretch further and further left, it eventually <strong>smashes right into the quiet, empty white walls</strong> outside the triangle!</p>
+                <p>The empty space has no information to give. It forces the incoming pattern to break. Since it always crashes into the empty wall, a perfect repeating loop is completely impossible!</p>
+                <div class="highlight-box" style="border-color: var(--red)">Boom! Contradiction found. The center column can never repeat itself.</div>
+            `
         }
-    }
+    ];
 
-    // ==========================================
-    // TIME-DECOUPLED CINEMATIC ENGINE
-    // ==========================================
-    let scrollPositionTarget = 0;
-    let masterClock = 0;
+    function drawGrid() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    function systemFrameTick() {
-        requestAnimationFrame(systemFrameTick);
+        for (let r = 0; r < totalRows; r++) {
+            for (let c = 0; c < gridWidth; c++) {
+                let x = c * cellSize;
+                let y = r * cellSize;
+                
+                // Determine layout visibility constraints depending on current active step
+                let shouldDrawCell = false;
+                let cellColor = "#111827"; // Blank grid color
 
-        // Advance timeline independent of raw client state bindings
-        masterClock += 0.0018; 
-        if (masterClock > Math.PI * 2) masterClock = 0;
+                if (currentStep === 0) {
+                    if (r === 0) shouldDrawCell = true;
+                } else if (currentStep === 1) {
+                    if (r < 6) shouldDrawCell = true;
+                } else {
+                    shouldDrawCell = true; // Show the full matrix field
+                }
 
-        // Drive scroll height targets smoothly matching cyclic sine variations
-        const normalizedProgress = (Math.sin(masterClock - Math.PI/2) + 1) / 2;
-        
-        const trackMax = scrollway.scrollHeight - scrollway.clientHeight;
-        if (trackMax > 0) {
-            scrollway.scrollTop = normalizedProgress * trackMax;
-            timelinePct.innerText = `PLAYHEAD: ${(normalizedProgress * 100).toFixed(0)}%`;
-        }
+                if (shouldDrawCell) {
+                    if (matrix[r][c] === 1) {
+                        cellColor = varColor('--blue');
+                        // Turn center line orange on steps 3, 4, 5
+                        if (c === totalRows && currentStep >= 2) {
+                            cellColor = varColor('--orange');
+                        }
+                    }
+                }
 
-        // Direct camera flight mechanics safely matching localized progress thresholds
-        if (normalizedProgress < 0.25) {
-            targetCamPos.set(0, -18, 48);
-            targetFocus.set(0, -10, 0);
-            consoleOutput.innerHTML = "<span style='color: #3b82f6'>> [SCENE I] Structural overview. Localizing matrix coordinates.</span>";
-        } else if (normalizedProgress >= 0.25 && normalizedProgress < 0.55) {
-            targetCamPos.set(0, -6, 22);
-            targetFocus.set(0, -5, 0);
-            consoleOutput.innerHTML = "<span style='color: #f59e0b'>> [SCENE II] Tracking left permutative inversion channels.</span>";
-        } else if (normalizedProgress >= 0.55 && normalizedProgress < 0.85) {
-            targetCamPos.set(-5, -3, 14);
-            targetFocus.set(-5.5, 0, 0);
-            consoleOutput.innerHTML = "<span style='color: #ef4444'>> [SCENE III] Boundary clash found. Logic state error: (1=0).</span>";
-        } else {
-            targetCamPos.set(0, -22, 55);
-            targetFocus.set(0, -15, 0);
-            consoleOutput.innerHTML = "<span style='color: #10b981'>> [SCENE IV] Verification complete. Period configuration rejected.</span>";
-        }
+                // Step 5: Highlight the visual wall collision intersection point
+                if (currentStep === 4 && r === 12 && c === totalRows - 12) {
+                    cellColor = varColor('--red');
+                }
 
-        // Frame interpolation (Lerping) calculations
-        currentCamPos.lerp(targetCamPos, 0.04);
-        currentFocus.lerp(targetFocus, 0.04);
+                ctx.fillStyle = cellColor;
+                ctx.fillRect(x + 1, y + 1, cellSize - 2, cellSize - 2);
 
-        camera.position.copy(currentCamPos);
-        camera.lookAt(currentFocus);
-
-        // Continuous environment lattice sway
-        cellularLatticeGroup.rotation.y = Math.sin(Date.now() * 0.0001) * 0.06;
-
-        // Manage narrative item opacity mappings
-        const textCards = document.querySelectorAll('.scene-card');
-        textCards.forEach(card => {
-            const boundary = card.getBoundingClientRect();
-            if (boundary.top < window.innerHeight * 0.6 && boundary.bottom > window.innerHeight * 0.4) {
-                card.classList.add('active-focus');
-            } else {
-                card.classList.remove('active-focus');
+                // Add grid wirelines for unrendered sections
+                if (!shouldDrawCell) {
+                    ctx.strokeStyle = "rgba(255,255,255,0.02)";
+                    ctx.strokeRect(x, y, cellSize, cellSize);
+                }
             }
-        });
+        }
 
-        renderer.render(scene, camera);
+        // Add custom graphical overlay callouts matching selected steps
+        if (currentStep === 0) {
+            drawArrow(totalRows * cellSize + (cellSize/2), 40, totalRows * cellSize + (cellSize/2), 12, varColor('--blue'));
+        }
+        if (currentStep === 4) {
+            // Draw tracking arrow showing history shifting into the blank vacuum edge
+            let arrowStartX = totalRows * cellSize;
+            let arrowStartY = 24 * cellSize;
+            let arrowEndX = (totalRows - 12) * cellSize;
+            let arrowEndY = 12 * cellSize;
+            drawArrow(arrowStartX, arrowStartY, arrowEndX, arrowEndY, varColor('--red'));
+        }
     }
 
-    // ==========================================
-    // LIFECYCLE INITIALIZATION DEPLOYMENT
-    // ==========================================
-    // Avoid DOMContentLoaded race traps completely by verifying document state directly
-    if (document.readyState === 'complete' || document.readyState === 'interactive') {
-        systemFrameTick();
-    } else {
-        window.addEventListener('load', systemFrameTick);
+    // Helper functions for graphics clean rendering paths
+    function varColor(name) {
+        return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
     }
 
-    window.addEventListener('resize', () => {
-        viewW = window.innerWidth;
-        viewH = window.innerHeight;
-        camera.aspect = viewW / viewH;
-        camera.updateProjectionMatrix();
-        renderer.setSize(viewW, viewH);
+    function drawArrow(fromx, fromy, tox, toy, color) {
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(fromx, fromy);
+        ctx.lineTo(tox, toy);
+        ctx.stroke();
+        
+        // Small arrow head coordinates
+        let angle = Math.atan2(toy - fromy, tox - fromx);
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.moveTo(tox, toy);
+        ctx.lineTo(tox - 10 * Math.cos(angle - Math.PI/6), toy - 10 * Math.sin(angle - Math.PI/6));
+        ctx.lineTo(tox - 10 * Math.cos(angle + Math.PI/6), toy - 10 * Math.sin(angle + Math.PI/6));
+        ctx.fill();
+    }
+
+    function updateStepUI() {
+        const stepData = steps[currentStep];
+        label.innerText = stepData.label;
+        title.innerText = stepData.title;
+        textContainer.innerHTML = stepData.text;
+
+        backBtn.disabled = currentStep === 0;
+        nextBtn.disabled = currentStep === steps.length - 1;
+
+        drawGrid();
+    }
+
+    // Hook Up User Control Interactions
+    nextBtn.addEventListener('click', () => {
+        if (currentStep < steps.length - 1) {
+            currentStep++;
+            updateStepUI();
+        }
     });
-</script>
 
+    backBtn.addEventListener('click', () => {
+        if (currentStep > 0) {
+            currentStep--;
+            updateStepUI();
+        }
+    });
+
+    // Boot system immediately
+    updateStepUI();
+</script>
 </body>
 </html>
