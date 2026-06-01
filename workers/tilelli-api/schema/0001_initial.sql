@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS anime_scenes (
   title TEXT NOT NULL,
   prompt TEXT NOT NULL DEFAULT '',
   art_style TEXT NOT NULL DEFAULT 'shonen' CHECK (art_style IN ('shonen', 'shojo', 'cinematic')),
-  setting TEXT NOT NULL DEFAULT 'neon-city' CHECK (setting IN ('neon-city', 'shrine-forest', 'orbital-lab')),
+  setting TEXT NOT NULL DEFAULT '',
   duration TEXT NOT NULL DEFAULT '10s',
   aspect_ratio TEXT NOT NULL DEFAULT '16:9',
   notes TEXT NOT NULL DEFAULT '',

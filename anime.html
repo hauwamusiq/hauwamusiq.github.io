@@ -790,7 +790,7 @@
                 <h1>Build anime scenes from an idea.</h1>
                 <p class="lede">
                     This is phase one of a prompt-driven anime scene generator. Choose one of three visual styles,
-                    pick one of three settings, then describe the scene you want. The page stores requests locally first,
+                    describe your own setting, then describe the scene you want. The page stores requests locally first,
                     shows a storyboard preview, and can sync the scene record to the Tilelli edge backend when the owner key is configured.
                 </p>
                 <div class="actions">
@@ -826,13 +826,14 @@
                                 <option value="cinematic">Cinematic modern</option>
                             </select>
                         </div>
-                        <div class="field">
-                            <label for="setting-select">Setting</label>
-                            <select id="setting-select" name="setting">
-                                <option value="neon-city">Neon city</option>
-                                <option value="shrine-forest">Shrine forest</option>
-                                <option value="orbital-lab">Orbital lab</option>
-                            </select>
+                        <div class="field full">
+                            <label for="setting-input">Setting</label>
+                            <input id="setting-input" name="setting" placeholder="Describe the world, room, landscape, city, or stage for the scene" maxlength="180">
+                            <div class="asset-chip-row" aria-label="Suggested settings">
+                                <button class="asset-chip" type="button" data-setting-suggest="Rain-slick neon district">Neon district</button>
+                                <button class="asset-chip" type="button" data-setting-suggest="Lantern-lit shrine forest at dusk">Shrine forest</button>
+                                <button class="asset-chip" type="button" data-setting-suggest="Orbital lab with glass walls and stars outside">Orbital lab</button>
+                            </div>
                         </div>
                         <div class="field">
                             <label for="duration-select">Length</label>
@@ -867,26 +868,6 @@
                                     <input type="radio" name="art_style" value="cinematic">
                                     <strong>Cinematic modern</strong>
                                     <span>Moody color, film framing, atmospheric detail, smooth camera movement, dramatic pacing.</span>
-                                </label>
-                            </div>
-                        </div>
-                        <div class="field full">
-                            <label>Setting panel</label>
-                            <div class="choices" role="radiogroup" aria-label="Scene setting">
-                                <label class="choice" data-accent="amber">
-                                    <input type="radio" name="scene_setting" value="neon-city" checked>
-                                    <strong>Neon city</strong>
-                                    <span>Rain-slick streets, signage, reflections, motion trails, urban energy.</span>
-                                </label>
-                                <label class="choice" data-accent="lime">
-                                    <input type="radio" name="scene_setting" value="shrine-forest">
-                                    <strong>Shrine forest</strong>
-                                    <span>Moss, lanterns, sacred space, wind in the trees, twilight atmosphere.</span>
-                                </label>
-                                <label class="choice" data-accent="rose">
-                                    <input type="radio" name="scene_setting" value="orbital-lab">
-                                    <strong>Orbital lab</strong>
-                                    <span>Floating consoles, stars through glass, clean geometry, research sci-fi mood.</span>
                                 </label>
                             </div>
                         </div>
@@ -1400,20 +1381,19 @@
             }
         };
 
-        const settingMap = {
-            "neon-city": {
-                label: "Neon city",
-                summary: "Rain, reflections, signs, night motion, urban pulse."
-            },
-            "shrine-forest": {
-                label: "Shrine forest",
-                summary: "Lanterns, trees, sacred quiet, wind, dusk color."
-            },
-            "orbital-lab": {
-                label: "Orbital lab",
-                summary: "Research glass, stars, consoles, precision, suspended motion."
-            }
-        };
+        function normalizeSettingText(value) {
+            return String(value || "").replace(/\s+/g, " ").trim();
+        }
+
+        function settingLabel(value) {
+            const text = normalizeSettingText(value);
+            return text ? text : "Custom setting";
+        }
+
+        function settingSummary(value) {
+            const text = normalizeSettingText(value);
+            return text ? text : "A custom setting";
+        }
 
         const apiState = document.getElementById("api-state");
         const queueState = document.getElementById("queue-state");
@@ -1427,6 +1407,7 @@
         const generateButton = document.getElementById("generate-btn");
         const regenerateStoryboardButton = document.getElementById("regenerate-storyboard");
         const storyboardEditor = document.getElementById("storyboard-editor");
+        const settingInput = document.getElementById("setting-input");
         const assetForm = document.getElementById("asset-form");
         const assetPreview = document.getElementById("asset-preview");
         const assetGrid = document.getElementById("asset-grid");
@@ -1694,13 +1675,11 @@
             document.getElementById("scene-title").value = scene.title || "";
             document.getElementById("scene-prompt").value = scene.prompt || "";
             document.getElementById("style-select").value = scene.art_style || "shonen";
-            document.getElementById("setting-select").value = scene.setting || "neon-city";
+            document.getElementById("setting-input").value = scene.setting || "";
             document.getElementById("duration-select").value = scene.duration || "10s";
             document.getElementById("aspect-select").value = scene.aspect_ratio || "16:9";
             const selectedStyle = form.querySelector(`input[name="art_style"][value="${scene.art_style || "shonen"}"]`);
-            const selectedSetting = form.querySelector(`input[name="scene_setting"][value="${scene.setting || "neon-city"}"]`);
             if (selectedStyle) selectedStyle.checked = true;
-            if (selectedSetting) selectedSetting.checked = true;
             document.getElementById("scene-notes").value = scene.notes || "";
             renderStoryboardEditor(Array.isArray(scene.storyboard) && scene.storyboard.length === 3 ? scene.storyboard : generateStoryboard({
                 artStyle: scene.art_style || "shonen",
@@ -1826,16 +1805,15 @@
 
         function currentPayload() {
             const artStyle = selectedValue("art_style");
-            const sceneSetting = selectedValue("scene_setting");
             return {
                 title: document.getElementById("scene-title").value.trim(),
                 prompt: document.getElementById("scene-prompt").value.trim(),
                 style: document.getElementById("style-select").value,
-                setting: document.getElementById("setting-select").value,
+                setting: settingInput.value.trim(),
                 duration: document.getElementById("duration-select").value,
                 aspect: document.getElementById("aspect-select").value,
                 artStyle,
-                sceneSetting,
+                sceneSetting: settingInput.value.trim(),
                 notes: document.getElementById("scene-notes").value.trim()
             };
         }
@@ -1843,12 +1821,12 @@
         function refreshPreview() {
             const payload = currentPayload();
             const style = styleMap[payload.artStyle] || styleMap.shonen;
-            const setting = settingMap[payload.sceneSetting] || settingMap["neon-city"];
-            previewHeading.textContent = `${setting.label} / ${style.label}`;
+            const setting = settingLabel(payload.sceneSetting);
+            previewHeading.textContent = `${setting} / ${style.label}`;
             previewText.textContent = payload.prompt || "Enter a prompt to see the scene interpreted here before you queue it.";
             const storyboard = readStoryboard();
             beat1.textContent = storyboard[0]?.camera ? `${storyboard[0].camera} · ${storyboard[0].title}` : style.beat1;
-            beat2.textContent = storyboard[1]?.action || `${setting.summary} ${payload.duration} and ${payload.aspect} composition can steer pacing and framing.`;
+            beat2.textContent = storyboard[1]?.action || `${settingSummary(payload.sceneSetting)} ${payload.duration} and ${payload.aspect} composition can steer pacing and framing.`;
             beat3.textContent = storyboard[2]?.mood || style.beat3;
             queueState.textContent = payload.title ? `Draft: ${payload.title}` : "Queue: empty";
             updateViewer(payload.title ? {
@@ -1872,19 +1850,20 @@
 
         function generateStoryboard(payload) {
             const style = styleMap[payload.artStyle] || styleMap.shonen;
-            const setting = settingMap[payload.sceneSetting] || settingMap["neon-city"];
+            const setting = settingLabel(payload.sceneSetting);
+            const settingDetail = settingSummary(payload.sceneSetting).toLowerCase();
             const prompt = promptSlice(payload.prompt, 120) || "the requested scene";
             return [
                 {
-                    title: `Establish ${setting.label.toLowerCase()}`,
+                    title: `Establish ${setting.toLowerCase()}`,
                     camera: "Wide establishing shot",
-                    action: `Open on ${setting.summary.toLowerCase()} while framing the first readable shape of the scene.`,
+                    action: `Open on ${settingDetail} while framing the first readable shape of the scene.`,
                     mood: `${style.label} energy with the opening tone of ${prompt}.`
                 },
                 {
                     title: "Advance the moment",
                     camera: "Medium tracking shot",
-                    action: `Move closer as the idea from "${prompt}" begins to unfold inside the chosen setting.`,
+                    action: `Move closer as the idea from "${prompt}" begins to unfold inside ${settingDetail}.`,
                     mood: `Keep the emotional and visual pressure rising while the scene stays ${payload.duration} focused.`
                 },
                 {
@@ -2450,13 +2429,11 @@
             document.getElementById("scene-title").value = scene.title || "";
             document.getElementById("scene-prompt").value = scene.prompt || "";
             document.getElementById("style-select").value = scene.art_style || "shonen";
-            document.getElementById("setting-select").value = scene.setting || "neon-city";
+            document.getElementById("setting-input").value = scene.setting || "";
             document.getElementById("duration-select").value = scene.duration || "10s";
             document.getElementById("aspect-select").value = scene.aspect_ratio || "16:9";
             const selectedStyle = form.querySelector(`input[name="art_style"][value="${scene.art_style || "shonen"}"]`);
-            const selectedSetting = form.querySelector(`input[name="scene_setting"][value="${scene.setting || "neon-city"}"]`);
             if (selectedStyle) selectedStyle.checked = true;
-            if (selectedSetting) selectedSetting.checked = true;
             document.getElementById("scene-notes").value = scene.notes || "";
             renderStoryboardEditor(Array.isArray(scene.storyboard) && scene.storyboard.length === 3 ? scene.storyboard : generateStoryboard({
                 artStyle: scene.art_style || "shonen",
@@ -3211,7 +3188,7 @@
             card.innerHTML = `
                 <strong>${escapeHtml(scene.title || "Untitled scene")}</strong>
                 <span>${escapeHtml(scene.prompt || scene.description || "No prompt stored.")}</span>
-                <em>${escapeHtml(scene.art_style || scene.artStyle || "scene")} · ${escapeHtml(scene.setting || scene.scene_setting || "setting")} · ${escapeHtml(scene.status || "queued")} · ${escapeHtml(createdAt)}</em>
+                <em>${escapeHtml(scene.art_style || scene.artStyle || "scene")} · ${escapeHtml(scene.setting || scene.scene_setting || "Custom setting")} · ${escapeHtml(scene.status || "queued")} · ${escapeHtml(createdAt)}</em>
                 <span>${Array.isArray(scene.storyboard) ? `Storyboard: ${scene.storyboard.length} shots.` : "Storyboard: draft ready for editing."}</span>
                 <span>${fromApi ? "Synced to the edge queue." : "Saved locally and queued for sync."}</span>
             `;
@@ -3243,7 +3220,7 @@
                 title: scene.title || "",
                 prompt: scene.prompt || scene.description || "",
                 art_style: scene.art_style || scene.artStyle || scene.style || "shonen",
-                setting: scene.setting || scene.scene_setting || scene.sceneSetting || "neon-city",
+                setting: scene.setting || scene.scene_setting || scene.sceneSetting || "",
                 duration: scene.duration || "10s",
                 aspect_ratio: scene.aspect_ratio || scene.aspectRatio || scene.aspect || "16:9",
                 notes: scene.notes || "",
@@ -3594,6 +3571,13 @@
         refreshGenerationButton.addEventListener("click", async () => {
             loadLocalGenerationJobs();
             await loadRemoteGenerationJobs();
+        });
+        document.querySelectorAll("[data-setting-suggest]").forEach(button => {
+            button.addEventListener("click", () => {
+                settingInput.value = button.dataset.settingSuggest || "";
+                refreshPreview();
+                saveStoryboardDraft();
+            });
         });
         phaseButtons.forEach(button => {
             button.addEventListener("click", () => setWorkspacePhase(button.dataset.phaseTarget));
