@@ -557,15 +557,30 @@
                 radial-gradient(circle at 18% 18%, rgba(255,95,135,0.18), transparent 28%),
                 radial-gradient(circle at 80% 28%, rgba(100,216,212,0.12), transparent 24%),
                 linear-gradient(145deg, rgba(255,255,255,0.06), rgba(0,0,0,0.18));
+            position: relative;
             display: grid;
             align-content: end;
             padding: 18px;
             overflow: hidden;
         }
+        .viewer-stage.has-video {
+            background: #090712;
+        }
+        .viewer-video {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.92;
+            z-index: 0;
+        }
         .viewer-copy {
             max-width: 48ch;
             display: grid;
             gap: 8px;
+            position: relative;
+            z-index: 1;
         }
         .viewer-copy b {
             color: var(--cyan);
@@ -1015,6 +1030,7 @@
                     </div>
                     <div class="viewer-layout">
                         <div class="viewer-stage" id="viewer-stage">
+                            <video id="viewer-video" class="viewer-video" controls playsinline muted preload="metadata" hidden></video>
                             <div class="viewer-copy">
                                 <b>Render preview</b>
                                 <h3 id="viewer-title">Select a scene to watch its composition here.</h3>
@@ -1427,6 +1443,7 @@
         const viewerTitle = document.getElementById("viewer-title");
         const viewerDescription = document.getElementById("viewer-description");
         const viewerStage = document.getElementById("viewer-stage");
+        const viewerVideo = document.getElementById("viewer-video");
         const viewerPhase = document.getElementById("viewer-phase");
         const viewerStatus = document.getElementById("viewer-status");
         const playbackTitle = document.getElementById("playback-title");
@@ -1577,7 +1594,7 @@
         }
 
         function renderPlaybackPanel(scene = latestScene) {
-            if (!viewerStage || !playbackTitle || !playbackState || !playbackFrame || !playbackClock || !playbackProgress || !playbackTimeline) {
+            if (!viewerStage || !viewerVideo || !playbackTitle || !playbackState || !playbackFrame || !playbackClock || !playbackProgress || !playbackTimeline) {
                 return;
             }
             const { payload, storyboard } = playbackSequence(scene);
@@ -1605,6 +1622,24 @@
                 ? `${active.camera || "Wide establishing shot"} · ${active.action || "the central motion"} · ${active.mood || "a finished frame"}`
                 : "Phase 4 is where the scene becomes watchable. The backend render pipeline can later swap this preview for a real player or generated clip.";
             viewerStage.style.background = playbackAccent(payload);
+            const videoUrl = payload.output_url || payload.outputUrl || payload.render_output_url || "";
+            const posterUrl = payload.thumbnail_url || payload.thumbnailUrl || "";
+            if (videoUrl && /^(https?:|file:)/i.test(videoUrl)) {
+                viewerVideo.hidden = false;
+                viewerVideo.src = videoUrl;
+                if (posterUrl && /^(https?:|file:)/i.test(posterUrl)) {
+                    viewerVideo.poster = posterUrl;
+                } else {
+                    viewerVideo.removeAttribute("poster");
+                }
+                viewerStage.classList.add("has-video");
+            } else {
+                viewerVideo.pause();
+                viewerVideo.removeAttribute("src");
+                viewerVideo.load();
+                viewerVideo.hidden = true;
+                viewerStage.classList.remove("has-video");
+            }
             playbackTitle.textContent = active.title || payload.title || "Playback idle";
             playbackState.textContent = playbackPlaying ? "playing" : "paused";
             playbackFrame.textContent = storyboard.length
@@ -2140,10 +2175,12 @@
                 </div>
             `;
             card.querySelector("[data-job-watch]")?.addEventListener("click", () => {
-                if (bundle?.scene) {
+                if (bundle?.scene || job.output_url || job.thumbnail_url) {
                     latestScene = normalizeScene({
                         ...bundle.scene,
-                        storyboard: bundle.storyboard || []
+                        storyboard: bundle.storyboard || [],
+                        output_url: job.output_url || job.outputUrl || bundle.output_url || bundle.outputUrl || "",
+                        thumbnail_url: job.thumbnail_url || job.thumbnailUrl || bundle.thumbnail_url || bundle.thumbnailUrl || ""
                     });
                 }
                 setWorkspacePhase("render");
@@ -3300,6 +3337,8 @@
                 notes: scene.notes || "",
                 status: scene.status || "queued",
                 storyboard: Array.isArray(scene.storyboard) ? scene.storyboard : [],
+                output_url: scene.output_url || scene.outputUrl || "",
+                thumbnail_url: scene.thumbnail_url || scene.thumbnailUrl || "",
                 source: scene.source || "anime-html",
                 created_at: scene.created_at || scene.createdAt || new Date().toISOString(),
                 edge_id: scene.edge_id || scene.id || null
