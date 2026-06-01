@@ -171,6 +171,33 @@
             display: grid;
             gap: 16px;
         }
+        .phase-switcher {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .phase-switcher button {
+            border: 1px solid var(--line);
+            background: rgba(255,255,255,0.04);
+            color: var(--muted);
+            min-height: 40px;
+            padding: 0 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            font-size: 0.72rem;
+            font-weight: 800;
+        }
+        .phase-switcher button.active {
+            color: var(--ink);
+            border-color: rgba(255,95,135,0.45);
+            background: rgba(255,95,135,0.14);
+        }
+        .phase-panel {
+            display: none;
+        }
+        .phase-panel.active {
+            display: block;
+        }
         .surface {
             padding: 18px;
         }
@@ -387,6 +414,201 @@
             min-height: 84px;
             resize: vertical;
         }
+        .asset-panel {
+            padding: 18px;
+        }
+        .asset-toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+        .asset-toolbar p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 0.8rem;
+            line-height: 1.5;
+        }
+        .asset-layout {
+            display: grid;
+            grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+            gap: 12px;
+        }
+        .asset-uploader {
+            border: 1px solid var(--line);
+            background: rgba(0,0,0,0.22);
+            padding: 14px;
+            display: grid;
+            gap: 12px;
+        }
+        .asset-preview {
+            border: 1px solid var(--line);
+            background: rgba(255,255,255,0.03);
+            min-height: 160px;
+            display: grid;
+            place-items: center;
+            overflow: hidden;
+        }
+        .asset-preview img,
+        .asset-preview video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        .asset-preview span {
+            color: var(--muted);
+            font-size: 0.78rem;
+            text-align: center;
+            padding: 18px;
+        }
+        .asset-meta-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+        }
+        .asset-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .asset-chip-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .asset-chip {
+            border: 1px solid var(--line);
+            background: rgba(255,255,255,0.04);
+            color: var(--muted);
+            padding: 8px 10px;
+            font-size: 0.72rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+        .asset-grid {
+            display: grid;
+            gap: 10px;
+        }
+        .asset-card {
+            border: 1px solid var(--line);
+            background: rgba(255,255,255,0.035);
+            padding: 12px;
+            display: grid;
+            gap: 10px;
+        }
+        .asset-card-top {
+            display: flex;
+            align-items: start;
+            justify-content: space-between;
+            gap: 10px;
+        }
+        .asset-card-top strong {
+            display: block;
+            font-size: 0.92rem;
+            margin-bottom: 4px;
+        }
+        .asset-card-top span {
+            color: var(--muted);
+            font-size: 0.78rem;
+        }
+        .asset-thumb {
+            border: 1px solid var(--line);
+            background: rgba(0,0,0,0.24);
+            min-height: 120px;
+            overflow: hidden;
+        }
+        .asset-thumb img,
+        .asset-thumb video {
+            display: block;
+            width: 100%;
+            height: auto;
+            max-height: 240px;
+            object-fit: cover;
+        }
+        .asset-card p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 0.82rem;
+            line-height: 1.55;
+        }
+        .asset-card em {
+            display: block;
+            color: var(--cyan);
+            font-size: 0.7rem;
+            font-style: normal;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+        .viewer-panel {
+            padding: 18px;
+        }
+        .viewer-layout {
+            display: grid;
+            grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
+            gap: 12px;
+        }
+        .viewer-stage {
+            min-height: 340px;
+            border: 1px solid var(--line);
+            background:
+                radial-gradient(circle at 18% 18%, rgba(255,95,135,0.18), transparent 28%),
+                radial-gradient(circle at 80% 28%, rgba(100,216,212,0.12), transparent 24%),
+                linear-gradient(145deg, rgba(255,255,255,0.06), rgba(0,0,0,0.18));
+            display: grid;
+            align-content: end;
+            padding: 18px;
+            overflow: hidden;
+        }
+        .viewer-copy {
+            max-width: 48ch;
+            display: grid;
+            gap: 8px;
+        }
+        .viewer-copy b {
+            color: var(--cyan);
+            font-size: 0.72rem;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+        }
+        .viewer-copy h3 {
+            margin: 0;
+            font-size: clamp(1.4rem, 4vw, 2.2rem);
+            line-height: 1.05;
+        }
+        .viewer-copy p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 0.9rem;
+            line-height: 1.65;
+        }
+        .viewer-sidebar {
+            display: grid;
+            gap: 10px;
+        }
+        .viewer-metric {
+            border: 1px solid var(--line);
+            background: rgba(255,255,255,0.035);
+            padding: 12px;
+            display: grid;
+            gap: 6px;
+        }
+        .viewer-metric small {
+            color: var(--muted);
+            font-size: 0.68rem;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+        }
+        .viewer-metric strong {
+            font-size: 0.92rem;
+        }
+        .viewer-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
         .shot {
             border: 1px solid var(--line);
             background: rgba(0,0,0,0.22);
@@ -438,6 +660,12 @@
             letter-spacing: 0.12em;
             text-transform: uppercase;
         }
+        .archive-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
         .footer {
             margin-top: 16px;
             padding: 18px;
@@ -449,7 +677,7 @@
             .hero { grid-template-columns: 1fr; }
         }
         @media (max-width: 920px) {
-            .form-grid, .choices, .storyboard, .shot-editor-grid { grid-template-columns: 1fr; }
+            .form-grid, .choices, .storyboard, .shot-editor-grid, .asset-layout, .asset-meta-grid, .viewer-layout { grid-template-columns: 1fr; }
         }
         @media (max-width: 620px) {
             .wrap { width: min(100% - 22px, 1280px); }
@@ -611,7 +839,15 @@
                     </div>
                 </div>
 
-                <div class="panel storyboard-editor">
+                <div class="phase-switcher" aria-label="Workspace phases">
+                    <button class="active" type="button" data-phase-target="storyboard">Storyboard</button>
+                    <button type="button" data-phase-target="assets">Assets</button>
+                    <button type="button" data-phase-target="render">Render</button>
+                    <button type="button" data-phase-target="queue">Queue</button>
+                    <button type="button" data-phase-target="archive">Archive</button>
+                </div>
+
+                <div class="panel storyboard-editor phase-panel active" data-phase-panel="storyboard">
                     <div class="surface-head">
                         <strong>Storyboard editor</strong>
                         <span>Editable before generation</span>
@@ -623,7 +859,118 @@
                     <div class="shot-editor-grid" id="storyboard-editor" aria-label="Storyboard editor"></div>
                 </div>
 
-                <div class="panel history">
+                <div class="panel asset-panel phase-panel" data-phase-panel="assets">
+                    <div class="surface-head">
+                        <strong>Asset layer</strong>
+                        <span>Phase 3 references and uploads</span>
+                    </div>
+                    <div class="asset-toolbar">
+                        <button class="button" type="button" id="sync-assets-btn">Sync assets</button>
+                        <p>Add sketches, references, character sheets, backgrounds, or moodboards. Files stay local-first; the edge stores the record when owner sync is available.</p>
+                    </div>
+                    <div class="asset-layout">
+                        <form id="asset-form" class="asset-uploader">
+                            <div class="asset-preview" id="asset-preview">
+                                <span>Select an image or reference to preview it here.</span>
+                            </div>
+                            <div class="asset-meta-grid">
+                                <div class="field">
+                                    <label for="asset-kind">Asset type</label>
+                                    <select id="asset-kind">
+                                        <option value="sketch">Sketch</option>
+                                        <option value="reference">Reference</option>
+                                        <option value="character-sheet">Character sheet</option>
+                                        <option value="background">Background</option>
+                                        <option value="moodboard">Moodboard</option>
+                                        <option value="preset">Prompt preset</option>
+                                    </select>
+                                </div>
+                                <div class="field">
+                                    <label for="asset-title">Asset title</label>
+                                    <input id="asset-title" maxlength="180" placeholder="Example: Neon alley study">
+                                </div>
+                                <div class="field full">
+                                    <label for="asset-source">Reference URL</label>
+                                    <input id="asset-source" placeholder="Paste a source link if the asset lives elsewhere">
+                                </div>
+                                <div class="field full">
+                                    <label for="asset-file">Upload image or video</label>
+                                    <input id="asset-file" type="file" accept="image/*,video/*">
+                                </div>
+                                <div class="field full">
+                                    <label for="asset-notes">Asset notes</label>
+                                    <textarea id="asset-notes" maxlength="4000" placeholder="What this asset is for, how it should be used, and any constraints."></textarea>
+                                </div>
+                                <div class="field">
+                                    <label for="asset-scene">Link to scene</label>
+                                    <select id="asset-scene">
+                                        <option value="">No scene link</option>
+                                    </select>
+                                </div>
+                                <div class="field">
+                                    <label for="asset-status">Status</label>
+                                    <select id="asset-status">
+                                        <option value="draft">Draft</option>
+                                        <option value="linked">Linked</option>
+                                        <option value="archived">Archived</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="asset-chip-row" aria-label="Prompt presets">
+                                <button class="asset-chip" type="button" data-preset="camera">Camera close-up</button>
+                                <button class="asset-chip" type="button" data-preset="lighting">Soft dusk lighting</button>
+                                <button class="asset-chip" type="button" data-preset="action">Action beat boost</button>
+                                <button class="asset-chip" type="button" data-preset="bg">Background reference</button>
+                            </div>
+                            <div class="asset-actions">
+                                <button class="button primary" type="submit">Save asset</button>
+                                <button class="button" type="button" id="reset-asset-btn">Reset</button>
+                            </div>
+                        </form>
+                        <div class="asset-grid" id="asset-grid" aria-label="Asset gallery">
+                            <article class="asset-card">
+                                <strong>No assets added yet.</strong>
+                                <p>Upload a sketch, paste a reference, or store a character/background sheet to start the asset layer.</p>
+                            </article>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel viewer-panel phase-panel" data-phase-panel="render">
+                    <div class="surface-head">
+                        <strong>Render viewer</strong>
+                        <span>Phase 4: the screen to watch the scene</span>
+                    </div>
+                    <div class="viewer-layout">
+                        <div class="viewer-stage" id="viewer-stage">
+                            <div class="viewer-copy">
+                                <b>Render preview</b>
+                                <h3 id="viewer-title">Select a scene to watch its composition here.</h3>
+                                <p id="viewer-description">Phase 4 is where the scene becomes watchable. The backend render pipeline can later swap this preview for a real player or generated clip.</p>
+                            </div>
+                        </div>
+                        <div class="viewer-sidebar">
+                            <div class="viewer-metric">
+                                <small>Current phase</small>
+                                <strong id="viewer-phase">Storyboard</strong>
+                            </div>
+                            <div class="viewer-metric">
+                                <small>Scene status</small>
+                                <strong id="viewer-status">No scene queued</strong>
+                            </div>
+                            <div class="viewer-metric">
+                                <small>Render path</small>
+                                <strong>Frames, then video</strong>
+                            </div>
+                            <div class="viewer-actions">
+                                <button class="button primary" type="button" id="watch-scene-btn">Watch scene</button>
+                                <button class="button" type="button" id="mark-ready-btn">Mark ready</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel history phase-panel" data-phase-panel="queue">
                     <div class="surface-head">
                         <strong>Scene Queue</strong>
                         <span>Recent submissions and status</span>
@@ -632,6 +979,19 @@
                         <div class="history-item">
                             <strong>No scenes queued yet.</strong>
                             <span>Submit a prompt above to start building the request history.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel history phase-panel" data-phase-panel="archive">
+                    <div class="surface-head">
+                        <strong>Archive</strong>
+                        <span>Saved scenes ready to clone or reuse</span>
+                    </div>
+                    <div id="archive-list" class="history-list">
+                        <div class="history-item">
+                            <strong>No archived scenes yet.</strong>
+                            <span>Mark a scene ready, then archive it for future reuse.</span>
                         </div>
                     </div>
                 </div>
@@ -697,9 +1057,141 @@
         const generateButton = document.getElementById("generate-btn");
         const regenerateStoryboardButton = document.getElementById("regenerate-storyboard");
         const storyboardEditor = document.getElementById("storyboard-editor");
+        const assetForm = document.getElementById("asset-form");
+        const assetPreview = document.getElementById("asset-preview");
+        const assetGrid = document.getElementById("asset-grid");
+        const assetKind = document.getElementById("asset-kind");
+        const assetTitle = document.getElementById("asset-title");
+        const assetSource = document.getElementById("asset-source");
+        const assetFile = document.getElementById("asset-file");
+        const assetNotes = document.getElementById("asset-notes");
+        const assetScene = document.getElementById("asset-scene");
+        const assetStatus = document.getElementById("asset-status");
+        const syncAssetsButton = document.getElementById("sync-assets-btn");
+        const resetAssetButton = document.getElementById("reset-asset-btn");
+        const viewerTitle = document.getElementById("viewer-title");
+        const viewerDescription = document.getElementById("viewer-description");
+        const viewerPhase = document.getElementById("viewer-phase");
+        const viewerStatus = document.getElementById("viewer-status");
+        const watchSceneButton = document.getElementById("watch-scene-btn");
+        const markReadyButton = document.getElementById("mark-ready-btn");
+        const archiveList = document.getElementById("archive-list");
         const LOCAL_KEY = "tilelli-anime-scenes";
         const STORYBOARD_KEY = "tilelli-anime-storyboard";
+        const ASSET_KEY = "tilelli-anime-assets";
+        const ASSET_DRAFT_KEY = "tilelli-anime-asset-draft";
+        const PHASE_KEY = "tilelli-anime-phase";
         const OWNER_KEY = "tilelli-owner-key";
+        const phaseButtons = Array.from(document.querySelectorAll("[data-phase-target]"));
+        const phasePanels = Array.from(document.querySelectorAll("[data-phase-panel]"));
+        let latestScene = null;
+
+        function setWorkspacePhase(phase) {
+            const nextPhase = ["storyboard", "assets", "render", "queue", "archive"].includes(phase) ? phase : "storyboard";
+            phaseButtons.forEach(button => {
+                button.classList.toggle("active", button.dataset.phaseTarget === nextPhase);
+            });
+            phasePanels.forEach(panel => {
+                panel.classList.toggle("active", panel.dataset.phasePanel === nextPhase);
+            });
+            try {
+                localStorage.setItem(PHASE_KEY, nextPhase);
+            } catch {
+                // Ignore local storage failures.
+            }
+            updateViewer(latestScene);
+        }
+
+        function updateViewer(scene = latestScene) {
+            const payload = scene ? normalizeScene(scene) : normalizeScene(currentPayload());
+            const storyboard = readStoryboard();
+            latestScene = scene || latestScene;
+            viewerPhase.textContent = document.querySelector("[data-phase-target].active")?.textContent || "Storyboard";
+            viewerStatus.textContent = payload.status ? `${payload.status} · ${payload.art_style || "scene"}` : "No scene queued";
+            viewerTitle.textContent = payload.title || "Select a scene to watch its composition here.";
+            viewerDescription.textContent = storyboard.length
+                ? `${storyboard[0]?.camera || "Wide establishing shot"} leads into ${storyboard[1]?.action || "the central motion"} and resolves with ${storyboard[2]?.mood || "a finished frame"}.`
+                : "Phase 4 is where the scene becomes watchable. The backend render pipeline can later swap this preview for a real player or generated clip.";
+            const accent = payload.setting === "orbital-lab" ? "radial-gradient(circle at 20% 20%, rgba(100,216,212,0.18), transparent 26%), radial-gradient(circle at 80% 36%, rgba(159,134,255,0.14), transparent 22%), linear-gradient(145deg, rgba(255,255,255,0.06), rgba(0,0,0,0.18))" : payload.setting === "shrine-forest" ? "radial-gradient(circle at 22% 20%, rgba(201,242,95,0.16), transparent 26%), radial-gradient(circle at 78% 28%, rgba(245,185,95,0.14), transparent 22%), linear-gradient(145deg, rgba(255,255,255,0.06), rgba(0,0,0,0.18))" : "radial-gradient(circle at 18% 18%, rgba(255,95,135,0.18), transparent 28%), radial-gradient(circle at 80% 28%, rgba(100,216,212,0.12), transparent 24%), linear-gradient(145deg, rgba(255,255,255,0.06), rgba(0,0,0,0.18))";
+            document.getElementById("viewer-stage").style.background = accent;
+        }
+
+        function renderArchive() {
+            if (!archiveList) return;
+            try {
+                const raw = localStorage.getItem(LOCAL_KEY);
+                const scenes = raw ? JSON.parse(raw) : [];
+                const archived = Array.isArray(scenes) ? scenes.map(normalizeScene).filter(scene => scene.status === "archived") : [];
+                if (!archived.length) {
+                    archiveList.innerHTML = `
+                        <div class="history-item">
+                            <strong>No archived scenes yet.</strong>
+                            <span>Mark a scene ready, then archive it for future reuse.</span>
+                        </div>
+                    `;
+                    return;
+                }
+                archiveList.innerHTML = "";
+                archived.forEach(scene => {
+                    const card = document.createElement("article");
+                    card.className = "history-item";
+                    card.innerHTML = `
+                        <strong>${escapeHtml(scene.title || "Untitled scene")}</strong>
+                        <span>${escapeHtml(scene.prompt || "No prompt stored.")}</span>
+                        <em>${escapeHtml(scene.art_style || "scene")} · ${escapeHtml(scene.setting || "setting")} · ARCHIVED · ${escapeHtml(scene.created_at)}</em>
+                        <div class="archive-actions">
+                            <button class="button" type="button" data-clone-title="${escapeHtmlAttr(scene.title || "")}">Clone scene</button>
+                            <button class="button" type="button" data-watch-title="${escapeHtmlAttr(scene.title || "")}">Watch</button>
+                        </div>
+                    `;
+                    card.querySelector("[data-clone-title]")?.addEventListener("click", () => cloneArchivedScene(scene));
+                    card.querySelector("[data-watch-title]")?.addEventListener("click", () => {
+                        latestScene = scene;
+                        setWorkspacePhase("render");
+                    });
+                    archiveList.appendChild(card);
+                });
+            } catch {
+                archiveList.innerHTML = `
+                    <div class="history-item">
+                        <strong>Archive unavailable.</strong>
+                        <span>Try again after the local store is available.</span>
+                    </div>
+                `;
+            }
+        }
+
+        function cloneArchivedScene(scene) {
+            document.getElementById("scene-title").value = scene.title || "";
+            document.getElementById("scene-prompt").value = scene.prompt || "";
+            document.getElementById("style-select").value = scene.art_style || "shonen";
+            document.getElementById("setting-select").value = scene.setting || "neon-city";
+            document.getElementById("duration-select").value = scene.duration || "10s";
+            document.getElementById("aspect-select").value = scene.aspect_ratio || "16:9";
+            const selectedStyle = form.querySelector(`input[name="art_style"][value="${scene.art_style || "shonen"}"]`);
+            const selectedSetting = form.querySelector(`input[name="scene_setting"][value="${scene.setting || "neon-city"}"]`);
+            if (selectedStyle) selectedStyle.checked = true;
+            if (selectedSetting) selectedSetting.checked = true;
+            document.getElementById("scene-notes").value = scene.notes || "";
+            renderStoryboardEditor(Array.isArray(scene.storyboard) && scene.storyboard.length === 3 ? scene.storyboard : generateStoryboard({
+                artStyle: scene.art_style || "shonen",
+                sceneSetting: scene.setting || "neon-city",
+                prompt: scene.prompt || "",
+                duration: scene.duration || "10s",
+                aspect: scene.aspect_ratio || "16:9"
+            }));
+            refreshPreview();
+            setWorkspacePhase("storyboard");
+        }
+
+        function loadWorkspacePhase() {
+            try {
+                const stored = localStorage.getItem(PHASE_KEY) || "storyboard";
+                setWorkspacePhase(stored);
+            } catch {
+                setWorkspacePhase("storyboard");
+            }
+        }
 
         function selectedValue(name) {
             const selected = form.querySelector(`input[name="${name}"]:checked`);
@@ -733,6 +1225,17 @@
             beat2.textContent = storyboard[1]?.action || `${setting.summary} ${payload.duration} and ${payload.aspect} composition can steer pacing and framing.`;
             beat3.textContent = storyboard[2]?.mood || style.beat3;
             queueState.textContent = payload.title ? `Draft: ${payload.title}` : "Queue: empty";
+            updateViewer(payload.title ? {
+                ...payload,
+                title: payload.title,
+                prompt: payload.prompt,
+                art_style: payload.artStyle,
+                setting: payload.sceneSetting,
+                duration: payload.duration,
+                aspect_ratio: payload.aspect,
+                status: "draft",
+                storyboard
+            } : null);
         }
 
         function promptSlice(value, limit = 120) {
@@ -848,6 +1351,239 @@
             renderStoryboardEditor(generateStoryboard(payload));
         }
 
+        function assetSignature(asset) {
+            return [
+                asset.title || "",
+                asset.asset_kind || asset.assetKind || "",
+                asset.scene_id || asset.sceneId || "",
+                asset.file_name || asset.fileName || "",
+                asset.source_url || asset.sourceUrl || "",
+                asset.created_at || asset.createdAt || ""
+            ].join("|");
+        }
+
+        function normalizeAsset(asset) {
+            return {
+                scene_id: asset.scene_id || asset.sceneId || null,
+                asset_kind: asset.asset_kind || asset.assetKind || "reference",
+                title: asset.title || "",
+                notes: asset.notes || asset.caption || "",
+                source_url: asset.source_url || asset.sourceUrl || "",
+                file_name: asset.file_name || asset.fileName || "",
+                file_type: asset.file_type || asset.fileType || "",
+                preview_data: asset.preview_data || asset.previewData || "",
+                status: asset.status || "draft",
+                source: asset.source || "anime-html",
+                created_at: asset.created_at || asset.createdAt || new Date().toISOString(),
+                edge_id: asset.edge_id || asset.id || null
+            };
+        }
+
+        function readAssetDraft() {
+            return {
+                asset_kind: assetKind.value,
+                title: assetTitle.value.trim(),
+                source_url: assetSource.value.trim(),
+                notes: assetNotes.value.trim(),
+                scene_id: assetScene.value ? Number.parseInt(assetScene.value, 10) || null : null,
+                status: assetStatus.value,
+                file_name: assetFile.dataset.fileName || "",
+                file_type: assetFile.dataset.fileType || "",
+                preview_data: assetPreview.dataset.previewData || ""
+            };
+        }
+
+        function escapeAttr(value) {
+            return escapeHtml(value).replaceAll("\"", "&quot;");
+        }
+
+        function renderAssetPreview(asset) {
+            assetPreview.innerHTML = "";
+            if (asset?.preview_data) {
+                const type = asset.file_type || "";
+                if (type.startsWith("video/")) {
+                    const video = document.createElement("video");
+                    video.controls = true;
+                    video.playsInline = true;
+                    video.src = asset.preview_data;
+                    assetPreview.appendChild(video);
+                } else {
+                    const img = document.createElement("img");
+                    img.alt = asset.title || "Asset preview";
+                    img.src = asset.preview_data;
+                    assetPreview.appendChild(img);
+                }
+                return;
+            }
+            if (asset?.source_url) {
+                const link = document.createElement("a");
+                link.href = asset.source_url;
+                link.target = "_blank";
+                link.rel = "noreferrer";
+                link.textContent = asset.source_url;
+                assetPreview.appendChild(link);
+                return;
+            }
+            assetPreview.innerHTML = "<span>Select an image or reference to preview it here.</span>";
+        }
+
+        function refreshAssetSceneOptions() {
+            try {
+                const raw = localStorage.getItem(LOCAL_KEY);
+                const scenes = raw ? JSON.parse(raw) : [];
+                const options = ["<option value=\"\">No scene link</option>"];
+                if (Array.isArray(scenes)) {
+                    scenes
+                        .map(normalizeScene)
+                        .filter(scene => scene.edge_id)
+                        .forEach(scene => {
+                            options.push(`<option value=\"${escapeAttr(String(scene.edge_id))}\">${escapeHtml(scene.title || "Untitled scene")} · #${escapeHtml(String(scene.edge_id))}</option>`);
+                        });
+                }
+                assetScene.innerHTML = options.join("");
+            } catch {
+                assetScene.innerHTML = "<option value=\"\">No scene link</option>";
+            }
+        }
+
+        function renderAssetCard(asset) {
+            const card = document.createElement("article");
+            card.className = "asset-card";
+            card.dataset.signature = assetSignature(asset);
+            const thumb = asset.preview_data ? `
+                <div class="asset-thumb">
+                    ${asset.file_type && asset.file_type.startsWith("video/")
+                        ? `<video controls playsinline src="${escapeAttr(asset.preview_data)}"></video>`
+                        : `<img alt="${escapeAttr(asset.title || "Asset preview")}" src="${escapeAttr(asset.preview_data)}">`}
+                </div>
+            ` : asset.source_url ? `
+                <div class="asset-thumb" style="display:grid;place-items:center;padding:12px;">
+                    <a href="${escapeAttr(asset.source_url)}" target="_blank" rel="noreferrer">${escapeHtml(asset.source_url)}</a>
+                </div>
+            ` : `
+                <div class="asset-thumb" style="display:grid;place-items:center;">
+                    <span style="padding: 18px; color: var(--muted);">No preview attached.</span>
+                </div>
+            `;
+            card.innerHTML = `
+                <div class="asset-card-top">
+                    <div>
+                        <strong>${escapeHtml(asset.title || "Untitled asset")}</strong>
+                        <span>${escapeHtml(asset.asset_kind || "reference")} · ${escapeHtml(asset.status || "draft")}</span>
+                    </div>
+                    <em>${escapeHtml(asset.created_at || new Date().toISOString())}</em>
+                </div>
+                ${thumb}
+                <p>${escapeHtml(asset.notes || "No notes stored.")}</p>
+                <p>${asset.scene_id ? `Linked to scene #${escapeHtml(String(asset.scene_id))}.` : "No scene link yet."}${asset.file_name ? ` File: ${escapeHtml(asset.file_name)}.` : ""}</p>
+            `;
+            return card;
+        }
+
+        function renderAssetGrid(assets) {
+            if (!assets.length) {
+                assetGrid.innerHTML = `
+                    <article class="asset-card">
+                        <strong>No assets added yet.</strong>
+                        <p>Upload a sketch, paste a reference, or store a character/background sheet to start the asset layer.</p>
+                    </article>
+                `;
+                return;
+            }
+            assetGrid.innerHTML = "";
+            assets.forEach(asset => assetGrid.appendChild(renderAssetCard(asset)));
+        }
+
+        function loadLocalAssets() {
+            try {
+                const raw = localStorage.getItem(ASSET_KEY);
+                const assets = raw ? JSON.parse(raw) : [];
+                if (Array.isArray(assets)) {
+                    renderAssetGrid(assets.map(normalizeAsset));
+                }
+            } catch {
+                renderAssetGrid([]);
+            }
+        }
+
+        function saveLocalAssets(asset) {
+            try {
+                const raw = localStorage.getItem(ASSET_KEY);
+                const assets = raw ? JSON.parse(raw) : [];
+                const normalized = normalizeAsset(asset);
+                const deduped = assets.filter(item => assetSignature(item) !== assetSignature(normalized));
+                deduped.unshift(normalized);
+                localStorage.setItem(ASSET_KEY, JSON.stringify(deduped.slice(0, 18)));
+                renderAssetGrid(deduped.slice(0, 18).map(normalizeAsset));
+            } catch {
+                // Ignore local storage failures.
+            }
+        }
+
+        function loadAssetDraft() {
+            try {
+                const raw = localStorage.getItem(ASSET_DRAFT_KEY);
+                if (!raw) return;
+                const draft = JSON.parse(raw);
+                assetKind.value = draft.asset_kind || "reference";
+                assetTitle.value = draft.title || "";
+                assetSource.value = draft.source_url || "";
+                assetNotes.value = draft.notes || "";
+                assetStatus.value = draft.status || "draft";
+                assetScene.value = draft.scene_id ? String(draft.scene_id) : "";
+                if (draft.file_name) assetFile.dataset.fileName = draft.file_name;
+                if (draft.file_type) assetFile.dataset.fileType = draft.file_type;
+                if (draft.preview_data) assetPreview.dataset.previewData = draft.preview_data;
+                renderAssetPreview(draft);
+            } catch {
+                // Ignore malformed asset drafts.
+            }
+        }
+
+        function saveAssetDraft() {
+            try {
+                localStorage.setItem(ASSET_DRAFT_KEY, JSON.stringify(readAssetDraft()));
+            } catch {
+                // Ignore draft persistence failures.
+            }
+        }
+
+        async function readAssetFile(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(String(reader.result || ""));
+                reader.onerror = () => reject(reader.error || new Error("Unable to read file."));
+                reader.readAsDataURL(file);
+            });
+        }
+
+        async function handleAssetFileChange() {
+            const file = assetFile.files && assetFile.files[0];
+            if (!file) {
+                assetFile.dataset.fileName = "";
+                assetFile.dataset.fileType = "";
+                assetPreview.dataset.previewData = "";
+                renderAssetPreview(readAssetDraft());
+                saveAssetDraft();
+                return;
+            }
+            const dataUrl = await readAssetFile(file);
+            assetFile.dataset.fileName = file.name;
+            assetFile.dataset.fileType = file.type || "";
+            assetPreview.dataset.previewData = dataUrl;
+            renderAssetPreview({
+                preview_data: dataUrl,
+                file_type: file.type || "",
+                title: assetTitle.value.trim() || file.name,
+                source_url: assetSource.value.trim()
+            });
+            saveAssetDraft();
+        }
+
+        function updateSceneSelectFromAssets() {
+            refreshAssetSceneOptions();
+        }
+
         function addHistoryCard(scene, fromApi = false) {
             const createdAt = scene.created_at || scene.createdAt || new Date().toISOString();
             const signature = sceneSignature(scene);
@@ -914,12 +1650,20 @@
         function loadLocalHistory() {
             try {
                 const raw = localStorage.getItem(LOCAL_KEY);
-                if (!raw) return;
+                if (!raw) {
+                    refreshAssetSceneOptions();
+                    return;
+                }
                 const scenes = JSON.parse(raw);
                 if (Array.isArray(scenes) && scenes.length) {
                     historyList.innerHTML = "";
-                    scenes.slice(0, 6).map(normalizeScene).forEach(scene => addHistoryCard(scene));
+                    const normalized = scenes.slice(0, 6).map(normalizeScene);
+                    normalized.forEach(scene => addHistoryCard(scene));
+                    latestScene = normalized[0] || latestScene;
                 }
+                refreshAssetSceneOptions();
+                updateViewer(latestScene);
+                renderArchive();
             } catch {
                 // Ignore malformed local state.
             }
@@ -933,6 +1677,7 @@
                 const deduped = scenes.filter(item => sceneSignature(item) !== sceneSignature(normalized));
                 deduped.unshift(normalized);
                 localStorage.setItem(LOCAL_KEY, JSON.stringify(deduped.slice(0, 12)));
+                renderArchive();
             } catch {
                 // Ignore local storage failures.
             }
@@ -945,9 +1690,12 @@
                 const response = await window.TilelliEdge.request("/v1/anime/scenes?limit=6");
                 const scenes = response?.items || response?.scenes || [];
                 if (Array.isArray(scenes) && scenes.length) {
-                    scenes.slice().reverse().map(normalizeScene).forEach(scene => addHistoryCard(scene, true));
+                    const normalized = scenes.slice().reverse().map(normalizeScene);
+                    normalized.forEach(scene => addHistoryCard(scene, true));
+                    latestScene = normalized[0] || latestScene;
                 }
                 apiState.textContent = "Edge API: connected";
+                updateViewer(latestScene);
             } catch (error) {
                 apiState.textContent = "Edge API: offline";
             }
@@ -977,6 +1725,8 @@
 
             saveLocalHistory(scene);
             addHistoryCard(scene);
+            latestScene = normalizeScene(scene);
+            updateViewer(latestScene);
             apiState.textContent = "Edge API: syncing";
 
             if (window.TilelliEdge) {
@@ -990,6 +1740,10 @@
                     if (response?.id) {
                         apiState.textContent = `Edge API: queued #${response.id}`;
                         scene.edge_id = response.id;
+                        saveLocalHistory(scene);
+                        loadLocalHistory();
+                        updateSceneSelectFromAssets();
+                        renderArchive();
                     } else {
                         apiState.textContent = "Edge API: queued";
                     }
@@ -998,6 +1752,112 @@
                 }
             } else {
                 apiState.textContent = "Edge API: unavailable";
+            }
+        }
+
+        function applyAssetPreset(preset) {
+            const current = assetNotes.value.trim();
+            const additions = {
+                camera: "Camera close-up on the subject with a strong emotional edge.",
+                lighting: "Soft dusk lighting with a glow that holds the silhouette.",
+                action: "Action beat boost with sharper motion, motion lines, and impact framing.",
+                bg: "Background reference for environment texture, depth, and spatial composition."
+            };
+            const addition = additions[preset] || "";
+            if (!addition) return;
+            assetNotes.value = current ? `${current}\n${addition}` : addition;
+            saveAssetDraft();
+        }
+
+        async function submitAsset(event) {
+            event.preventDefault();
+            const draft = readAssetDraft();
+            if (!draft.title && !draft.source_url && !draft.preview_data && !draft.notes) {
+                return;
+            }
+
+            const asset = {
+                title: draft.title || assetFile.dataset.fileName || "Untitled asset",
+                asset_kind: draft.asset_kind,
+                notes: draft.notes,
+                source_url: draft.source_url,
+                file_name: draft.file_name,
+                file_type: draft.file_type,
+                preview_data: draft.preview_data,
+                scene_id: draft.scene_id,
+                status: draft.status,
+                created_at: new Date().toISOString(),
+                source: "anime-html"
+            };
+
+            saveLocalAssets(asset);
+            saveAssetDraft();
+            renderAssetPreview(asset);
+
+            if (!window.TilelliEdge) {
+                return;
+            }
+
+            try {
+                const ownerKey = localStorage.getItem(OWNER_KEY) || "";
+                if (!ownerKey) return;
+                const response = await window.TilelliEdge.request("/v1/anime/assets", {
+                    method: "POST",
+                    headers: { "X-Tilelli-Owner-Key": ownerKey },
+                    body: JSON.stringify(asset)
+                });
+                if (response?.id) {
+                    asset.edge_id = response.id;
+                    saveLocalAssets(asset);
+                }
+            } catch {
+                // Keep the local asset record even if edge sync is unavailable.
+            }
+            updateViewer(latestScene);
+        }
+
+        async function syncAssetsToEdge() {
+            if (!window.TilelliEdge) return;
+            const ownerKey = localStorage.getItem(OWNER_KEY) || "";
+            if (!ownerKey) {
+                apiState.textContent = "Asset sync requires owner key.";
+                return;
+            }
+            try {
+                const raw = localStorage.getItem(ASSET_KEY);
+                const assets = raw ? JSON.parse(raw) : [];
+                if (!Array.isArray(assets) || !assets.length) {
+                    apiState.textContent = "No assets to sync.";
+                    return;
+                }
+                apiState.textContent = "Syncing assets";
+                for (const item of assets.slice(0, 12)) {
+                    const normalized = normalizeAsset(item);
+                    if (normalized.edge_id) continue;
+                    const response = await window.TilelliEdge.request("/v1/anime/assets", {
+                        method: "POST",
+                        headers: { "X-Tilelli-Owner-Key": ownerKey },
+                        body: JSON.stringify({
+                            title: normalized.title,
+                            asset_kind: normalized.asset_kind,
+                            notes: normalized.notes,
+                            source_url: normalized.source_url,
+                            file_name: normalized.file_name,
+                            file_type: normalized.file_type,
+                            scene_id: normalized.scene_id,
+                            status: normalized.status,
+                            source: normalized.source
+                        })
+                    });
+                    if (response?.id) {
+                        normalized.edge_id = response.id;
+                        normalized.created_at = normalized.created_at || new Date().toISOString();
+                        saveLocalAssets(normalized);
+                    }
+                }
+                apiState.textContent = "Assets synced";
+            } catch {
+                apiState.textContent = "Asset sync failed";
             }
         }
 
@@ -1013,11 +1873,49 @@
             renderStoryboardEditor(generateStoryboard(currentPayload()));
             refreshPreview();
         });
+        assetForm.addEventListener("submit", submitAsset);
+        assetForm.addEventListener("input", saveAssetDraft);
+        assetFile.addEventListener("change", handleAssetFileChange);
+        assetScene.addEventListener("change", saveAssetDraft);
+        assetStatus.addEventListener("change", saveAssetDraft);
+        assetKind.addEventListener("change", saveAssetDraft);
+        assetTitle.addEventListener("input", saveAssetDraft);
+        assetSource.addEventListener("input", saveAssetDraft);
+        assetNotes.addEventListener("input", saveAssetDraft);
+        assetForm.querySelectorAll("[data-preset]").forEach(button => {
+            button.addEventListener("click", () => applyAssetPreset(button.dataset.preset));
+        });
+        resetAssetButton.addEventListener("click", () => {
+            assetForm.reset();
+            assetPreview.dataset.previewData = "";
+            assetFile.dataset.fileName = "";
+            assetFile.dataset.fileType = "";
+            renderAssetPreview();
+            saveAssetDraft();
+        });
+        syncAssetsButton.addEventListener("click", syncAssetsToEdge);
+        phaseButtons.forEach(button => {
+            button.addEventListener("click", () => setWorkspacePhase(button.dataset.phaseTarget));
+        });
+        watchSceneButton.addEventListener("click", () => setWorkspacePhase("render"));
+        markReadyButton.addEventListener("click", () => {
+            if (!latestScene) return;
+            latestScene.status = "ready";
+            saveLocalHistory(latestScene);
+            loadLocalHistory();
+            setWorkspacePhase("render");
+            renderArchive();
+        });
 
+        loadWorkspacePhase();
         refreshPreview();
         loadStoryboardDraft(currentPayload());
         refreshPreview();
         loadLocalHistory();
+        updateSceneSelectFromAssets();
+        loadLocalAssets();
+        loadAssetDraft();
+        renderAssetPreview(readAssetDraft());
         loadRemoteHistory();
         if (window.TilelliEdge) {
             window.TilelliEdge.event("anime.page.view", { surface: "generator" });

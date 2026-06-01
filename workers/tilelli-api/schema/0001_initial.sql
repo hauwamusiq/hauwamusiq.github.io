@@ -79,6 +79,25 @@ CREATE TABLE IF NOT EXISTS agent_runs (
 CREATE INDEX IF NOT EXISTS idx_audit_events_created_at ON audit_events(created_at);
 CREATE INDEX IF NOT EXISTS idx_portfolio_entries_visibility ON portfolio_entries(visibility, section, category);
 CREATE INDEX IF NOT EXISTS idx_anime_scenes_status_created ON anime_scenes(status, created_at);
+CREATE TABLE IF NOT EXISTS anime_assets (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  scene_id INTEGER,
+  asset_kind TEXT NOT NULL DEFAULT 'reference' CHECK (asset_kind IN ('sketch', 'reference', 'character-sheet', 'background', 'moodboard', 'preset')),
+  title TEXT NOT NULL,
+  notes TEXT NOT NULL DEFAULT '',
+  source_url TEXT NOT NULL DEFAULT '',
+  file_name TEXT NOT NULL DEFAULT '',
+  file_type TEXT NOT NULL DEFAULT '',
+  preview_data TEXT NOT NULL DEFAULT '',
+  status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'linked', 'archived')),
+  source TEXT NOT NULL DEFAULT 'anime-html',
+  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+  FOREIGN KEY (scene_id) REFERENCES anime_scenes(id) ON DELETE SET NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_anime_assets_kind_created ON anime_assets(asset_kind, created_at);
+CREATE INDEX IF NOT EXISTS idx_anime_assets_scene_created ON anime_assets(scene_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_physics_notes_status ON physics_notes(status, created_at);
 CREATE INDEX IF NOT EXISTS idx_dashboard_reminders_status_due ON dashboard_reminders(status, due_at);
 CREATE INDEX IF NOT EXISTS idx_agent_runs_type_created ON agent_runs(run_type, created_at);

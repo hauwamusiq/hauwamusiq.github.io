@@ -1,7 +1,7 @@
 /*
 Form: Cloudflare Worker JavaScript
 Runtime: Cloudflare Workers
-Purpose: Tilelli edge API for project inventory, portfolio entries, physics notes, reminders, audit events, and cron heartbeat.
+Purpose: Tilelli edge API for project inventory, portfolio entries, anime scenes/assets, physics notes, reminders, audit events, and cron heartbeat.
 Inputs: HTTP requests, DB D1 binding, TILELLI_ALLOWED_ORIGINS, TILELLI_OWNER_WRITE_KEY.
 Outputs: JSON responses, D1 rows, CORS headers.
 Safety: Client writes are validated; owner-only writes require X-Tilelli-Owner-Key; no raw secrets are returned.
@@ -228,6 +228,72 @@ async function createAnimeScene(env, request) {
   return { id: result.meta.last_row_id, ...item };
 }
 
+async function listAnimeAssets(env, url) {
+  const limit = Math.max(1, Math.min(100, Number.parseInt(url.searchParams.get("limit") || "12", 10) || 12));
+  const sceneIdRaw = url.searchParams.get("scene_id") || url.searchParams.get("sceneId");
+  const assetKindRaw = url.searchParams.get("asset_kind") || url.searchParams.get("assetKind");
+  let query = "SELECT * FROM anime_assets";
+  const params = [];
+  const clauses = [];
+
+  if (sceneIdRaw) {
+    clauses.push("scene_id = ?");
+    params.push(Number.parseInt(sceneIdRaw, 10));
+  }
+  if (assetKindRaw) {
+    clauses.push("asset_kind = ?");
+    params.push(cleanChoice(assetKindRaw, ["sketch", "reference", "character-sheet", "background", "moodboard", "preset"], "reference"));
+  }
+  if (clauses.length) query += ` WHERE ${clauses.join(" AND ")}`;
+  query += " ORDER BY created_at DESC LIMIT ?";
+  params.push(limit);
+
+  const result = await env.DB.prepare(query).bind(...params).all();
+  return {
+    assets: result.results || [],
+    count: result.results?.length || 0
+  };
+}
+
+async function createAnimeAsset(env, request) {
+  requireOwner(request, env);
+  const body = await readJson(request);
+  const title = cleanText(body.title, 180);
+  if (!title) throw statusError(400, "Anime asset title is required.");
+  const item = {
+    scene_id: body.scene_id || body.sceneId ? Number.parseInt(body.scene_id || body.sceneId, 10) || null : null,
+    asset_kind: cleanChoice(body.asset_kind || body.assetKind, ["sketch", "reference", "character-sheet", "background", "moodboard", "preset"], "reference"),
+    title,
+    notes: cleanText(body.notes || body.caption, 4000),
+    source_url: cleanText(body.source_url || body.sourceUrl, 1200),
+    file_name: cleanText(body.file_name || body.fileName, 240),
+    file_type: cleanText(body.file_type || body.fileType, 120),
+    preview_data: cleanText(body.preview_data || body.previewData, 8000),
+    status: cleanChoice(body.status, ["draft", "linked", "archived"], "draft"),
+    source: cleanText(body.source, 120) || "anime-html"
+  };
+  const result = await env.DB.prepare(
+    `INSERT INTO anime_assets
+      (scene_id, asset_kind, title, notes, source_url, file_name, file_type, preview_data, status, source)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+  )
+    .bind(
+      item.scene_id,
+      item.asset_kind,
+      item.title,
+      item.notes,
+      item.source_url,
+      item.file_name,
+      item.file_type,
+      item.preview_data,
+      item.status,
+      item.source
+    )
+    .run();
+  await logEvent(env, "anime_asset.created", { id: result.meta.last_row_id, title: item.title, asset_kind: item.asset_kind }, request);
+  return { id: result.meta.last_row_id, ...item };
+}
+
 async function listAgentRuns(env) {
   return env.DB.prepare("SELECT * FROM agent_runs ORDER BY created_at DESC LIMIT 100").all();
 }
@@ -292,6 +358,12 @@ async function route(request, env) {
   }
   if (pathname === "/v1/anime/scenes" && request.method === "POST") {
     return json(await createAnimeScene(env, request), { status: 201 }, env, request);
+  }
+  if (pathname === "/v1/anime/assets" && request.method === "GET") {
+    return json(await listAnimeAssets(env, url), {}, env, request);
+  }
+  if (pathname === "/v1/anime/assets" && request.method === "POST") {
+    return json(await createAnimeAsset(env, request), { status: 201 }, env, request);
   }
   if (pathname === "/v1/agent/runs" && request.method === "GET") {
     return json(await listAgentRuns(env), {}, env, request);
