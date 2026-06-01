@@ -21,7 +21,11 @@ const MANIFEST_PATH = path.join(DEFAULT_REPO_ROOT, "spec/specification-system.ma
 const DOC_PATH = path.join(DEFAULT_REPO_ROOT, "spec/specification-system.md");
 const DEFAULT_MODEL_FLEET_CONFIG = "/Users/johnmobley/.mascom/models/model-fleet-config.json";
 const OLLAMA_BIN = process.env.TILELLI_OLLAMA_BIN || "/opt/homebrew/bin/ollama";
+const FFMPEG_BIN = process.env.TILELLI_FFMPEG_BIN || "/opt/homebrew/bin/ffmpeg";
 const AGENT_ROOT = path.join(DEFAULT_REPO_ROOT, "agents/tilelli");
+const LOCAL_RENDER_DIR = path.join(DEFAULT_REPO_ROOT, ".tilelli/renders");
+const LOCAL_RENDER_WORK_DIR = path.join(DEFAULT_REPO_ROOT, ".tilelli/render-work");
+const GENERATION_CALLBACK_KEY_PATH = path.join(DEFAULT_REPO_ROOT, ".tilelli/generation-callback-key");
 const TILELLI_API_BASE_URL = process.env.TILELLI_API_BASE_URL || "https://tilelli-api.hauwamusiq.workers.dev";
 
 function logLine(message = "") {
@@ -40,6 +44,15 @@ function fail(message, exitCode = 1) {
 async function readJson(filePath) {
   const raw = await fs.readFile(filePath, "utf8");
   return JSON.parse(raw);
+}
+
+function parseJsonSafe(text, fallback = null) {
+  if (typeof text !== "string") return fallback;
+  try {
+    return JSON.parse(text);
+  } catch {
+    return fallback;
+  }
 }
 
 function mask(value) {
@@ -324,6 +337,414 @@ async function readOwnerKey() {
   } catch {
     return "";
   }
+}
+
+async function readGenerationCallbackKey() {
+  try {
+    const key = await fs.readFile(GENERATION_CALLBACK_KEY_PATH, "utf8");
+    return key.trim();
+  } catch {
+    return "";
+  }
+}
+
+function safeSlug(value) {
+  const cleaned = String(value || "tilelli-render").trim().toLowerCase();
+  return cleaned.replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 80) || "tilelli-render";
+}
+
+function parseResolution(value) {
+  const text = String(value || "").trim().toLowerCase();
+  const match = text.match(/^(\d+)\s*[x×]\s*(\d+)$/);
+  if (!match) return { width: 1024, height: 1024 };
+  const width = Number.parseInt(match[1], 10) || 1024;
+  const height = Number.parseInt(match[2], 10) || 1024;
+  return { width, height };
+}
+
+function parseDurationSeconds(value) {
+  const text = String(value || "").trim().toLowerCase();
+  if (!text) return 5;
+  if (text.endsWith("s")) return Math.max(1, Number.parseFloat(text.slice(0, -1)) || 5);
+  if (text.endsWith("m")) return Math.max(1, (Number.parseFloat(text.slice(0, -1)) || 1) * 60);
+  const numeric = Number.parseFloat(text);
+  return Number.isFinite(numeric) && numeric > 0 ? numeric : 5;
+}
+
+function ffmpegEscapePath(filePath) {
+  return String(filePath || "").replace(/'/g, "\\'");
+}
+
+function escapeFilterText(text) {
+  return String(text || "")
+    .replace(/\\/g, "\\\\")
+    .replace(/:/g, "\\:")
+    .replace(/'/g, "\\'")
+    .replace(/\n/g, "\\n");
+}
+
+function normalizeStoryBeatText(beat, index) {
+  if (!beat) return `Beat ${index + 1}`;
+  if (typeof beat === "string") return beat.trim() || `Beat ${index + 1}`;
+  return (
+    beat.text ||
+    beat.caption ||
+    beat.description ||
+    beat.action ||
+    beat.scene ||
+    beat.title ||
+    `Beat ${index + 1}`
+  );
+}
+
+function buildRenderCopy(bundle, jobId = "") {
+  const scene = bundle?.scene || {};
+  const storyboard = Array.isArray(bundle?.storyboard) ? bundle.storyboard : [];
+  return {
+    title: scene.title || bundle?.render?.title || `Tilelli render ${jobId || ""}`.trim(),
+    prompt: scene.prompt || bundle?.render?.prompt || "",
+    setting: scene.setting || "",
+    style: scene.art_style || scene.artStyle || "",
+    beats: storyboard.slice(0, 3).map((beat, index) => normalizeStoryBeatText(beat, index))
+  };
+}
+
+async function loadGenerationJob(jobId) {
+  const response = await fetch(`${TILELLI_API_BASE_URL}/v1/anime/generations?limit=100`);
+  if (!response.ok) throw new Error(`Unable to load generation jobs (${response.status}).`);
+  const data = await response.json();
+  const jobs = Array.isArray(data?.jobs) ? data.jobs : [];
+  const job = jobs.find(item => Number(item.id) === Number(jobId));
+  if (!job) throw new Error(`Generation job ${jobId} not found.`);
+  return job;
+}
+
+async function writeRenderAssets(bundle, jobId = "") {
+  const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+  const renderSlug = safeSlug(bundle?.scene?.title || bundle?.render?.title || jobId || "tilelli-render");
+  const workDir = path.join(LOCAL_RENDER_WORK_DIR, `${stamp}-${renderSlug}`);
+  await fs.mkdir(workDir, { recursive: true, mode: 0o700 });
+
+  const copy = buildRenderCopy(bundle, jobId);
+  const titlePath = path.join(workDir, "title.txt");
+  const promptPath = path.join(workDir, "prompt.txt");
+  const metaPath = path.join(workDir, "meta.txt");
+  const beatsPaths = copy.beats.map((_, index) => path.join(workDir, `beat-${index + 1}.txt`));
+
+  await fs.writeFile(titlePath, `${copy.title}\n`, { mode: 0o600 });
+  await fs.writeFile(promptPath, `${copy.prompt || "No prompt provided."}\n`, { mode: 0o600 });
+  await fs.writeFile(metaPath, [copy.style ? `Style: ${copy.style}` : null, copy.setting ? `Setting: ${copy.setting}` : null].filter(Boolean).join("  "), {
+    mode: 0o600
+  });
+  for (let index = 0; index < beatsPaths.length; index += 1) {
+    await fs.writeFile(beatsPaths[index], `${copy.beats[index]}\n`, { mode: 0o600 });
+  }
+
+  return { workDir, titlePath, promptPath, metaPath, beatsPaths, copy };
+}
+
+function buildRenderFilterGraph(assets, options = {}, includeTextOverlay = true) {
+  const durationSeconds = parseDurationSeconds(options.duration || "5s");
+  const fps = Number.parseInt(options.fps || "24", 10) || 24;
+  const width = Number.parseInt(options.width || 1280, 10) || 1280;
+  const height = Number.parseInt(options.height || 720, 10) || 720;
+  const beatPositions = [Math.max(240, Math.round(height * 0.66)), Math.max(280, Math.round(height * 0.73)), Math.max(320, Math.round(height * 0.8))];
+  const filterParts = [
+    `fps=${fps}`,
+    `scale=${width}:${height}:force_original_aspect_ratio=decrease`,
+    `pad=${width}:${height}:(ow-iw)/2:(oh-ih)/2:color=0x0b1020`,
+    "format=yuv420p",
+    "drawbox=x=0:y=0:w=iw:h=ih:color=0x120818@0.35:t=fill",
+    `drawbox=x='(w-720)/2+25*sin(t*1.2)':y='h-170':w=720:h=6:color=0xff4fd8@0.35:t=fill`
+  ];
+
+  if (includeTextOverlay) {
+    const font = "/System/Library/Fonts/Supplemental/Arial.ttf";
+    filterParts.push(
+      `drawtext=fontfile='${ffmpegEscapePath(font)}':textfile='${ffmpegEscapePath(assets.titlePath)}':fontcolor=white:fontsize=56:x=(w-text_w)/2+14*sin(t*1.5):y=110+6*cos(t*1.7)`,
+      `drawtext=fontfile='${ffmpegEscapePath(font)}':textfile='${ffmpegEscapePath(assets.metaPath)}':fontcolor=white@0.86:fontsize=26:x=(w-text_w)/2:y=190`,
+      `drawtext=fontfile='${ffmpegEscapePath(font)}':textfile='${ffmpegEscapePath(assets.promptPath)}':fontcolor=white@0.92:fontsize=30:line_spacing=12:x=(w-text_w)/2:y=250`
+    );
+    assets.beatsPaths.forEach((beatPath, index) => {
+      const start = index * (durationSeconds / 3);
+      const end = Math.min(durationSeconds, start + durationSeconds / 2.2);
+      filterParts.push(
+        `drawtext=fontfile='${ffmpegEscapePath(font)}':textfile='${ffmpegEscapePath(beatPath)}':fontcolor=white@0.96:fontsize=28:x=(w-text_w)/2:y=${beatPositions[index] || beatPositions[0]}:enable='between(t\\,${start.toFixed(2)}\\,${end.toFixed(2)})'`
+      );
+    });
+    return filterParts.join(",");
+  }
+
+  filterParts.push(
+    `drawbox=x='(w-340)/2+120*sin(t*0.75)':y='120+50*cos(t*1.1)':w=340:h=10:color=0xffffff@0.18:t=fill`,
+    `drawbox=x='40+70*sin(t*0.9)':y='80+40*cos(t*1.3)':w=180:h=180:color=0xff4fd8@0.14:t=fill`,
+    `drawbox=x='w-240+50*cos(t*1.4)':y='h-260+35*sin(t*1.1)':w=160:h=160:color=0x22d3ee@0.12:t=fill`,
+    `drawbox=x='(w-110)/2+65*sin(t*1.7)':y='(h-110)/2+25*cos(t*1.5)':w=110:h=110:color=0x8b5cf6@0.08:t=fill`
+  );
+  assets.beatsPaths.forEach((_, index) => {
+    const start = index * (durationSeconds / 3);
+    const end = Math.min(durationSeconds, start + durationSeconds / 2.2);
+    const y = beatPositions[index] || beatPositions[0];
+    const color = index === 0 ? "0xff4fd8@0.4" : index === 1 ? "0x22d3ee@0.4" : "0xffffff@0.3";
+    filterParts.push(
+      `drawbox=x='(w-620)/2+20*sin(t*1.3)':y=${y}:w=620:h=8:color=${color}:t=fill:enable='between(t\\,${start.toFixed(2)}\\,${end.toFixed(2)})'`
+    );
+  });
+  filterParts.push(
+    `drawbox=x='0':y='0':w='iw':h='iw*0.06':color=0xff4fd8@0.12:t=fill:enable='between(t\\,0\\,${durationSeconds.toFixed(2)})'`,
+    `drawbox=x='0':y='h-iw*0.06':w='iw':h='iw*0.06':color=0x22d3ee@0.10:t=fill:enable='between(t\\,0\\,${durationSeconds.toFixed(2)})'`
+  );
+  return filterParts.join(",");
+}
+
+async function renderMp4FromBundle(bundle, options = {}) {
+  const durationSeconds = parseDurationSeconds(options.duration || bundle?.render?.duration || "5s");
+  const fps = Number.parseInt(options.fps || bundle?.render?.fps || "24", 10) || 24;
+  const width = Number.parseInt(options.width || 1280, 10) || 1280;
+  const height = Number.parseInt(options.height || 720, 10) || 720;
+  const { workDir, titlePath, promptPath, metaPath, beatsPaths, copy } = await writeRenderAssets(bundle, options.jobId || "");
+  const outputDir = options.outputDir || LOCAL_RENDER_DIR;
+  await fs.mkdir(outputDir, { recursive: true, mode: 0o700 });
+  const slug = safeSlug(copy.title || options.jobId || "tilelli-render");
+  const outputPath = path.join(outputDir, `${slug}-${new Date().toISOString().replace(/[:.]/g, "-")}.mp4`);
+  const thumbnailPath = outputPath.replace(/\.mp4$/i, ".jpg");
+  const assets = { titlePath, promptPath, metaPath, beatsPaths };
+  let filterGraph = buildRenderFilterGraph(assets, { duration: durationSeconds, fps, width, height }, true);
+  const renderArgs = () => [
+    "-y",
+    "-f",
+    "lavfi",
+    "-i",
+    `color=c=0x090712:s=${width}x${height}:r=${fps}:d=${durationSeconds}`,
+    "-vf",
+    filterGraph,
+    "-c:v",
+    "libx264",
+    "-preset",
+    "veryfast",
+    "-crf",
+    "20",
+    "-pix_fmt",
+    "yuv420p",
+    "-movflags",
+    "+faststart",
+    outputPath
+  ];
+
+  let renderRun;
+  let renderMode = "text-overlay";
+  try {
+    renderRun = await execFileAsync(FFMPEG_BIN, renderArgs(), {
+      cwd: workDir,
+      maxBuffer: 1024 * 1024 * 10
+    });
+  } catch (error) {
+    const errorText = `${error.message}\n${error.stderr || ""}\n${error.stdout || ""}`;
+    if (!/drawtext|Filter not found|No such filter/i.test(errorText)) {
+      throw error;
+    }
+
+    renderMode = "fallback-shapes";
+    filterGraph = buildRenderFilterGraph(assets, { duration: durationSeconds, fps, width, height }, false);
+    renderRun = await execFileAsync(
+      FFMPEG_BIN,
+      [
+        "-y",
+        "-f",
+        "lavfi",
+        "-i",
+        `color=c=0x090712:s=${width}x${height}:r=${fps}:d=${durationSeconds}`,
+        "-vf",
+        filterGraph,
+        "-c:v",
+        "libx264",
+        "-preset",
+        "veryfast",
+        "-crf",
+        "20",
+        "-pix_fmt",
+        "yuv420p",
+        "-movflags",
+        "+faststart",
+        outputPath
+      ],
+      {
+        cwd: workDir,
+        maxBuffer: 1024 * 1024 * 10
+      }
+    );
+  }
+
+  let thumbnail = "";
+  try {
+    await execFileAsync(FFMPEG_BIN, [
+      "-y",
+      "-ss",
+      "1",
+      "-i",
+      outputPath,
+      "-frames:v",
+      "1",
+      "-q:v",
+      "2",
+      thumbnailPath
+    ], {
+      cwd: workDir,
+      maxBuffer: 1024 * 1024 * 10
+    });
+    thumbnail = thumbnailPath;
+  } catch {
+    thumbnail = "";
+  }
+
+  return {
+    outputPath,
+    thumbnailPath: thumbnail,
+    stdout: renderRun.stdout.trim(),
+    stderr: renderRun.stderr.trim(),
+    metadata: { ...copy, renderMode },
+    workDir,
+    durationSeconds,
+    fps
+  };
+}
+
+async function callbackRenderCompletion(generationId, renderResult, bundle) {
+  const callbackKey = await readGenerationCallbackKey();
+  if (!callbackKey) {
+    return { ok: false, reason: "Missing generation callback key." };
+  }
+  const outputUrl = `file://${renderResult.outputPath}`;
+  const thumbnailUrl = renderResult.thumbnailPath ? `file://${renderResult.thumbnailPath}` : "";
+  const body = {
+    status: "ready",
+    provider_job_id: path.basename(renderResult.outputPath, ".mp4"),
+    output_url: outputUrl,
+    thumbnail_url: thumbnailUrl,
+    completed_at: new Date().toISOString(),
+    provider_response_json: {
+      renderer: "tilelli-cli",
+      mode: "local-ffmpeg",
+      bundle: bundle || null,
+      output_path: renderResult.outputPath,
+      thumbnail_path: renderResult.thumbnailPath || "",
+      duration_seconds: renderResult.durationSeconds,
+      fps: renderResult.fps
+    }
+  };
+  const response = await fetch(`${TILELLI_API_BASE_URL}/v1/anime/generations/${generationId}/complete`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Tilelli-Generation-Callback-Key": callbackKey
+    },
+    body: JSON.stringify(body)
+  });
+  const text = await response.text();
+  return {
+    ok: response.ok,
+    status: response.status,
+    body: parseJsonSafe(text, { raw: text }),
+    outputUrl,
+    thumbnailUrl
+  };
+}
+
+function normalizeGenerationBundle(job) {
+  const bundle = parseJsonSafe(job?.bundle_json, {}) || {};
+  const scene = bundle.scene || {};
+  const render = bundle.render || {};
+  return {
+    ...bundle,
+    title: bundle.title || job?.title || render.title || "Tilelli render",
+    provider: bundle.provider || job?.provider || "local",
+    model: bundle.model || job?.model || "mock-renderer",
+    generation_prompt: bundle.generation_prompt || job?.generation_prompt || "",
+    notes: bundle.notes || job?.notes || "",
+    scene: {
+      title: scene.title || job?.title || bundle.title || render.title || "Tilelli render",
+      prompt: scene.prompt || job?.generation_prompt || bundle.generation_prompt || "",
+      setting: scene.setting || bundle.setting || "",
+      art_style: scene.art_style || scene.artStyle || bundle.style || bundle.art_style || ""
+    },
+    storyboard: Array.isArray(bundle.storyboard) ? bundle.storyboard : [],
+    render: {
+      ...render,
+      title: render.title || job?.title || bundle.title || "Tilelli render",
+      prompt: render.prompt || job?.generation_prompt || bundle.generation_prompt || "",
+      duration: render.duration || job?.duration || bundle.duration || "5s",
+      resolution: render.resolution || job?.resolution || bundle.resolution || "1024x1024",
+      fps: render.fps || job?.fps || bundle.fps || "24"
+    }
+  };
+}
+
+async function renderCommand(args) {
+  const [subcommand, target, ...rest] = args;
+  if (!subcommand) fail("Usage: tilelli render <generation|bundle>");
+
+  if (subcommand === "generation") {
+    if (!target) fail("Usage: tilelli render generation <id>");
+    const job = await loadGenerationJob(target);
+    const bundle = normalizeGenerationBundle(job);
+    const resolution = parseResolution(bundle.render.resolution);
+    const renderResult = await renderMp4FromBundle(bundle, {
+      jobId: job.id,
+      duration: bundle.render.duration,
+      fps: bundle.render.fps,
+      width: resolution.width,
+      height: resolution.height
+    });
+    const callbackResult = await callbackRenderCompletion(job.id, renderResult, bundle);
+    const result = {
+      ok: renderResult.outputPath ? true : false,
+      jobId: Number(job.id),
+      callback: callbackResult,
+      outputPath: renderResult.outputPath,
+      thumbnailPath: renderResult.thumbnailPath,
+      workDir: renderResult.workDir,
+      durationSeconds: renderResult.durationSeconds,
+      fps: renderResult.fps,
+      metadata: renderResult.metadata
+    };
+    logLine(JSON.stringify(result, null, 2));
+    return renderResult.outputPath ? 0 : 1;
+  }
+
+  if (subcommand === "bundle") {
+    if (!target) fail("Usage: tilelli render bundle <bundle.json>");
+    const absPath = path.isAbsolute(target) ? target : path.join(DEFAULT_REPO_ROOT, target);
+    const raw = await fs.readFile(absPath, "utf8");
+    const bundle = parseJsonSafe(raw, null);
+    if (!bundle) fail(`Invalid JSON bundle: ${absPath}`);
+    const renderBundle = normalizeGenerationBundle({
+      ...bundle,
+      bundle_json: raw,
+      title: bundle.title || bundle.scene?.title || "Tilelli render"
+    });
+    const resolution = parseResolution(renderBundle.render.resolution);
+    const renderResult = await renderMp4FromBundle(renderBundle, {
+      jobId: bundle.job_id || bundle.id || bundle.title || "bundle",
+      duration: renderBundle.render.duration,
+      fps: renderBundle.render.fps,
+      width: resolution.width,
+      height: resolution.height
+    });
+    const result = {
+      ok: renderResult.outputPath ? true : false,
+      bundlePath: absPath,
+      outputPath: renderResult.outputPath,
+      thumbnailPath: renderResult.thumbnailPath,
+      workDir: renderResult.workDir,
+      durationSeconds: renderResult.durationSeconds,
+      fps: renderResult.fps,
+      metadata: renderResult.metadata
+    };
+    logLine(JSON.stringify(result, null, 2));
+    return renderResult.outputPath ? 0 : 1;
+  }
+
+  fail(`Unknown render subcommand: ${subcommand}${rest.length ? ` ${rest.join(" ")}` : ""}`);
 }
 
 function validateCodingTaskShape(task) {
@@ -796,6 +1217,7 @@ function usage() {
       "  tilelli model fleet",
       "  tilelli model pull <model-name>",
       "  tilelli model serve [--background]",
+      "  tilelli render <generation|bundle>",
       "  tilelli worker <deploy|status|test>",
       "  tilelli d1 <apply-local|apply-remote|list>"
     ].join("\n")
@@ -845,6 +1267,8 @@ async function main() {
       return workerCommand(args);
     case "d1":
       return d1Command(args);
+    case "render":
+      return renderCommand(args);
     default:
       fail(`Unknown command: ${command}`);
   }
