@@ -6,7 +6,7 @@ Purpose: Static sanity checks for HTML inline scripts, DOM ids, and Worker synta
 Inputs: HTML files and workers/tilelli-api/src/index.js.
 Outputs: Exit code and check summary.
 Safety: Does not execute browser code; only parses scripts with Function constructor.
-Relations: package.json, docs/tilelli-edge.workflow.yml.template, spec/specification-system.manifest.json.
+Relations: package.json, docs/tilelli-edge.workflow.yml.template, .github/workflows/tilelli-edge.yml, spec/specification-system.manifest.json.
 */
 import fs from "node:fs";
 

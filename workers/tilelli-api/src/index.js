@@ -5,7 +5,7 @@ Purpose: Tilelli edge API for project inventory, portfolio entries, physics note
 Inputs: HTTP requests, DB D1 binding, TILELLI_ALLOWED_ORIGINS, TILELLI_OWNER_WRITE_KEY.
 Outputs: JSON responses, D1 rows, CORS headers.
 Safety: Client writes are validated; owner-only writes require X-Tilelli-Owner-Key; no raw secrets are returned.
-Relations: workers/tilelli-api/wrangler.toml, workers/tilelli-api/schema/0001_initial.sql, docs/tilelli-edge.workflow.yml.template.
+Relations: workers/tilelli-api/wrangler.toml, workers/tilelli-api/schema/0001_initial.sql, .github/workflows/tilelli-edge.yml.
 */
 
 const PROJECTS = [
