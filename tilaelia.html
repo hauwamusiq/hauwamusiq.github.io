@@ -395,7 +395,7 @@
         }
         .hero-grid {
             display: grid;
-            grid-template-columns: minmax(0, 1fr) minmax(340px, 0.66fr);
+            grid-template-columns: minmax(0, 1fr) minmax(360px, 0.72fr);
             gap: 34px;
             align-items: center;
         }
@@ -416,7 +416,7 @@
             letter-spacing: 0;
         }
         .hero p {
-            max-width: 720px;
+            max-width: 690px;
             color: #dfd4dd;
             line-height: 1.8;
             font-size: clamp(1rem, 1.5vw, 1.2rem);
@@ -777,6 +777,59 @@
             font-size: 0.78rem;
             line-height: 1.45;
         }
+        .archive-stream {
+            display: grid;
+            gap: 14px;
+        }
+        .archive-entry {
+            border: 1px solid var(--line);
+            background: var(--panel);
+            backdrop-filter: blur(18px);
+            padding: 16px;
+            border-radius: 8px;
+            display: grid;
+            gap: 8px;
+            box-shadow: 0 18px 50px rgba(0,0,0,0.12);
+        }
+        .archive-entry-head {
+            display: flex;
+            align-items: start;
+            justify-content: space-between;
+            gap: 12px;
+        }
+        .archive-entry strong {
+            font-family: var(--serif);
+            font-size: 1.25rem;
+            line-height: 1.15;
+        }
+        .archive-entry small {
+            color: var(--muted);
+            font-size: 0.75rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+        .archive-entry p {
+            margin: 0;
+            color: var(--muted);
+            line-height: 1.62;
+        }
+        .archive-entry .archive-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px 12px;
+            color: #d9ced8;
+            font-size: 0.8rem;
+            letter-spacing: 0.04em;
+        }
+        .archive-empty {
+            border: 1px dashed var(--line);
+            background: rgba(255,255,255,0.03);
+            padding: 18px;
+            border-radius: 8px;
+            color: var(--muted);
+            line-height: 1.65;
+        }
         .action {
             border: 1px solid rgba(246,204,114,0.42);
             background: rgba(246,204,114,0.09);
@@ -929,6 +982,7 @@
             </a>
             <nav class="nav" aria-label="Portfolio sections">
                 <button class="active" data-section="home">Home</button>
+                <button data-section="archive">Archive</button>
                 <button data-section="music">Music</button>
                 <button data-section="writing">Writing</button>
                 <button data-section="visuals">Visuals</button>
@@ -1026,6 +1080,14 @@
                     <button data-filter="history">History</button>
                 </div>
                 <div class="grid" id="research-grid"></div>
+            </section>
+
+            <section class="section" id="section-archive">
+                <div class="section-head">
+                    <h2>Curated archive</h2>
+                    <p>A single river of offerings across all chambers, ordered by arrival so the portfolio can be read as a living chronology.</p>
+                </div>
+                <div class="archive-stream" id="archive-stream" aria-label="Curated archive"></div>
             </section>
 
             <section class="section" id="section-submissions">
@@ -1157,6 +1219,7 @@
         const heroStatRecent = $("hero-stat-recent");
         const heroStatLast = $("hero-stat-last");
         const heroLedger = $("hero-ledger");
+        const archiveStream = $("archive-stream");
         const submissionLedger = $("submission-ledger");
 
         function loadLocalOfferings() {
@@ -1392,6 +1455,15 @@
             target.replaceChildren(...items.map(item => createCard(item, section)));
         }
 
+        function archiveItems() {
+            return [
+                ...state.published.map(item => normalizeOffering({ ...item, section: item.section || inferSectionFromKind(item) })),
+                ...state.local.map(item => normalizeOffering({ ...item, section: item.section || inferSectionFromKind(item) }))
+            ]
+                .filter(Boolean)
+                .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+        }
+
         function inferSectionFromKind(item) {
             if (!item) return "writing";
             if (item.kind === "sound-card" || item.kind === "track-card") return "music";
@@ -1463,15 +1535,50 @@
             });
         }
 
+        function renderArchiveStream() {
+            if (!archiveStream) return;
+            const items = archiveItems().slice(0, 18);
+            if (!items.length) {
+                archiveStream.innerHTML = `
+                    <div class="archive-empty">
+                        No archive entries are available yet. Add an offering in the keeper console to begin the chronology.
+                    </div>
+                `;
+                return;
+            }
+            archiveStream.innerHTML = "";
+            items.forEach(item => {
+                const entry = document.createElement("article");
+                entry.className = "archive-entry";
+                entry.innerHTML = `
+                    <div class="archive-entry-head">
+                        <strong>${escapeHtml(item.title || "Untitled offering")}</strong>
+                        <small>${escapeHtml(item.section || "archive")}</small>
+                    </div>
+                    <div class="archive-meta">
+                        <span>${escapeHtml(item.category || "other")}</span>
+                        <span>${escapeHtml(item.meta || "")}</span>
+                        <span>${escapeHtml(item.createdAt ? formatSubmissionTime(item.createdAt) : "undated")}</span>
+                    </div>
+                    <p>${escapeHtml(item.body || "No description stored.")}</p>
+                `;
+                const media = createMediaNode(item);
+                if (media) entry.appendChild(media);
+                archiveStream.appendChild(entry);
+            });
+        }
+
         function renderAll() {
             ["music", "writing", "visuals", "research"].forEach(renderSection);
             renderPortfolioOverview();
             renderSubmissionLedger();
+            renderArchiveStream();
         }
 
         function switchSection(name) {
-            document.querySelectorAll(".section").forEach(section => section.classList.toggle("active", section.id === `section-${name}`));
-            document.querySelectorAll(".nav button").forEach(button => button.classList.toggle("active", button.dataset.section === name));
+            const next = ["home", "archive", "music", "writing", "visuals", "research", "submissions"].includes(name) ? name : "home";
+            document.querySelectorAll(".section").forEach(section => section.classList.toggle("active", section.id === `section-${next}`));
+            document.querySelectorAll(".nav button").forEach(button => button.classList.toggle("active", button.dataset.section === next));
             window.scrollTo({ top: 0, behavior: "smooth" });
         }
 
