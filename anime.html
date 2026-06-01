@@ -1321,32 +1321,40 @@
             saveStoryboardDraft();
         }
 
-        function escapeHtmlAttr(value) {
+        function escapeAttr(value) {
             return escapeHtml(value).replaceAll("\"", "&quot;");
         }
 
-        function saveStoryboardDraft() {
+        function readStore(key, fallback) {
             try {
-                localStorage.setItem(STORYBOARD_KEY, JSON.stringify(readStoryboard()));
+                const raw = localStorage.getItem(key);
+                return raw ? JSON.parse(raw) : fallback;
+            } catch {
+                return fallback;
+            }
+        }
+
+        function writeStore(key, value) {
+            try {
+                localStorage.setItem(key, JSON.stringify(value));
             } catch {
                 // Ignore local storage failures.
             }
         }
 
+        function uniqueBy(items, signature) {
+            return items.filter((item, index, list) => list.findIndex(other => signature(other) === signature(item)) === index);
+        }
+
+        function saveStoryboardDraft() {
+            writeStore(STORYBOARD_KEY, readStoryboard());
+        }
+
         function loadStoryboardDraft(payload) {
-            try {
-                const raw = localStorage.getItem(STORYBOARD_KEY);
-                if (!raw) {
-                    renderStoryboardEditor(generateStoryboard(payload));
-                    return;
-                }
-                const parsed = JSON.parse(raw);
-                if (Array.isArray(parsed) && parsed.length === 3) {
-                    renderStoryboardEditor(parsed.map((item, index) => normalizeStoryboardItem(item, index, payload)));
-                    return;
-                }
-            } catch {
-                // Ignore malformed local state.
+            const parsed = readStore(STORYBOARD_KEY, null);
+            if (Array.isArray(parsed) && parsed.length === 3) {
+                renderStoryboardEditor(parsed.map((item, index) => normalizeStoryboardItem(item, index, payload)));
+                return;
             }
             renderStoryboardEditor(generateStoryboard(payload));
         }
@@ -1393,10 +1401,6 @@
             };
         }
 
-        function escapeAttr(value) {
-            return escapeHtml(value).replaceAll("\"", "&quot;");
-        }
-
         function renderAssetPreview(asset) {
             assetPreview.innerHTML = "";
             if (asset?.preview_data) {
@@ -1428,22 +1432,17 @@
         }
 
         function refreshAssetSceneOptions() {
-            try {
-                const raw = localStorage.getItem(LOCAL_KEY);
-                const scenes = raw ? JSON.parse(raw) : [];
-                const options = ["<option value=\"\">No scene link</option>"];
-                if (Array.isArray(scenes)) {
-                    scenes
-                        .map(normalizeScene)
-                        .filter(scene => scene.edge_id)
-                        .forEach(scene => {
-                            options.push(`<option value=\"${escapeAttr(String(scene.edge_id))}\">${escapeHtml(scene.title || "Untitled scene")} · #${escapeHtml(String(scene.edge_id))}</option>`);
-                        });
-                }
-                assetScene.innerHTML = options.join("");
-            } catch {
-                assetScene.innerHTML = "<option value=\"\">No scene link</option>";
+            const scenes = readStore(LOCAL_KEY, []);
+            const options = ["<option value=\"\">No scene link</option>"];
+            if (Array.isArray(scenes)) {
+                scenes
+                    .map(normalizeScene)
+                    .filter(scene => scene.edge_id)
+                    .forEach(scene => {
+                        options.push(`<option value=\"${escapeAttr(String(scene.edge_id))}\">${escapeHtml(scene.title || "Untitled scene")} · #${escapeHtml(String(scene.edge_id))}</option>`);
+                    });
             }
+            assetScene.innerHTML = options.join("");
         }
 
         function renderAssetCard(asset) {
@@ -1495,57 +1494,34 @@
         }
 
         function loadLocalAssets() {
-            try {
-                const raw = localStorage.getItem(ASSET_KEY);
-                const assets = raw ? JSON.parse(raw) : [];
-                if (Array.isArray(assets)) {
-                    renderAssetGrid(assets.map(normalizeAsset));
-                }
-            } catch {
-                renderAssetGrid([]);
-            }
+            const assets = readStore(ASSET_KEY, []);
+            renderAssetGrid(Array.isArray(assets) ? assets.map(normalizeAsset) : []);
         }
 
         function saveLocalAssets(asset) {
-            try {
-                const raw = localStorage.getItem(ASSET_KEY);
-                const assets = raw ? JSON.parse(raw) : [];
-                const normalized = normalizeAsset(asset);
-                const deduped = assets.filter(item => assetSignature(item) !== assetSignature(normalized));
-                deduped.unshift(normalized);
-                localStorage.setItem(ASSET_KEY, JSON.stringify(deduped.slice(0, 18)));
-                renderAssetGrid(deduped.slice(0, 18).map(normalizeAsset));
-            } catch {
-                // Ignore local storage failures.
-            }
+            const normalized = normalizeAsset(asset);
+            const assets = uniqueBy([normalized, ...(readStore(ASSET_KEY, []) || [])], assetSignature).slice(0, 18);
+            writeStore(ASSET_KEY, assets);
+            renderAssetGrid(assets.map(normalizeAsset));
         }
 
         function loadAssetDraft() {
-            try {
-                const raw = localStorage.getItem(ASSET_DRAFT_KEY);
-                if (!raw) return;
-                const draft = JSON.parse(raw);
-                assetKind.value = draft.asset_kind || "reference";
-                assetTitle.value = draft.title || "";
-                assetSource.value = draft.source_url || "";
-                assetNotes.value = draft.notes || "";
-                assetStatus.value = draft.status || "draft";
-                assetScene.value = draft.scene_id ? String(draft.scene_id) : "";
-                if (draft.file_name) assetFile.dataset.fileName = draft.file_name;
-                if (draft.file_type) assetFile.dataset.fileType = draft.file_type;
-                if (draft.preview_data) assetPreview.dataset.previewData = draft.preview_data;
-                renderAssetPreview(draft);
-            } catch {
-                // Ignore malformed asset drafts.
-            }
+            const draft = readStore(ASSET_DRAFT_KEY, null);
+            if (!draft) return;
+            assetKind.value = draft.asset_kind || "reference";
+            assetTitle.value = draft.title || "";
+            assetSource.value = draft.source_url || "";
+            assetNotes.value = draft.notes || "";
+            assetStatus.value = draft.status || "draft";
+            assetScene.value = draft.scene_id ? String(draft.scene_id) : "";
+            if (draft.file_name) assetFile.dataset.fileName = draft.file_name;
+            if (draft.file_type) assetFile.dataset.fileType = draft.file_type;
+            if (draft.preview_data) assetPreview.dataset.previewData = draft.preview_data;
+            renderAssetPreview(draft);
         }
 
         function saveAssetDraft() {
-            try {
-                localStorage.setItem(ASSET_DRAFT_KEY, JSON.stringify(readAssetDraft()));
-            } catch {
-                // Ignore draft persistence failures.
-            }
+            writeStore(ASSET_DRAFT_KEY, readAssetDraft());
         }
 
         async function readAssetFile(file) {
@@ -1648,39 +1624,27 @@
         }
 
         function loadLocalHistory() {
-            try {
-                const raw = localStorage.getItem(LOCAL_KEY);
-                if (!raw) {
-                    refreshAssetSceneOptions();
-                    return;
-                }
-                const scenes = JSON.parse(raw);
-                if (Array.isArray(scenes) && scenes.length) {
-                    historyList.innerHTML = "";
-                    const normalized = scenes.slice(0, 6).map(normalizeScene);
-                    normalized.forEach(scene => addHistoryCard(scene));
-                    latestScene = normalized[0] || latestScene;
-                }
+            const scenes = readStore(LOCAL_KEY, []);
+            if (!Array.isArray(scenes)) {
                 refreshAssetSceneOptions();
-                updateViewer(latestScene);
-                renderArchive();
-            } catch {
-                // Ignore malformed local state.
+                return;
             }
+            if (scenes.length) {
+                historyList.innerHTML = "";
+                const normalized = scenes.slice(0, 6).map(normalizeScene);
+                normalized.forEach(scene => addHistoryCard(scene));
+                latestScene = normalized[0] || latestScene;
+            }
+            refreshAssetSceneOptions();
+            updateViewer(latestScene);
+            renderArchive();
         }
 
         function saveLocalHistory(scene) {
-            try {
-                const raw = localStorage.getItem(LOCAL_KEY);
-                const scenes = raw ? JSON.parse(raw) : [];
-                const normalized = normalizeScene(scene);
-                const deduped = scenes.filter(item => sceneSignature(item) !== sceneSignature(normalized));
-                deduped.unshift(normalized);
-                localStorage.setItem(LOCAL_KEY, JSON.stringify(deduped.slice(0, 12)));
-                renderArchive();
-            } catch {
-                // Ignore local storage failures.
-            }
+            const normalized = normalizeScene(scene);
+            const scenes = uniqueBy([normalized, ...(readStore(LOCAL_KEY, []) || [])], sceneSignature).slice(0, 12);
+            writeStore(LOCAL_KEY, scenes);
+            renderArchive();
         }
 
         async function loadRemoteHistory() {
