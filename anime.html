@@ -1285,13 +1285,39 @@
             };
         }
 
-        function readRenderJobDraft() {
+        function defaultRenderTitle(scene = normalizeScene(latestScene || currentPayload())) {
+            return scene.title ? `${scene.title} render` : "Untitled render job";
+        }
+
+        function buildSceneBundle() {
+            const scene = normalizeScene(latestScene || currentPayload());
+            const storyboard = readStoryboard();
+            const assets = readStore(ASSET_KEY, []).map(normalizeAsset);
             return {
-                title: renderJobTitle.value.trim() || (latestScene?.title ? `${latestScene.title} render` : "Untitled render job"),
+                version: 1,
+                exported_at: new Date().toISOString(),
+                scene,
+                storyboard,
+                assets,
+                render: {
+                    title: renderJobTitle.value.trim() || defaultRenderTitle(scene),
+                    render_kind: renderKind.value,
+                    notes: renderJobNotes.value.trim(),
+                    scene_id: scene.edge_id || scene.id || null
+                },
+                render_phase: document.querySelector("[data-phase-panel='render']")?.classList.contains("active") ? "render" : "draft",
+                archive_count: (readStore(LOCAL_KEY, []) || []).filter(item => normalizeScene(item).status === "archived").length
+            };
+        }
+
+        function readRenderJobDraft() {
+            const scene = normalizeScene(latestScene || currentPayload());
+            return {
+                title: renderJobTitle.value.trim() || defaultRenderTitle(scene),
                 render_kind: renderKind.value,
                 notes: renderJobNotes.value.trim(),
-                scene_id: latestScene?.edge_id || latestScene?.id || null,
-                bundle: currentBundlePayload()
+                scene_id: scene.edge_id || scene.id || null,
+                bundle: buildSceneBundle()
             };
         }
 
@@ -1301,37 +1327,12 @@
 
         function loadRenderJobDraft() {
             const draft = readStore(RENDER_DRAFT_KEY, null);
-            if (!draft) {
-                loadRenderJobDraftDefaults();
-                return;
-            }
-            renderJobTitle.value = draft.title || "";
-            renderKind.value = draft.render_kind || "clip";
-            renderJobNotes.value = draft.notes || "";
+            renderJobTitle.value = draft?.title || "";
+            renderKind.value = draft?.render_kind || "clip";
+            renderJobNotes.value = draft?.notes || "";
             if (!renderJobTitle.value.trim()) {
-                loadRenderJobDraftDefaults();
+                renderJobTitle.value = defaultRenderTitle();
             }
-        }
-
-        function currentBundlePayload() {
-            const payload = normalizeScene(latestScene || currentPayload());
-            const storyboard = readStoryboard();
-            const assets = readStore(ASSET_KEY, []).map(normalizeAsset);
-            return {
-                version: 1,
-                exported_at: new Date().toISOString(),
-                scene: payload,
-                storyboard,
-                assets,
-                render: {
-                    title: renderJobTitle.value.trim() || (payload.title ? `${payload.title} render` : "Untitled render job"),
-                    render_kind: renderKind.value,
-                    notes: renderJobNotes.value.trim(),
-                    scene_id: payload.edge_id || payload.id || null
-                },
-                render_phase: document.querySelector("[data-phase-panel='render']")?.classList.contains("active") ? "render" : "draft",
-                archive_count: (readStore(LOCAL_KEY, []) || []).filter(item => normalizeScene(item).status === "archived").length
-            };
         }
 
         function downloadJson(filename, data) {
@@ -1749,11 +1750,6 @@
             renderRenderJobs(Array.isArray(jobs) ? jobs.map(normalizeRenderJob) : []);
         }
 
-        function loadRenderJobDraftDefaults() {
-            if (renderJobTitle.value.trim()) return;
-            renderJobTitle.value = latestScene?.title ? `${latestScene.title} render` : "Untitled render job";
-        }
-
         async function loadRemoteRenderJobs() {
             if (!window.TilelliEdge) return;
             try {
@@ -1967,7 +1963,6 @@
                 latestScene = normalized[0] || latestScene;
             }
             refreshAssetSceneOptions();
-            loadRenderJobDraftDefaults();
             updateViewer(latestScene);
             renderArchive();
         }
@@ -2208,12 +2203,12 @@
             renderArchive();
         });
         exportBundleButton.addEventListener("click", () => {
-            const bundle = currentBundlePayload();
+            const bundle = buildSceneBundle();
             downloadJson(`anime-scene-bundle-${Date.now()}.json`, bundle);
             setWorkspacePhase("publish");
         });
         copyBundleButton.addEventListener("click", async () => {
-            const bundle = currentBundlePayload();
+            const bundle = buildSceneBundle();
             try {
                 await navigator.clipboard.writeText(JSON.stringify(bundle, null, 2));
                 setWorkspacePhase("publish");
