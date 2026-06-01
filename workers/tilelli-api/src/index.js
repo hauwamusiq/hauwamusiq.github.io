@@ -692,7 +692,7 @@ async function createAnimeGenerationJob(env, request) {
   const result = await env.DB.prepare(
     `INSERT INTO anime_generation_jobs
       (scene_id, title, provider, model, generation_prompt, notes, callback_url, provider_job_id, provider_response_json, duration, resolution, fps, status, bundle_json, output_url, thumbnail_url, error, started_at, completed_at, source)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
   )
     .bind(
       item.scene_id,
@@ -810,17 +810,18 @@ async function dispatchAnimeGenerationJob(env, request, jobId) {
   };
   const startedAt = new Date().toISOString();
   let responsePayload = {};
-  const response = await fetch(callbackUrl, {
+  const renderRequest = new Request(callbackUrl, {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
     },
     body: JSON.stringify(payload)
   });
+  const response = env.TILELLI_RENDERER?.fetch ? await env.TILELLI_RENDERER.fetch(renderRequest) : await fetch(renderRequest);
   const text = await response.text();
   responsePayload = parseJsonSafe(text, { raw: text });
   if (!response.ok) {
-    throw statusError(response.status, responsePayload?.error || "Generation dispatch failed.");
+    throw statusError(response.status, responsePayload?.error || `Generation dispatch failed via ${callbackUrl}.`);
   }
   const next = {
     ...current,

@@ -115,6 +115,12 @@ Renderer deploy helper:
 npm run deploy:renderer
 ```
 
+The live generation loop uses service bindings between the two Workers:
+
+- API Worker binding: `TILELLI_RENDERER`
+- Renderer Worker binding: `TILELLI_API`
+- shared callback secret: `TILELLI_GENERATION_CALLBACK_KEY`
+
 The workflow checks HTML/Worker syntax, deploys on `main`, and performs a scheduled health ping.
 
 ## Anime Scene Phase 1

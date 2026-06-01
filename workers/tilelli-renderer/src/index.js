@@ -98,8 +98,8 @@ function buildMockArtifact(jobId, bundle, body) {
   };
 }
 
-async function postCallback(url, key, payload) {
-  const response = await fetch(url, {
+async function postCallback(env, url, key, payload) {
+  const request = new Request(url, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -107,6 +107,7 @@ async function postCallback(url, key, payload) {
     },
     body: JSON.stringify(payload)
   });
+  const response = env.TILELLI_API?.fetch ? await env.TILELLI_API.fetch(request) : await fetch(request);
   const text = await response.text();
   return {
     ok: response.ok,
@@ -156,9 +157,9 @@ async function handleRender(request, env, ctx) {
     const callbackKey = requireCallbackKey(env);
     const completion = buildMockArtifact(providerJobId, bundle, { ...body, accepted_at: acceptedAt });
     ctx.waitUntil(
-      postCallback(body.callbacks.complete, callbackKey, completion).catch(async error => {
+      postCallback(env, body.callbacks.complete, callbackKey, completion).catch(async error => {
         if (body.callbacks?.fail) {
-          await postCallback(body.callbacks.fail, callbackKey, {
+          await postCallback(env, body.callbacks.fail, callbackKey, {
             status: "failed",
             provider_job_id: providerJobId,
             error: error.message || "Renderer callback failed",

@@ -16,6 +16,10 @@ preview_urls = false
 [vars]
 TILELLI_ALLOWED_ORIGINS = "https://hauwamusiq.github.io,http://localhost:8787,http://127.0.0.1:8787,null"
 
+[[services]]
+binding = "TILELLI_RENDERER"
+service = "tilelli-renderer"
+
 [[d1_databases]]
 binding = "DB"
 database_name = "tilelli-core"

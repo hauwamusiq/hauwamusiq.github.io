@@ -30,6 +30,18 @@
       ],
       "resource": "account"
     },
+    "cloudflare_workers_d1_secret_deployer": {
+      "description": "Deploy Tilelli Workers, manage D1 databases, and write Worker secrets for this Cloudflare account.",
+      "permissions": [
+        "Workers Scripts Write",
+        "Workers Tail Read",
+        "D1 Write",
+        "Account Settings Read",
+        "Account Settings Write",
+        "Secrets Store Write"
+      ],
+      "resource": "account"
+    },
     "cloudflare_observer": {
       "description": "Read-only account observer for inventory, health checks, and diagnostics.",
       "permissions": [

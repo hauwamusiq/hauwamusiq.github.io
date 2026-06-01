@@ -18,3 +18,7 @@ TILELLI_RENDERER_MODE = "mock"
 
 [env.production.vars]
 TILELLI_RENDERER_MODE = "mock"
+
+[[services]]
+binding = "TILELLI_API"
+service = "tilelli-api"

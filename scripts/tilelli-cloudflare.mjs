@@ -23,6 +23,17 @@ const profiles = {
       "Account Settings Read"
     ]
   },
+  cloudflare_workers_d1_secret_deployer: {
+    resource: "account",
+    permissions: [
+      "Workers Scripts Write",
+      "Workers Tail Read",
+      "D1 Write",
+      "Account Settings Read",
+      "Account Settings Write",
+      "Secrets Store Write"
+    ]
+  },
   cloudflare_observer: {
     resource: "account",
     permissions: [
