@@ -36,6 +36,7 @@
             font-family: var(--sans);
             background:
                 linear-gradient(180deg, #060507 0%, #0d0710 40%, #08070a 100%);
+            isolation: isolate;
             overflow-x: hidden;
         }
         body.locked { overflow: hidden; }
@@ -240,10 +241,11 @@
             width: 100%;
             height: 100%;
             z-index: 1;
-            opacity: 0.72;
+            opacity: 0.84;
             display: block;
             pointer-events: none;
             mix-blend-mode: screen;
+            filter: saturate(1.08) contrast(1.04);
         }
         .living-bg {
             position: fixed;
@@ -283,6 +285,21 @@
             background-size: 76px 76px, 124px 124px, 48px 48px;
             opacity: 0.34;
             animation: livingSparkles 18s linear infinite;
+        }
+        .sanctum-aura {
+            position: fixed;
+            inset: 0;
+            z-index: 2;
+            pointer-events: none;
+            background:
+                radial-gradient(circle at 22% 18%, rgba(255,109,158,0.18), transparent 18rem),
+                radial-gradient(circle at 78% 22%, rgba(246,204,114,0.16), transparent 20rem),
+                radial-gradient(circle at 52% 56%, rgba(100,234,220,0.08), transparent 28rem),
+                radial-gradient(circle at 48% 48%, rgba(255,255,255,0.02), transparent 42rem);
+            mix-blend-mode: screen;
+            opacity: 0.88;
+            filter: blur(2px);
+            animation: sanctumAuraDrift 24s ease-in-out infinite alternate;
         }
         .thread-field, .living-words {
             position: absolute;
@@ -324,6 +341,10 @@
             from { transform: translate3d(-1vw, 1vh, 0); opacity: 0.08; }
             to { transform: translate3d(2vw, -2vh, 0); opacity: 0.24; }
         }
+        @keyframes sanctumAuraDrift {
+            from { transform: translate3d(-1vw, 0.8vh, 0) scale(1.01); }
+            to { transform: translate3d(1.2vw, -0.8vh, 0) scale(1.06); }
+        }
         .shell {
             position: relative;
             z-index: 3;
@@ -337,6 +358,10 @@
         @keyframes sectionRise {
             from { opacity: 0; transform: translateY(20px); filter: blur(3px); }
             to { opacity: 1; transform: translateY(0); filter: blur(0); }
+        }
+        @keyframes heroFieldDrift {
+            from { transform: translate3d(-0.8vw, 0.6vh, 0) scale(1); }
+            to { transform: translate3d(0.9vw, -0.8vh, 0) scale(1.03); }
         }
         .topbar {
             min-height: 72px;
@@ -402,6 +427,34 @@
             display: grid;
             align-items: center;
             padding: 36px 0 60px;
+            position: relative;
+            isolation: isolate;
+        }
+        .hero::before {
+            content: "";
+            position: absolute;
+            inset: -4rem -2rem;
+            z-index: -2;
+            background:
+                radial-gradient(circle at 28% 24%, rgba(255,109,158,0.16), transparent 18rem),
+                radial-gradient(circle at 74% 24%, rgba(246,204,114,0.12), transparent 22rem),
+                radial-gradient(circle at 50% 58%, rgba(100,234,220,0.08), transparent 28rem),
+                linear-gradient(180deg, rgba(255,255,255,0.016), transparent 28%, rgba(255,255,255,0.022) 58%, transparent 100%);
+            opacity: 0.92;
+            animation: heroFieldDrift 22s ease-in-out infinite alternate;
+            pointer-events: none;
+        }
+        .hero::after {
+            content: "";
+            position: absolute;
+            inset: -2rem 0;
+            z-index: -1;
+            background:
+                repeating-linear-gradient(90deg, rgba(255,255,255,0.02) 0 1px, transparent 1px 128px),
+                linear-gradient(180deg, rgba(6,5,7,0.2), rgba(6,5,7,0));
+            opacity: 0.45;
+            pointer-events: none;
+            mask-image: linear-gradient(to bottom, rgba(0,0,0,0.92), transparent 88%);
         }
         .hero-grid {
             display: grid;
@@ -872,6 +925,11 @@
             .gallery { grid-template-columns: repeat(2, minmax(0, 1fr)); }
             .section-head { display: block; }
             .section-head p { margin-top: 14px; }
+            .hero::before, .hero::after { opacity: 0.72; }
+            .sanctum-aura {
+                opacity: 0.76;
+                filter: blur(1.5px);
+            }
         }
         @media (max-width: 620px) {
             .shell { width: min(100% - 22px, 1280px); }
@@ -881,6 +939,7 @@
             .hero h2 { font-size: clamp(2.6rem, 17vw, 4.4rem); }
             .gallery { grid-template-columns: 1fr; }
             .hero-ornaments { gap: 8px; margin-top: 22px; }
+            .hero::before, .hero::after { opacity: 0.54; }
             .gate-copy {
                 width: min(100% - 24px, 560px);
                 padding: 28px 10px;
@@ -919,6 +978,10 @@
             }
             #title-spark-canvas {
                 opacity: 0.72;
+            }
+            .sanctum-aura {
+                opacity: 0.58;
+                filter: blur(1px);
             }
         }
         @keyframes titleSpaceDriftMobile {
@@ -981,6 +1044,7 @@
             <span style="--x:42%;--y:44%;--d:17s;">memory</span>
         </div>
     </div>
+    <div class="sanctum-aura" aria-hidden="true"></div>
     <div class="shell">
         <header class="topbar">
             <a href="index.html" class="brand" aria-label="Return to command center">
