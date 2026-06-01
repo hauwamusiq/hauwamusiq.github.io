@@ -1658,11 +1658,21 @@
 
         function archiveItems() {
             return [
+                ...baseData.music.map(item => ({ section: "music", category: item.category, title: item.title, meta: item.meta, body: item.body, kind: item.kind, createdAt: "", source: "seed" })),
+                ...baseData.writing.map(item => ({ section: "writing", category: item.category, title: item.title, meta: item.meta, body: item.body, kind: item.kind, createdAt: "", source: "seed" })),
+                ...baseData.visuals.map(item => ({ section: "visuals", category: item.category, title: item.title, meta: item.meta, body: item.body, kind: item.kind, createdAt: "", source: "seed" })),
+                ...baseData.research.map(item => ({ section: "research", category: item.category, title: item.title, meta: item.meta, body: item.body, kind: item.kind, createdAt: "", source: "seed" })),
                 ...state.published.map(item => normalizeOffering({ ...item, section: item.section || inferSectionFromKind(item) })),
                 ...state.local.map(item => normalizeOffering({ ...item, section: item.section || inferSectionFromKind(item) }))
             ]
                 .filter(Boolean)
-                .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+                .sort((a, b) => archiveTimeValue(b) - archiveTimeValue(a));
+        }
+
+        function archiveTimeValue(item) {
+            if (!item || item.source === "seed" || !item.createdAt) return 0;
+            const time = new Date(item.createdAt).getTime();
+            return Number.isNaN(time) ? 0 : time;
         }
 
         function archiveVisibleItems() {
@@ -1671,6 +1681,7 @@
         }
 
         function archiveGroupKey(item) {
+            if (item?.source === "seed" || !item?.createdAt) return "Seed Library";
             const date = new Date(item.createdAt || 0);
             if (Number.isNaN(date.getTime())) return "Undated";
             return date.toLocaleDateString([], { month: "short", year: "numeric" });
@@ -1784,55 +1795,90 @@
 
         function renderArchiveStream() {
             if (!archiveStream) return;
-            const items = archiveVisibleItems().slice(0, 18);
-            if (!items.length) {
+            try {
+                const filter = state.archiveFilter || "all";
+                const source = filter === "all" ? archiveItems() : archiveItems().filter(item => item.section === filter);
+                const items = source.slice(0, 18);
+                if (!items.length) {
+                    archiveStream.innerHTML = `
+                        <div class="archive-empty">
+                            No archive entries are available yet. Add an offering in the keeper console to begin the chronology.
+                        </div>
+                    `;
+                    return;
+                }
+                archiveStream.innerHTML = "";
+                const buckets = {};
+                const order = [];
+                items.forEach(item => {
+                    const key = archiveGroupKey(item);
+                    if (!buckets[key]) {
+                        buckets[key] = [];
+                        order.push(key);
+                    }
+                    buckets[key].push(item);
+                });
+                order.forEach(key => {
+                    const entries = buckets[key];
+                    const group = document.createElement("section");
+                    group.className = "archive-group";
+                    const head = document.createElement("div");
+                    head.className = "archive-group-head";
+                    const label = document.createElement("strong");
+                    label.textContent = key;
+                    const count = document.createElement("span");
+                    count.textContent = `${entries.length} ${entries.length === 1 ? "offering" : "offerings"}`;
+                    head.append(label, count);
+                    group.appendChild(head);
+                    entries.forEach(item => {
+                        const entry = document.createElement("article");
+                        entry.className = "archive-entry";
+                        const entryHead = document.createElement("div");
+                        entryHead.className = "archive-entry-head";
+                        const title = document.createElement("strong");
+                        title.textContent = item.title || "Untitled offering";
+                        const section = document.createElement("small");
+                        section.textContent = item.section || "archive";
+                        entryHead.append(title, section);
+                        entry.appendChild(entryHead);
+
+                        const pill = document.createElement("div");
+                        pill.className = "archive-pill";
+                        pill.textContent = `${item.category || "other"} · ${item.meta || ""}`;
+                        entry.appendChild(pill);
+
+                        const meta = document.createElement("div");
+                        meta.className = "archive-meta";
+                        const time = document.createElement("span");
+                        time.textContent = item.createdAt ? formatSubmissionTime(item.createdAt) : "undated";
+                        meta.appendChild(time);
+                        if (item.edgeId) {
+                            const edge = document.createElement("span");
+                            edge.textContent = `Edge #${String(item.edgeId)}`;
+                            meta.appendChild(edge);
+                        }
+                        entry.appendChild(meta);
+
+                        const body = document.createElement("p");
+                        body.textContent = item.body || "No description stored.";
+                        entry.appendChild(body);
+
+                        const media = createMediaNode(item);
+                        if (media) {
+                            media.classList.add("archive-media");
+                            entry.appendChild(media);
+                        }
+                        group.appendChild(entry);
+                    });
+                    archiveStream.appendChild(group);
+                });
+            } catch (error) {
                 archiveStream.innerHTML = `
                     <div class="archive-empty">
-                        No archive entries are available yet. Add an offering in the keeper console to begin the chronology.
+                        Archive rendering failed. ${escapeHtml(error?.message || String(error))}
                     </div>
                 `;
-                return;
             }
-            archiveStream.innerHTML = "";
-            const groups = items.reduce((map, item) => {
-                const key = archiveGroupKey(item);
-                if (!map.has(key)) map.set(key, []);
-                map.get(key).push(item);
-                return map;
-            }, new Map());
-            [...groups.entries()].forEach(([key, entries]) => {
-                const group = document.createElement("section");
-                group.className = "archive-group";
-                group.innerHTML = `
-                    <div class="archive-group-head">
-                        <strong>${escapeHtml(key)}</strong>
-                        <span>${entries.length} ${entries.length === 1 ? "offering" : "offerings"}</span>
-                    </div>
-                `;
-                entries.forEach(item => {
-                    const entry = document.createElement("article");
-                    entry.className = "archive-entry";
-                    entry.innerHTML = `
-                        <div class="archive-entry-head">
-                            <strong>${escapeHtml(item.title || "Untitled offering")}</strong>
-                            <small>${escapeHtml(item.section || "archive")}</small>
-                        </div>
-                        <div class="archive-pill">${escapeHtml(item.category || "other")} · ${escapeHtml(item.meta || "")}</div>
-                        <div class="archive-meta">
-                            <span>${escapeHtml(item.createdAt ? formatSubmissionTime(item.createdAt) : "undated")}</span>
-                            ${item.edgeId ? `<span>Edge #${escapeHtml(String(item.edgeId))}</span>` : ""}
-                        </div>
-                        <p>${escapeHtml(item.body || "No description stored.")}</p>
-                    `;
-                    const media = createMediaNode(item);
-                    if (media) {
-                        media.classList.add("archive-media");
-                        entry.appendChild(media);
-                    }
-                    group.appendChild(entry);
-                });
-                archiveStream.appendChild(group);
-            });
         }
 
         function renderAll() {
@@ -1847,6 +1893,14 @@
             const next = ["home", "archive", "music", "writing", "visuals", "research", "submissions"].includes(name) ? name : "home";
             document.querySelectorAll(".section").forEach(section => section.classList.toggle("active", section.id === `section-${next}`));
             document.querySelectorAll(".nav button").forEach(button => button.classList.toggle("active", button.dataset.section === next));
+            if (next === "archive") {
+                renderArchiveShelf();
+                renderArchiveStream();
+            } else if (next === "home") {
+                renderPortfolioOverview();
+            } else if (next === "submissions") {
+                renderSubmissionLedger();
+            }
             window.scrollTo({ top: 0, behavior: "smooth" });
         }
 
