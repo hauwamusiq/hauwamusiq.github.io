@@ -853,6 +853,7 @@
                     <button type="button" data-phase-target="archive">Archive</button>
                     <button type="button" data-phase-target="publish">Publish</button>
                     <button type="button" data-phase-target="review">Review</button>
+                    <button type="button" data-phase-target="templates">Templates</button>
                 </div>
 
                 <div class="panel storyboard-editor phase-panel active" data-phase-panel="storyboard">
@@ -1086,6 +1087,7 @@
                                 <button class="button primary" type="button" id="watch-review-btn">Watch selection</button>
                                 <button class="button" type="button" id="reopen-review-btn">Reopen draft</button>
                                 <button class="button" type="button" id="refresh-review-btn">Refresh sources</button>
+                                <button class="button" type="button" id="save-template-btn">Save template</button>
                             </div>
                         </div>
                         <div class="history-item">
@@ -1096,6 +1098,19 @@
                         <div class="history-item">
                             <strong>Playback notes</strong>
                             <span>Review is intentionally local-first. When the renderer exists, this phase can become a real player or frame scrubber without changing the intake flow.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel history phase-panel" data-phase-panel="templates">
+                    <div class="surface-head">
+                        <strong>Template library</strong>
+                        <span>Phase 9: reusable scene starters</span>
+                    </div>
+                    <div class="history-list" id="template-list">
+                        <div class="history-item">
+                            <strong>Loading templates...</strong>
+                            <span>Reusable scene starters will appear here once the page initializes.</span>
                         </div>
                     </div>
                 </div>
@@ -1194,12 +1209,15 @@
         const watchReviewButton = document.getElementById("watch-review-btn");
         const reopenReviewButton = document.getElementById("reopen-review-btn");
         const refreshReviewButton = document.getElementById("refresh-review-btn");
+        const saveTemplateButton = document.getElementById("save-template-btn");
+        const templateList = document.getElementById("template-list");
         const LOCAL_KEY = "tilelli-anime-scenes";
         const STORYBOARD_KEY = "tilelli-anime-storyboard";
         const ASSET_KEY = "tilelli-anime-assets";
         const ASSET_DRAFT_KEY = "tilelli-anime-asset-draft";
         const RENDER_KEY = "tilelli-anime-render-jobs";
         const RENDER_DRAFT_KEY = "tilelli-anime-render-draft";
+        const TEMPLATE_KEY = "tilelli-anime-templates";
         const PHASE_KEY = "tilelli-anime-phase";
         const OWNER_KEY = "tilelli-owner-key";
         const phaseButtons = Array.from(document.querySelectorAll("[data-phase-target]"));
@@ -1207,7 +1225,7 @@
         let latestScene = null;
 
         function setWorkspacePhase(phase) {
-            const nextPhase = ["storyboard", "assets", "render", "queue", "archive", "publish", "review"].includes(phase) ? phase : "storyboard";
+            const nextPhase = ["storyboard", "assets", "render", "queue", "archive", "publish", "review", "templates"].includes(phase) ? phase : "storyboard";
             phaseButtons.forEach(button => {
                 button.classList.toggle("active", button.dataset.phaseTarget === nextPhase);
             });
@@ -1926,6 +1944,174 @@
             updateReviewPanel();
         }
 
+        function templateScenes() {
+            return [
+                {
+                    id: "urban-chase",
+                    title: "Neon chase through rain",
+                    prompt: "A fast-moving pursuit through a neon district at midnight with streaking signs, wet reflections, and a decisive rooftop ending.",
+                    art_style: "shonen",
+                    setting: "neon-city",
+                    duration: "10s",
+                    aspect_ratio: "16:9",
+                    notes: "Use sharp angles, motion blur, and a triumphant final frame.",
+                    storyboard: generateStoryboard({
+                        artStyle: "shonen",
+                        sceneSetting: "neon-city",
+                        prompt: "A fast-moving pursuit through a neon district at midnight with streaking signs, wet reflections, and a decisive rooftop ending.",
+                        duration: "10s",
+                        aspect: "16:9"
+                    })
+                },
+                {
+                    id: "lantern-ritual",
+                    title: "Lantern ritual at dusk",
+                    prompt: "A quiet shrine forest scene where lantern light moves through moss, wind, and a carefully held emotional pause.",
+                    art_style: "shojo",
+                    setting: "shrine-forest",
+                    duration: "15s",
+                    aspect_ratio: "16:9",
+                    notes: "Keep the atmosphere luminous and gentle, with room for stillness.",
+                    storyboard: generateStoryboard({
+                        artStyle: "shojo",
+                        sceneSetting: "shrine-forest",
+                        prompt: "A quiet shrine forest scene where lantern light moves through moss, wind, and a carefully held emotional pause.",
+                        duration: "15s",
+                        aspect: "16:9"
+                    })
+                },
+                {
+                    id: "orbital-analysis",
+                    title: "Orbital lab revelation",
+                    prompt: "A cinematic research scene inside an orbital lab as a discovery lands, the stars outside the glass framing the moment.",
+                    art_style: "cinematic",
+                    setting: "orbital-lab",
+                    duration: "5s",
+                    aspect_ratio: "9:16",
+                    notes: "Keep the camera composed and clinical, then land on a powerful close finish.",
+                    storyboard: generateStoryboard({
+                        artStyle: "cinematic",
+                        sceneSetting: "orbital-lab",
+                        prompt: "A cinematic research scene inside an orbital lab as a discovery lands, the stars outside the glass framing the moment.",
+                        duration: "5s",
+                        aspect: "9:16"
+                    })
+                }
+            ];
+        }
+
+        function templateSignature(template) {
+            return [template.id || "", template.title || "", template.setting || "", template.art_style || ""].join("|");
+        }
+
+        function normalizeTemplate(template) {
+            return {
+                id: template.id || template.title || "template",
+                title: template.title || "Untitled template",
+                prompt: template.prompt || "",
+                art_style: template.art_style || "shonen",
+                setting: template.setting || "neon-city",
+                duration: template.duration || "10s",
+                aspect_ratio: template.aspect_ratio || "16:9",
+                notes: template.notes || "",
+                storyboard: Array.isArray(template.storyboard) ? template.storyboard : []
+            };
+        }
+
+        function loadTemplates() {
+            const stored = readStore(TEMPLATE_KEY, null);
+            if (Array.isArray(stored) && stored.length) return stored.map(normalizeTemplate);
+            const templates = templateScenes().map(normalizeTemplate);
+            writeStore(TEMPLATE_KEY, templates);
+            return templates;
+        }
+
+        function applyTemplateScene(template) {
+            const scene = normalizeTemplate(template);
+            document.getElementById("scene-title").value = scene.title || "";
+            document.getElementById("scene-prompt").value = scene.prompt || "";
+            document.getElementById("style-select").value = scene.art_style || "shonen";
+            document.getElementById("setting-select").value = scene.setting || "neon-city";
+            document.getElementById("duration-select").value = scene.duration || "10s";
+            document.getElementById("aspect-select").value = scene.aspect_ratio || "16:9";
+            const selectedStyle = form.querySelector(`input[name="art_style"][value="${scene.art_style || "shonen"}"]`);
+            const selectedSetting = form.querySelector(`input[name="scene_setting"][value="${scene.setting || "neon-city"}"]`);
+            if (selectedStyle) selectedStyle.checked = true;
+            if (selectedSetting) selectedSetting.checked = true;
+            document.getElementById("scene-notes").value = scene.notes || "";
+            renderStoryboardEditor(Array.isArray(scene.storyboard) && scene.storyboard.length === 3 ? scene.storyboard : generateStoryboard({
+                artStyle: scene.art_style || "shonen",
+                sceneSetting: scene.setting || "neon-city",
+                prompt: scene.prompt || "",
+                duration: scene.duration || "10s",
+                aspect: scene.aspect_ratio || "16:9"
+            }));
+            latestScene = normalizeScene({
+                title: scene.title,
+                prompt: scene.prompt,
+                art_style: scene.art_style,
+                setting: scene.setting,
+                duration: scene.duration,
+                aspect_ratio: scene.aspect_ratio,
+                notes: scene.notes,
+                storyboard: scene.storyboard,
+                status: "draft",
+                source: "anime-template"
+            });
+            refreshPreview();
+            updateViewer(latestScene);
+            setWorkspacePhase("storyboard");
+        }
+
+        function renderTemplateLibrary() {
+            if (!templateList) return;
+            const templates = loadTemplates();
+            if (!templates.length) {
+                templateList.innerHTML = `
+                    <div class="history-item">
+                        <strong>No templates available.</strong>
+                        <span>Create a starter scene and save it to the template library to seed future reuse.</span>
+                    </div>
+                `;
+                return;
+            }
+            templateList.innerHTML = "";
+            templates.forEach(template => {
+                const card = document.createElement("article");
+                card.className = "history-item";
+                card.dataset.signature = templateSignature(template);
+                card.innerHTML = `
+                    <strong>${escapeHtml(template.title)}</strong>
+                    <span>${escapeHtml(template.prompt)}</span>
+                    <em>${escapeHtml(template.art_style)} · ${escapeHtml(template.setting)} · ${escapeHtml(template.duration)} · ${escapeHtml(template.aspect_ratio)}</em>
+                    <div class="archive-actions">
+                        <button class="button primary" type="button" data-template-apply>Apply template</button>
+                    </div>
+                `;
+                card.querySelector("[data-template-apply]")?.addEventListener("click", () => applyTemplateScene(template));
+                templateList.appendChild(card);
+            });
+        }
+
+        function saveTemplateFromCurrentScene() {
+            const scene = normalizeScene(latestScene || currentPayload());
+            const template = normalizeTemplate({
+                id: scene.edge_id ? `scene-${scene.edge_id}` : scene.title || `template-${Date.now()}`,
+                title: scene.title || "Untitled template",
+                prompt: scene.prompt || "",
+                art_style: scene.art_style || "shonen",
+                setting: scene.setting || "neon-city",
+                duration: scene.duration || "10s",
+                aspect_ratio: scene.aspect_ratio || "16:9",
+                notes: scene.notes || "",
+                storyboard: readStoryboard()
+            });
+            const templates = uniqueBy([template, ...loadTemplates()], templateSignature).slice(0, 18);
+            writeStore(TEMPLATE_KEY, templates);
+            renderTemplateLibrary();
+            setWorkspacePhase("templates");
+        }
+
         async function submitRenderJob() {
             const draft = readRenderJobDraft();
             const payload = draft.bundle;
@@ -2371,6 +2557,7 @@
             refreshReviewSources();
             updateReviewPanel();
         });
+        saveTemplateButton.addEventListener("click", saveTemplateFromCurrentScene);
         phaseButtons.forEach(button => {
             button.addEventListener("click", () => setWorkspacePhase(button.dataset.phaseTarget));
         });
@@ -2410,6 +2597,7 @@
         loadLocalRenderJobs();
         refreshReviewSources();
         updateReviewPanel();
+        renderTemplateLibrary();
         renderAssetPreview(readAssetDraft());
         loadRemoteHistory();
         loadRemoteRenderJobs();
