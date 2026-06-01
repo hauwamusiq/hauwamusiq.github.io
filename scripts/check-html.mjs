@@ -3,7 +3,7 @@
 Form: Node JavaScript
 Runtime: Local Node CLI / GitHub Actions
 Purpose: Static sanity checks for HTML inline scripts, DOM ids, and Worker syntax.
-Inputs: HTML files and workers/tilelli-api/src/index.js.
+Inputs: HTML files and Tilelli Worker scripts.
 Outputs: Exit code and check summary.
 Safety: Does not execute browser code; only parses scripts with Function constructor.
 Relations: package.json, docs/tilelli-edge.workflow.yml.template, .github/workflows/tilelli-edge.yml, spec/specification-system.manifest.json.
@@ -38,5 +38,11 @@ for (const file of files) {
   }
 }
 
-new Function(fs.readFileSync("workers/tilelli-api/src/index.js", "utf8").replace(/export default/, "const worker ="));
+[
+  "workers/tilelli-api/src/index.js",
+  "workers/tilelli-renderer/src/index.js"
+].forEach(file => {
+  if (!fs.existsSync(file)) return;
+  new Function(fs.readFileSync(file, "utf8").replace(/export default/, "const worker ="));
+});
 console.log(`Checked ${files.length} HTML files and Tilelli Worker syntax.`);

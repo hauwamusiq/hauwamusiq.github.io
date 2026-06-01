@@ -50,6 +50,18 @@ Relations: workers/tilelli-api/src/index.js, index.html, tilaelia.html, clock.ht
     animeRenderJobs: query => request(`/v1/anime/renders${query ? `?${query}` : ""}`),
     animeAutomations: query => request(`/v1/anime/automations${query ? `?${query}` : ""}`),
     animeGenerations: query => request(`/v1/anime/generations${query ? `?${query}` : ""}`),
+    animeGenerationDispatch: (id, body = {}) => request(`/v1/anime/generations/${id}/dispatch`, {
+      method: "POST",
+      body: JSON.stringify(body)
+    }),
+    animeGenerationComplete: (id, body = {}) => request(`/v1/anime/generations/${id}/complete`, {
+      method: "POST",
+      body: JSON.stringify(body)
+    }),
+    animeGenerationFail: (id, body = {}) => request(`/v1/anime/generations/${id}/fail`, {
+      method: "POST",
+      body: JSON.stringify(body)
+    }),
     physicsNotes: () => request("/v1/physics/notes"),
     reminders: () => request("/v1/dashboard/reminders")
   };

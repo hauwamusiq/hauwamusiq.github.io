@@ -1295,6 +1295,10 @@
                                     <label for="generation-model">Model / engine</label>
                                     <input id="generation-model" maxlength="180" placeholder="Example: qwen-video, sora, or local ffmpeg pipeline">
                                 </div>
+                                <div class="field full">
+                                    <label for="generation-callback">Renderer callback URL</label>
+                                    <input id="generation-callback" maxlength="400" placeholder="Optional URL that will receive the job bundle when you dispatch it">
+                                </div>
                                 <div class="field">
                                     <label for="generation-duration">Duration</label>
                                     <select id="generation-duration">
@@ -1468,6 +1472,7 @@
         const generationTitle = document.getElementById("generation-title");
         const generationProvider = document.getElementById("generation-provider");
         const generationModel = document.getElementById("generation-model");
+        const generationCallback = document.getElementById("generation-callback");
         const generationDuration = document.getElementById("generation-duration");
         const generationResolution = document.getElementById("generation-resolution");
         const generationFps = document.getElementById("generation-fps");
@@ -1712,6 +1717,8 @@
                 output_url: job.output_url || job.outputUrl || "",
                 thumbnail_url: job.thumbnail_url || job.thumbnailUrl || "",
                 error: job.error || "",
+                started_at: job.started_at || job.startedAt || "",
+                completed_at: job.completed_at || job.completedAt || "",
                 source: job.source || "anime-html",
                 created_at: job.created_at || job.createdAt || new Date().toISOString(),
                 updated_at: job.updated_at || job.updatedAt || new Date().toISOString(),
@@ -2798,6 +2805,7 @@
                 job.title || "",
                 job.provider || "",
                 job.model || "",
+                job.callback_url || "",
                 job.generation_prompt || "",
                 job.duration || "",
                 job.resolution || "",
@@ -2816,6 +2824,9 @@
                 model: job.model || job.model_name || job.modelName || "",
                 generation_prompt: job.generation_prompt || job.generationPrompt || job.prompt || "",
                 notes: job.notes || "",
+                callback_url: job.callback_url || job.callbackUrl || "",
+                provider_job_id: job.provider_job_id || job.providerJobId || "",
+                provider_response_json: job.provider_response_json || job.providerResponseJson || "{}",
                 duration: job.duration || "10s",
                 resolution: job.resolution || "1920x1080",
                 fps: job.fps || "24",
@@ -2856,6 +2867,7 @@
                 title: generationTitle.value.trim(),
                 provider: generationProvider.value,
                 model: generationModel.value.trim(),
+                callback_url: generationCallback.value.trim(),
                 duration: generationDuration.value,
                 resolution: generationResolution.value,
                 fps: generationFps.value,
@@ -2874,6 +2886,7 @@
             generationTitle.value = draft?.title || "";
             generationProvider.value = draft?.provider || "local";
             generationModel.value = draft?.model || "";
+            generationCallback.value = draft?.callback_url || "";
             generationDuration.value = draft?.duration || "10s";
             generationResolution.value = draft?.resolution || "1920x1080";
             generationFps.value = draft?.fps || "24";
@@ -2886,6 +2899,7 @@
             generationTitle.value = next.title || "";
             generationProvider.value = next.provider || "local";
             generationModel.value = next.model || "";
+            generationCallback.value = next.callback_url || "";
             generationDuration.value = next.duration || "10s";
             generationResolution.value = next.resolution || "1920x1080";
             generationFps.value = next.fps || "24";
@@ -2920,15 +2934,17 @@
                 card.innerHTML = `
                     <strong>${escapeHtml(job.title || "Untitled generation job")}</strong>
                     <span>${escapeHtml(job.provider || "local")} · ${escapeHtml(job.model || "no model set")} · ${escapeHtml(job.status || "queued")}</span>
-                    <em>${escapeHtml(job.duration || "10s")} · ${escapeHtml(job.resolution || "1920x1080")} · ${escapeHtml(job.fps || "24")} FPS${job.edge_id ? ` · EDGE #${escapeHtml(String(job.edge_id))}` : ""}</em>
+                    <em>${escapeHtml(job.duration || "10s")} · ${escapeHtml(job.resolution || "1920x1080")} · ${escapeHtml(job.fps || "24")} FPS${job.provider_job_id ? ` · PROVIDER ${escapeHtml(String(job.provider_job_id))}` : ""}${job.edge_id ? ` · EDGE #${escapeHtml(String(job.edge_id))}` : ""}${job.callback_url ? ` · CALLBACK ${escapeHtml(String(job.callback_url))}` : ""}</em>
                     <span>${escapeHtml(job.generation_prompt || bundle?.render?.notes || job.notes || job.error || "Waiting for a renderer to claim this job.")}</span>
                     <div class="archive-actions">
                         <button class="button" type="button" data-generation-apply>Edit</button>
-                        <button class="button primary" type="button" data-generation-run>Queue render</button>
+                        <button class="button primary" type="button" data-generation-dispatch>Dispatch</button>
+                        <button class="button" type="button" data-generation-ready>Mark ready</button>
                     </div>
                 `;
                 card.querySelector("[data-generation-apply]")?.addEventListener("click", () => populateGenerationDraft(job));
-                card.querySelector("[data-generation-run]")?.addEventListener("click", () => submitGenerationJob(job));
+                card.querySelector("[data-generation-dispatch]")?.addEventListener("click", () => dispatchGenerationJob(job));
+                card.querySelector("[data-generation-ready]")?.addEventListener("click", () => completeLocalGenerationJob(job, { status: "ready" }));
                 generationList.appendChild(card);
             });
         }
@@ -2961,6 +2977,7 @@
                 title: draft.title,
                 provider: draft.provider || "local",
                 model: draft.model || "",
+                callback_url: draft.callback_url || "",
                 generation_prompt: draft.generation_prompt || bundle?.scene?.prompt || "",
                 notes: draft.notes || "",
                 duration: draft.duration || "10s",
@@ -2970,6 +2987,8 @@
                 bundle_json: JSON.stringify(bundle),
                 output_url: "",
                 thumbnail_url: "",
+                provider_job_id: "",
+                provider_response_json: "{}",
                 error: "",
                 source: "anime-html",
                 created_at: new Date().toISOString()
@@ -3008,6 +3027,61 @@
                 apiState.textContent = "Edge API: local generation queue only";
             }
             return job;
+        }
+
+        function completeLocalGenerationJob(job, updates = {}) {
+            const next = {
+                ...normalizeGenerationJob(job),
+                ...updates,
+                updated_at: new Date().toISOString()
+            };
+            saveLocalGenerationJob(next);
+            renderGenerationJobs(loadGenerationJobs());
+            return next;
+        }
+
+        async function dispatchGenerationJob(job) {
+            const normalized = normalizeGenerationJob(job);
+            const ownerKey = localStorage.getItem(OWNER_KEY) || "";
+            if (!window.TilelliEdge || !ownerKey) {
+                completeLocalGenerationJob(normalized, { status: "generating" });
+                apiState.textContent = window.TilelliEdge ? "Generation dispatch requires owner key." : "Generation dispatch stored locally.";
+                return normalized;
+            }
+            if (!normalized.edge_id) {
+                apiState.textContent = "Generation dispatch requires a synced job.";
+                return normalized;
+            }
+            try {
+                apiState.textContent = "Dispatching generation job";
+                const response = await window.TilelliEdge.request(`/v1/anime/generations/${normalized.edge_id}/dispatch`, {
+                    method: "POST",
+                    headers: { "X-Tilelli-Owner-Key": ownerKey },
+                    body: JSON.stringify({
+                        callback_url: normalized.callback_url,
+                        provider: normalized.provider,
+                        model: normalized.model
+                    })
+                });
+                const next = completeLocalGenerationJob(normalized, {
+                    status: response?.status || "generating",
+                    provider_job_id: response?.provider_job_id || normalized.provider_job_id || "",
+                    provider_response_json: typeof response?.provider_response_json === "string"
+                        ? response.provider_response_json
+                        : JSON.stringify(response?.provider_response_json || response?.provider_response || response || {})
+                });
+                if (response?.output_url) next.output_url = response.output_url;
+                if (response?.thumbnail_url) next.thumbnail_url = response.thumbnail_url;
+                if (response?.error) next.error = response.error;
+                saveLocalGenerationJob(next);
+                await loadRemoteGenerationJobs();
+                apiState.textContent = `Generation dispatched: ${normalized.title}`;
+                return next;
+            } catch {
+                completeLocalGenerationJob(normalized, { status: "generating" });
+                apiState.textContent = "Generation dispatch failed; kept local state.";
+                return normalized;
+            }
         }
 
         async function runAutomationRule(rule) {
@@ -3562,6 +3636,7 @@
         generationTitle.addEventListener("input", saveGenerationDraft);
         generationProvider.addEventListener("change", saveGenerationDraft);
         generationModel.addEventListener("input", saveGenerationDraft);
+        generationCallback.addEventListener("input", saveGenerationDraft);
         generationDuration.addEventListener("change", saveGenerationDraft);
         generationResolution.addEventListener("change", saveGenerationDraft);
         generationFps.addEventListener("change", saveGenerationDraft);

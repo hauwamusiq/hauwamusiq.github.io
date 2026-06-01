@@ -3,8 +3,10 @@
 This repo now has the base structure for Cloudflare-backed edge endpoints:
 
 - `workers/tilelli-api/src/index.js`: Worker API.
+- `workers/tilelli-renderer/src/index.js`: Renderer adapter scaffold.
 - `workers/tilelli-api/schema/0001_initial.sql`: D1 schema.
 - `workers/tilelli-api/wrangler.toml`: Worker, D1, and cron config.
+- `workers/tilelli-renderer/wrangler.toml`: Renderer Worker config.
 - `anime.html`: Prompt-driven anime scene generator foundation with local storyboard, freeform setting input, asset editing, render-job tracking, playback review, template reuse, automation rules, and generation jobs.
 - `agents/tilelli/base-agent.json`: Base capability map.
 - `agents/tilelli/coding-agent.json`: Coding-agent harness contract.
@@ -81,6 +83,19 @@ Set the owner write key as a Worker secret:
 scripts/tilelli-wrangler.sh secret put TILELLI_OWNER_WRITE_KEY --config workers/tilelli-api/wrangler.toml
 ```
 
+Set the generation callback key on both the Worker and the renderer service:
+
+```sh
+scripts/tilelli-wrangler.sh secret put TILELLI_GENERATION_CALLBACK_KEY --config workers/tilelli-api/wrangler.toml
+scripts/tilelli-wrangler.sh secret put TILELLI_GENERATION_CALLBACK_KEY --config workers/tilelli-renderer/wrangler.toml
+```
+
+Optionally set a default renderer dispatch URL on the Worker:
+
+```sh
+scripts/tilelli-wrangler.sh secret put TILELLI_GENERATION_RENDERER_URL --config workers/tilelli-api/wrangler.toml
+```
+
 ## GitHub Actions
 
 The live workflow is stored at:
@@ -93,6 +108,12 @@ Add repository secrets/variables:
 
 - Secret: `TILELLI_CLOUDFLARE_API_TOKEN`
 - Variable: `TILELLI_API_BASE_URL`
+
+Renderer deploy helper:
+
+```sh
+npm run deploy:renderer
+```
 
 The workflow checks HTML/Worker syntax, deploys on `main`, and performs a scheduled health ping.
 
@@ -179,8 +200,18 @@ Generation is the actual video-generation handoff:
 - compose generation jobs with provider, model, duration, resolution, and FPS
 - save jobs locally and sync them to `/v1/anime/generations`
 - update jobs with `PATCH /v1/anime/generations/:id`
+- dispatch a job to a renderer with `POST /v1/anime/generations/:id/dispatch`
+- accept renderer callbacks on `POST /v1/anime/generations/:id/complete` and `POST /v1/anime/generations/:id/fail`
+- configure `TILELLI_GENERATION_CALLBACK_KEY` on the Worker and renderer so callbacks can be authenticated
+- optionally configure `TILELLI_GENERATION_RENDERER_URL` so dispatch can target a default renderer without storing the URL on every job
 - status values: `queued`, `generating`, `ready`, `failed`
 - the workspace now has a distinct place for video output jobs, even before a renderer is attached
+
+Renderer adapter scaffold:
+
+- `workers/tilelli-renderer/src/index.js` accepts `POST /v1/render/anime`
+- mock mode immediately schedules a callback to Tilelli with a placeholder ready artifact
+- proxy mode can forward the request to an upstream renderer when one is configured
 
 ## Portfolio Submission Flow
 

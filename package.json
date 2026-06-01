@@ -6,6 +6,7 @@
     "check": "node scripts/check-html.mjs",
     "tilelli": "node scripts/tilelli-cli.mjs",
     "deploy:worker": "scripts/tilelli-wrangler.sh deploy --config workers/tilelli-api/wrangler.toml",
+    "deploy:renderer": "scripts/tilelli-wrangler.sh deploy --config workers/tilelli-renderer/wrangler.toml",
     "d1:apply:local": "scripts/tilelli-wrangler.sh d1 execute tilelli-core --local --file workers/tilelli-api/schema/0001_initial.sql --config workers/tilelli-api/wrangler.toml",
     "d1:apply:remote": "scripts/tilelli-wrangler.sh d1 execute tilelli-core --remote --file workers/tilelli-api/schema/0001_initial.sql --config workers/tilelli-api/wrangler.toml"
   },

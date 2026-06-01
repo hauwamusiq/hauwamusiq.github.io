@@ -1,0 +1,20 @@
+# Form: TOML
+# Runtime: Wrangler / Cloudflare Workers
+# Purpose: Deploy the Tilelli renderer adapter that receives anime generation bundles and calls Tilelli back with results.
+# Inputs: Cloudflare account, renderer env vars, generation callback secret.
+# Outputs: tilelli-renderer Worker and health/render routes.
+# Safety: Keep callback keys and upstream URLs out of source control; use wrangler secret put for secrets.
+# Relations: workers/tilelli-renderer/src/index.js, workers/tilelli-api/src/index.js, docs/tilelli-edge.md.
+
+name = "tilelli-renderer"
+main = "src/index.js"
+compatibility_date = "2026-05-29"
+account_id = "db60e03876e32f97c690a562ef51b4aa"
+workers_dev = true
+preview_urls = false
+
+[vars]
+TILELLI_RENDERER_MODE = "mock"
+
+[env.production.vars]
+TILELLI_RENDERER_MODE = "mock"

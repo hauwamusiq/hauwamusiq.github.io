@@ -4,7 +4,7 @@
 # Inputs: Cloudflare account, D1 database ID, Worker secrets.
 # Outputs: Deployed tilelli-api Worker and scheduled events.
 # Safety: Do not store secret values here; use wrangler secret put or CI secrets.
-# Relations: workers/tilelli-api/src/index.js, workers/tilelli-api/schema/0001_initial.sql, .github/workflows/tilelli-edge.yml.
+# Relations: workers/tilelli-api/src/index.js, workers/tilelli-api/schema/0001_initial.sql, workers/tilelli-api/schema/0003_expand_anime_generation_jobs.sql, workers/tilelli-renderer/src/index.js, .github/workflows/tilelli-edge.yml.
 
 name = "tilelli-api"
 main = "src/index.js"

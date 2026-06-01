@@ -5,7 +5,7 @@ Purpose: Tilelli edge API for project inventory, portfolio entries, anime scenes
 Inputs: HTTP requests, DB D1 binding, TILELLI_ALLOWED_ORIGINS, TILELLI_OWNER_WRITE_KEY.
 Outputs: JSON responses, D1 rows, CORS headers.
 Safety: Client writes are validated; owner-only writes require X-Tilelli-Owner-Key; no raw secrets are returned.
-Relations: workers/tilelli-api/wrangler.toml, workers/tilelli-api/schema/0001_initial.sql, .github/workflows/tilelli-edge.yml.
+Relations: workers/tilelli-api/wrangler.toml, workers/tilelli-api/schema/0001_initial.sql, workers/tilelli-api/schema/0003_expand_anime_generation_jobs.sql, workers/tilelli-renderer/src/index.js, .github/workflows/tilelli-edge.yml.
 */
 
 const PROJECTS = [
@@ -38,7 +38,7 @@ function corsHeaders(env, request) {
   return {
     "Access-Control-Allow-Origin": allowOrigin,
     "Access-Control-Allow-Methods": "GET,POST,PATCH,OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type,X-Tilelli-Owner-Key",
+    "Access-Control-Allow-Headers": "Content-Type,X-Tilelli-Owner-Key,X-Tilelli-Generation-Callback-Key",
     "Access-Control-Max-Age": "86400",
     "Vary": "Origin"
   };
@@ -77,6 +77,18 @@ function cleanText(value, limit = 4000) {
 function cleanChoice(value, allowed, fallback) {
   const cleaned = cleanText(value, 80).toLowerCase();
   return allowed.includes(cleaned) ? cleaned : fallback;
+}
+
+function parseJsonSafe(value, fallback = {}) {
+  if (value == null) return fallback;
+  if (typeof value === "object") return value;
+  const text = String(value || "").trim();
+  if (!text) return fallback;
+  try {
+    return JSON.parse(text);
+  } catch {
+    return fallback;
+  }
 }
 
 async function logEvent(env, type, payload, request) {
@@ -613,6 +625,19 @@ function serializeGenerationBundle(body) {
   return JSON.stringify(bundle || {});
 }
 
+function serializeGenerationResponse(body) {
+  const payload = body.provider_response_json || body.providerResponseJson || body.provider_response || body;
+  if (typeof payload === "string") return payload.trim() || "{}";
+  return JSON.stringify(payload || {});
+}
+
+function requireGenerationCallback(request, env) {
+  const expected = String(env.TILELLI_GENERATION_CALLBACK_KEY || "").trim();
+  if (!expected) throw statusError(500, "Generation callback key is not configured.");
+  const provided = String(request.headers.get("X-Tilelli-Generation-Callback-Key") || "").trim();
+  if (!provided || provided !== expected) throw statusError(401, "Invalid generation callback key.");
+}
+
 async function syncSceneFromGenerationJob(env, job) {
   if (!job.scene_id) return;
   const updates = [];
@@ -649,6 +674,9 @@ async function createAnimeGenerationJob(env, request) {
     model: cleanText(body.model || body.model_name || body.modelName, 180),
     generation_prompt: cleanText(body.generation_prompt || body.generationPrompt || body.prompt, 4000),
     notes: cleanText(body.notes, 4000),
+    callback_url: cleanText(body.callback_url || body.callbackUrl, 400),
+    provider_job_id: cleanText(body.provider_job_id || body.providerJobId, 180),
+    provider_response_json: serializeGenerationResponse(body),
     duration: cleanChoice(body.duration, ["5s", "10s", "15s", "30s"], "10s"),
     resolution: cleanChoice(body.resolution, ["1920x1080", "1080x1920", "1024x1024"], "1920x1080"),
     fps: cleanChoice(body.fps, ["24", "30", "60"], "24"),
@@ -657,12 +685,14 @@ async function createAnimeGenerationJob(env, request) {
     output_url: cleanText(body.output_url || body.outputUrl, 1200),
     thumbnail_url: cleanText(body.thumbnail_url || body.thumbnailUrl, 1200),
     error: cleanText(body.error, 4000),
+    started_at: cleanText(body.started_at || body.startedAt, 40),
+    completed_at: cleanText(body.completed_at || body.completedAt, 40),
     source: cleanText(body.source, 120) || "anime-html"
   };
   const result = await env.DB.prepare(
     `INSERT INTO anime_generation_jobs
-      (scene_id, title, provider, model, generation_prompt, notes, duration, resolution, fps, status, bundle_json, output_url, thumbnail_url, error, source)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      (scene_id, title, provider, model, generation_prompt, notes, callback_url, provider_job_id, provider_response_json, duration, resolution, fps, status, bundle_json, output_url, thumbnail_url, error, started_at, completed_at, source)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
   )
     .bind(
       item.scene_id,
@@ -671,6 +701,9 @@ async function createAnimeGenerationJob(env, request) {
       item.model,
       item.generation_prompt,
       item.notes,
+      item.callback_url,
+      item.provider_job_id,
+      item.provider_response_json,
       item.duration,
       item.resolution,
       item.fps,
@@ -679,6 +712,8 @@ async function createAnimeGenerationJob(env, request) {
       item.output_url,
       item.thumbnail_url,
       item.error,
+      item.started_at,
+      item.completed_at,
       item.source
     )
     .run();
@@ -701,6 +736,9 @@ async function updateAnimeGenerationJob(env, request, jobId) {
     model: cleanText(body.model || body.model_name || body.modelName, 180) || current.model,
     generation_prompt: cleanText(body.generation_prompt || body.generationPrompt || body.prompt, 4000) || current.generation_prompt,
     notes: cleanText(body.notes, 4000) || current.notes,
+    callback_url: cleanText(body.callback_url || body.callbackUrl, 400) || current.callback_url,
+    provider_job_id: cleanText(body.provider_job_id || body.providerJobId, 180) || current.provider_job_id,
+    provider_response_json: body.provider_response_json || body.providerResponseJson || body.provider_response ? serializeGenerationResponse(body) : current.provider_response_json,
     duration: cleanChoice(body.duration, ["5s", "10s", "15s", "30s"], current.duration),
     resolution: cleanChoice(body.resolution, ["1920x1080", "1080x1920", "1024x1024"], current.resolution),
     fps: cleanChoice(body.fps, ["24", "30", "60"], current.fps),
@@ -709,11 +747,13 @@ async function updateAnimeGenerationJob(env, request, jobId) {
     output_url: cleanText(body.output_url || body.outputUrl, 1200) || current.output_url,
     thumbnail_url: cleanText(body.thumbnail_url || body.thumbnailUrl, 1200) || current.thumbnail_url,
     error: cleanText(body.error, 4000) || current.error,
+    started_at: cleanText(body.started_at || body.startedAt, 40) || current.started_at,
+    completed_at: cleanText(body.completed_at || body.completedAt, 40) || current.completed_at,
     source: cleanText(body.source, 120) || current.source
   };
   await env.DB.prepare(
     `UPDATE anime_generation_jobs
-      SET scene_id = ?, title = ?, provider = ?, model = ?, generation_prompt = ?, notes = ?, duration = ?, resolution = ?, fps = ?, status = ?, bundle_json = ?, output_url = ?, thumbnail_url = ?, error = ?, source = ?, updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
+      SET scene_id = ?, title = ?, provider = ?, model = ?, generation_prompt = ?, notes = ?, callback_url = ?, provider_job_id = ?, provider_response_json = ?, duration = ?, resolution = ?, fps = ?, status = ?, bundle_json = ?, output_url = ?, thumbnail_url = ?, error = ?, started_at = ?, completed_at = ?, source = ?, updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
       WHERE id = ?`
   )
     .bind(
@@ -723,6 +763,9 @@ async function updateAnimeGenerationJob(env, request, jobId) {
       next.model,
       next.generation_prompt,
       next.notes,
+      next.callback_url,
+      next.provider_job_id,
+      next.provider_response_json,
       next.duration,
       next.resolution,
       next.fps,
@@ -731,12 +774,127 @@ async function updateAnimeGenerationJob(env, request, jobId) {
       next.output_url,
       next.thumbnail_url,
       next.error,
+      next.started_at,
+      next.completed_at,
       next.source,
       id
     )
     .run();
   await syncSceneFromGenerationJob(env, next);
   await logEvent(env, "anime_generation_job.updated", { id, title: next.title, status: next.status }, request);
+  return { id, ...next };
+}
+
+async function dispatchAnimeGenerationJob(env, request, jobId) {
+  requireOwner(request, env);
+  const id = Number.parseInt(jobId, 10);
+  if (!Number.isFinite(id)) throw statusError(400, "Generation job id is required.");
+  const current = await env.DB.prepare("SELECT * FROM anime_generation_jobs WHERE id = ?").bind(id).first();
+  if (!current) throw statusError(404, "Generation job not found.");
+  const body = await readJson(request);
+  const callbackUrl = cleanText(body.callback_url || body.callbackUrl, 400) || current.callback_url || cleanText(env.TILELLI_GENERATION_RENDERER_URL, 400);
+  if (!callbackUrl) throw statusError(400, "Generation callback URL is required.");
+  const origin = new URL(request.url).origin;
+  const payload = {
+    action: "generate",
+    job: current,
+    bundle: parseJsonSafe(current.bundle_json, {}),
+    callback_url: callbackUrl,
+    callbacks: {
+      complete: `${origin}/v1/anime/generations/${id}/complete`,
+      fail: `${origin}/v1/anime/generations/${id}/fail`
+    },
+    callback_header: "X-Tilelli-Generation-Callback-Key",
+    provider: body.provider || current.provider,
+    model: body.model || current.model
+  };
+  const startedAt = new Date().toISOString();
+  let responsePayload = {};
+  const response = await fetch(callbackUrl, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(payload)
+  });
+  const text = await response.text();
+  responsePayload = parseJsonSafe(text, { raw: text });
+  if (!response.ok) {
+    throw statusError(response.status, responsePayload?.error || "Generation dispatch failed.");
+  }
+  const next = {
+    ...current,
+    callback_url: callbackUrl,
+    provider_job_id: cleanText(body.provider_job_id || body.providerJobId || responsePayload.provider_job_id || responsePayload.job_id || responsePayload.id, 180) || current.provider_job_id,
+    provider_response_json: serializeGenerationResponse(responsePayload),
+    status: cleanChoice(responsePayload.status || body.status, ["queued", "generating", "ready", "failed"], "generating"),
+    started_at: current.started_at || startedAt,
+    completed_at: responsePayload.status === "ready" ? cleanText(responsePayload.completed_at || body.completed_at, 40) || startedAt : current.completed_at || ""
+  };
+  if (responsePayload.output_url) next.output_url = cleanText(responsePayload.output_url, 1200);
+  if (responsePayload.thumbnail_url) next.thumbnail_url = cleanText(responsePayload.thumbnail_url, 1200);
+  if (responsePayload.error) next.error = cleanText(responsePayload.error, 4000);
+  await env.DB.prepare(
+    `UPDATE anime_generation_jobs
+      SET callback_url = ?, provider_job_id = ?, provider_response_json = ?, status = ?, started_at = ?, completed_at = ?, output_url = ?, thumbnail_url = ?, error = ?, updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
+      WHERE id = ?`
+  )
+    .bind(
+      next.callback_url,
+      next.provider_job_id,
+      next.provider_response_json,
+      next.status,
+      next.started_at || "",
+      next.completed_at || "",
+      next.output_url || "",
+      next.thumbnail_url || "",
+      next.error || "",
+      id
+    )
+    .run();
+  await syncSceneFromGenerationJob(env, next);
+  await logEvent(env, "anime_generation_job.dispatched", { id, title: next.title, status: next.status, callback_url: next.callback_url }, request);
+  return { id, ...next };
+}
+
+async function updateGenerationFromCallback(env, request, jobId, nextStatus) {
+  requireGenerationCallback(request, env);
+  const id = Number.parseInt(jobId, 10);
+  if (!Number.isFinite(id)) throw statusError(400, "Generation job id is required.");
+  const current = await env.DB.prepare("SELECT * FROM anime_generation_jobs WHERE id = ?").bind(id).first();
+  if (!current) throw statusError(404, "Generation job not found.");
+  const body = await readJson(request);
+  const responseJson = serializeGenerationResponse(body);
+  const completedAt = cleanText(body.completed_at || body.completedAt, 40) || new Date().toISOString();
+  const next = {
+    ...current,
+    provider_job_id: cleanText(body.provider_job_id || body.providerJobId || body.job_id || body.jobId || body.id, 180) || current.provider_job_id,
+    provider_response_json: responseJson,
+    status: cleanChoice(body.status, ["queued", "generating", "ready", "failed"], nextStatus),
+    output_url: cleanText(body.output_url || body.outputUrl, 1200) || current.output_url,
+    thumbnail_url: cleanText(body.thumbnail_url || body.thumbnailUrl, 1200) || current.thumbnail_url,
+    error: cleanText(body.error, 4000) || (nextStatus === "failed" ? current.error : ""),
+    completed_at: nextStatus === "ready" || nextStatus === "failed" ? completedAt : current.completed_at || "",
+    updated_at: new Date().toISOString()
+  };
+  await env.DB.prepare(
+    `UPDATE anime_generation_jobs
+      SET provider_job_id = ?, provider_response_json = ?, status = ?, output_url = ?, thumbnail_url = ?, error = ?, completed_at = ?, updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
+      WHERE id = ?`
+  )
+    .bind(
+      next.provider_job_id,
+      next.provider_response_json,
+      next.status,
+      next.output_url,
+      next.thumbnail_url,
+      next.error,
+      next.completed_at,
+      id
+    )
+    .run();
+  await syncSceneFromGenerationJob(env, next);
+  await logEvent(env, `anime_generation_job.${nextStatus}`, { id, title: next.title, status: next.status }, request);
   return { id, ...next };
 }
 
@@ -844,6 +1002,18 @@ async function route(request, env) {
   const generationMatch = pathname.match(/^\/v1\/anime\/generations\/(\d+)$/);
   if (generationMatch && request.method === "PATCH") {
     return json(await updateAnimeGenerationJob(env, request, generationMatch[1]), {}, env, request);
+  }
+  const generationDispatchMatch = pathname.match(/^\/v1\/anime\/generations\/(\d+)\/dispatch$/);
+  if (generationDispatchMatch && request.method === "POST") {
+    return json(await dispatchAnimeGenerationJob(env, request, generationDispatchMatch[1]), {}, env, request);
+  }
+  const generationCompleteMatch = pathname.match(/^\/v1\/anime\/generations\/(\d+)\/complete$/);
+  if (generationCompleteMatch && request.method === "POST") {
+    return json(await updateGenerationFromCallback(env, request, generationCompleteMatch[1], "ready"), {}, env, request);
+  }
+  const generationFailMatch = pathname.match(/^\/v1\/anime\/generations\/(\d+)\/fail$/);
+  if (generationFailMatch && request.method === "POST") {
+    return json(await updateGenerationFromCallback(env, request, generationFailMatch[1], "failed"), {}, env, request);
   }
   if (pathname === "/v1/agent/runs" && request.method === "GET") {
     return json(await listAgentRuns(env), {}, env, request);
