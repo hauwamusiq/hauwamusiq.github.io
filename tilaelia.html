@@ -1039,11 +1039,83 @@
         @media (max-width: 620px) {
             .shell { width: min(100% - 22px, 1280px); }
             .topbar { align-items: flex-start; flex-direction: column; }
-            .nav { justify-content: flex-start; }
-            .hero { padding-top: 18px; }
-            .hero h2 { font-size: clamp(2.6rem, 17vw, 4.4rem); }
+            .nav {
+                justify-content: flex-start;
+                flex-wrap: nowrap;
+                overflow-x: auto;
+                width: 100%;
+                max-width: 100%;
+                scrollbar-width: none;
+                padding-bottom: 2px;
+            }
+            .nav::-webkit-scrollbar { display: none; }
+            .hero {
+                min-height: auto;
+                padding: 18px 0 44px;
+            }
+            .hero-grid { gap: 22px; }
+            .hero h2 { font-size: clamp(1.95rem, 11.75vw, 3.2rem); }
+            .hero p {
+                font-size: 0.95rem;
+                line-height: 1.7;
+            }
             .gallery { grid-template-columns: 1fr; }
-            .hero-ornaments { gap: 8px; margin-top: 22px; }
+            .hero-ornaments {
+                gap: 8px;
+                margin-top: 18px;
+            }
+            .hero-stat strong {
+                font-size: 1.45rem;
+            }
+            .hero-stat span {
+                font-size: 0.7rem;
+            }
+            .section { padding: 54px 0 66px; }
+            .section-head {
+                margin-bottom: 22px;
+                padding-bottom: 16px;
+            }
+            .section-head h2 {
+                font-size: clamp(1.8rem, 11vw, 3.1rem);
+            }
+            .section-head p {
+                max-width: none;
+                line-height: 1.6;
+            }
+            .owner-panel,
+            .archive-group {
+                padding: 14px;
+            }
+            .owner-panel .locked-copy strong {
+                font-size: 1.18rem;
+            }
+            .owner-grid {
+                gap: 10px;
+            }
+            .field input, .field textarea, .field select {
+                min-height: 40px;
+                padding: 10px;
+            }
+            .submit-actions {
+                gap: 8px;
+            }
+            .submit-actions .action {
+                width: 100%;
+            }
+            .submission-ledger {
+                gap: 8px;
+            }
+            .submission-ledger article,
+            .archive-entry {
+                padding: 11px 12px;
+                border-radius: 8px;
+            }
+            .archive-stream {
+                gap: 12px;
+            }
+            .archive-group-head small {
+                white-space: normal;
+            }
             .hero::before, .hero::after { opacity: 0.54; }
             .archive-group { padding: 13px; }
             .gate-copy {
