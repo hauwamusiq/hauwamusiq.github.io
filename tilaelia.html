@@ -79,10 +79,18 @@
             opacity: 0;
             transform: translateY(18px);
         }
+        body.unlocked .shell {
+            animation: shellBloom 980ms cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
         .shell {
             opacity: 1;
             transform: translateY(0);
             transition: opacity 900ms ease, transform 900ms ease;
+        }
+        @keyframes shellBloom {
+            0% { opacity: 0; transform: translateY(24px) scale(0.993); filter: blur(2px); }
+            55% { opacity: 1; transform: translateY(0) scale(1.01); filter: blur(0); }
+            100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
         }
         #gate.entering {
             animation: gateDoorFade 1.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
@@ -312,6 +320,14 @@
             width: min(1280px, calc(100% - 32px));
             margin: 0 auto;
         }
+        .section.active {
+            display: block;
+            animation: sectionRise 720ms cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
+        @keyframes sectionRise {
+            from { opacity: 0; transform: translateY(20px); filter: blur(3px); }
+            to { opacity: 1; transform: translateY(0); filter: blur(0); }
+        }
         .topbar {
             min-height: 72px;
             display: flex;
@@ -381,7 +397,7 @@
             display: grid;
             grid-template-columns: minmax(0, 1fr) minmax(340px, 0.66fr);
             gap: 34px;
-            align-items: end;
+            align-items: center;
         }
         .eyebrow {
             color: var(--cyan);
@@ -406,12 +422,41 @@
             font-size: clamp(1rem, 1.5vw, 1.2rem);
             margin: 24px 0 0;
         }
+        .hero-ornaments {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 10px;
+            margin-top: 26px;
+        }
+        .hero-stat {
+            border: 1px solid var(--line);
+            background: rgba(255,255,255,0.04);
+            backdrop-filter: blur(16px);
+            padding: 14px 15px 15px;
+            min-height: 96px;
+        }
+        .hero-stat strong {
+            display: block;
+            font-family: var(--ritual);
+            font-size: clamp(1.55rem, 3vw, 2.15rem);
+            line-height: 0.95;
+            margin-bottom: 8px;
+            color: var(--gold);
+        }
+        .hero-stat span {
+            display: block;
+            color: var(--muted);
+            font-size: 0.82rem;
+            line-height: 1.45;
+        }
         .portal-card {
             border: 1px solid var(--line);
             background: var(--panel);
             backdrop-filter: blur(20px);
             padding: 18px;
             min-height: 280px;
+            border-radius: 8px;
+            box-shadow: 0 28px 80px rgba(0,0,0,0.28);
         }
         .portal-card h3 {
             margin: 0 0 12px;
@@ -434,11 +479,33 @@
             line-height: 1.55;
             font-size: 0.9rem;
         }
+        .portal-ledger {
+            display: grid;
+            gap: 10px;
+            margin-top: 18px;
+        }
+        .portal-ledger article {
+            border: 1px solid rgba(255,255,255,0.08);
+            background: rgba(255,255,255,0.03);
+            padding: 12px 13px;
+            border-radius: 8px;
+        }
+        .portal-ledger strong {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 0.94rem;
+            color: var(--ink);
+        }
+        .portal-ledger span {
+            display: block;
+            color: var(--muted);
+            font-size: 0.78rem;
+            line-height: 1.45;
+        }
         .section {
             display: none;
             padding: 72px 0 92px;
         }
-        .section.active { display: block; }
         .section-head {
             display: flex;
             align-items: end;
@@ -496,6 +563,8 @@
             min-height: 210px;
             position: relative;
             overflow: hidden;
+            border-radius: 8px;
+            transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
         }
         .card::before {
             content: "";
@@ -506,6 +575,11 @@
             opacity: 0.44;
         }
         .card > * { position: relative; z-index: 1; }
+        .card:hover {
+            transform: translateY(-3px);
+            border-color: rgba(246,204,114,0.24);
+            background: rgba(255,255,255,0.06);
+        }
         .card .meta {
             color: var(--accent, var(--gold));
             text-transform: uppercase;
@@ -583,6 +657,8 @@
             padding: 14px;
             display: flex;
             align-items: flex-end;
+            border-radius: 8px;
+            transition: transform 180ms ease, border-color 180ms ease;
         }
         .art-tile::before {
             content: "";
@@ -604,6 +680,10 @@
             opacity: 0.78;
         }
         .art-tile div { position: relative; z-index: 2; }
+        .art-tile:hover {
+            transform: translateY(-3px);
+            border-color: rgba(246,204,114,0.26);
+        }
         .art-tile h3 {
             font-family: var(--serif);
             font-size: 1.35rem;
@@ -620,6 +700,25 @@
             background: rgba(12, 9, 14, 0.82);
             padding: 18px;
             margin-top: 28px;
+            border-radius: 8px;
+            box-shadow: 0 28px 80px rgba(0,0,0,0.22);
+        }
+        .owner-panel .locked-copy {
+            display: grid;
+            gap: 10px;
+            margin-bottom: 18px;
+        }
+        .owner-panel .locked-copy strong {
+            font-family: var(--ritual);
+            font-size: 1.35rem;
+            line-height: 1.05;
+            color: var(--gold);
+        }
+        .owner-panel .locked-copy p {
+            margin: 0;
+            color: var(--muted);
+            line-height: 1.7;
+            max-width: 720px;
         }
         .owner-grid {
             display: grid;
@@ -656,6 +755,28 @@
             gap: 10px;
             margin-top: 12px;
         }
+        .submission-ledger {
+            margin-top: 18px;
+            display: grid;
+            gap: 10px;
+        }
+        .submission-ledger article {
+            border: 1px solid rgba(255,255,255,0.08);
+            background: rgba(255,255,255,0.035);
+            padding: 12px 13px;
+            border-radius: 8px;
+        }
+        .submission-ledger strong {
+            display: block;
+            margin-bottom: 4px;
+            font-size: 0.94rem;
+        }
+        .submission-ledger span {
+            display: block;
+            color: var(--muted);
+            font-size: 0.78rem;
+            line-height: 1.45;
+        }
         .action {
             border: 1px solid rgba(246,204,114,0.42);
             background: rgba(246,204,114,0.09);
@@ -684,6 +805,7 @@
         }
         @media (max-width: 980px) {
             .hero-grid, .grid, .owner-grid { grid-template-columns: 1fr; }
+            .hero-ornaments { grid-template-columns: 1fr; }
             .gallery { grid-template-columns: repeat(2, minmax(0, 1fr)); }
             .section-head { display: block; }
             .section-head p { margin-top: 14px; }
@@ -695,6 +817,7 @@
             .hero { padding-top: 18px; }
             .hero h2 { font-size: clamp(2.6rem, 17vw, 4.4rem); }
             .gallery { grid-template-columns: 1fr; }
+            .hero-ornaments { gap: 8px; margin-top: 22px; }
             .gate-copy {
                 width: min(100% - 24px, 560px);
                 padding: 28px 10px;
@@ -713,6 +836,7 @@
                 line-height: 1.65;
                 margin: 18px auto 24px;
             }
+            .portal-card { min-height: auto; }
             .title-drifter {
                 animation-name: titleSpaceDriftMobile;
                 animation-duration: 8.5s;
@@ -820,6 +944,20 @@
                         <div class="eyebrow">Sanctum online</div>
                         <h2>Ariadni's sacred creation field</h2>
                         <p>This is not a portfolio as a shelf. It is a living altar for music, visual myth, philosophy, research, and the strange disciplined joy of making worlds out of breath and will.</p>
+                        <div class="hero-ornaments" aria-label="Portfolio overview">
+                            <div class="hero-stat">
+                                <strong id="hero-stat-offerings">0</strong>
+                                <span>Offerings held across the archive</span>
+                            </div>
+                            <div class="hero-stat">
+                                <strong id="hero-stat-recent">0</strong>
+                                <span>Recent submissions in the living ledger</span>
+                            </div>
+                            <div class="hero-stat">
+                                <strong id="hero-stat-last">--</strong>
+                                <span>Last recorded submission time</span>
+                            </div>
+                        </div>
                     </div>
                     <aside class="portal-card">
                         <h3>Enter with reverence</h3>
@@ -829,6 +967,12 @@
                             <li>Visuals are held as a digital underground gallery.</li>
                             <li>Research gathers philosophy, physics, mathematics, and history.</li>
                         </ul>
+                        <div class="portal-ledger" id="hero-ledger" aria-label="Recent offerings">
+                            <article>
+                                <strong>Waiting for offerings</strong>
+                                <span>Submit work in the keeper console to populate this living ledger.</span>
+                            </article>
+                        </div>
                     </aside>
                 </div>
             </section>
@@ -890,6 +1034,10 @@
                     <p>Draft portfolio additions locally, export a publish pack, then commit it into the site so the public archive updates for everyone.</p>
                 </div>
                 <div class="owner-panel">
+                    <div class="locked-copy" id="locked-panel-copy">
+                        <strong>Submission rite</strong>
+                        <p>Add poetry, essays, images, sounds, tracks, research, or other offerings here. Every save records a timestamp, and the newest additions are mirrored into the living archive below.</p>
+                    </div>
                     <div id="locked-panel">
                         <div class="field">
                             <label for="owner-key">Keeper phrase</label>
@@ -955,6 +1103,7 @@
                             <input id="import-local-file" type="file" accept="application/json,.json" style="display:none;">
                         </div>
                     </form>
+                    <div class="submission-ledger" id="submission-ledger" aria-label="Recent submissions"></div>
                 </div>
             </section>
         </main>
@@ -1004,6 +1153,11 @@
         const keeperHash = "tilleli";
         const edgeOwnerKeyStorage = "tilelli-owner-key";
         const submitMediaFile = $("submit-media-file");
+        const heroStatOfferings = $("hero-stat-offerings");
+        const heroStatRecent = $("hero-stat-recent");
+        const heroStatLast = $("hero-stat-last");
+        const heroLedger = $("hero-ledger");
+        const submissionLedger = $("submission-ledger");
 
         function loadLocalOfferings() {
             try {
@@ -1068,6 +1222,8 @@
         function saveLocalOfferings() {
             try {
                 localStorage.setItem("tilaelia-local-offerings", JSON.stringify(state.local));
+                renderPortfolioOverview();
+                renderSubmissionLedger();
                 return true;
             } catch {
                 return false;
@@ -1236,8 +1392,81 @@
             target.replaceChildren(...items.map(item => createCard(item, section)));
         }
 
+        function inferSectionFromKind(item) {
+            if (!item) return "writing";
+            if (item.kind === "sound-card" || item.kind === "track-card") return "music";
+            if (item.kind === "research-card") return "research";
+            if (item.kind === "gallery" || item.section === "visuals") return "visuals";
+            return item.section || "writing";
+        }
+
+        function recentOfferings(limit = 3) {
+            return state.local
+                .slice()
+                .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
+                .slice(0, limit)
+                .map(item => normalizeOffering(item))
+                .filter(Boolean);
+        }
+
+        function renderPortfolioOverview() {
+            if (!heroStatOfferings || !heroStatRecent || !heroStatLast || !heroLedger) return;
+            const all = [
+                ...baseData.music.map(item => ({ ...item, section: "music" })),
+                ...baseData.writing.map(item => ({ ...item, section: "writing" })),
+                ...baseData.visuals.map(item => ({ ...item, section: "visuals" })),
+                ...baseData.research.map(item => ({ ...item, section: "research" })),
+                ...state.published,
+                ...state.local
+            ].map(item => normalizeOffering({ ...item, section: inferSectionFromKind(item) })).filter(Boolean);
+            const recent = recentOfferings(3);
+            heroStatOfferings.textContent = String(all.length).padStart(2, "0");
+            heroStatRecent.textContent = String(state.local.length).padStart(2, "0");
+            heroStatLast.textContent = recent[0] ? formatSubmissionTime(recent[0].createdAt) : "--";
+            heroLedger.replaceChildren(...(recent.length ? recent : [{
+                title: "Waiting for offerings",
+                meta: "Submit work to populate this living ledger.",
+                body: "The newest pieces will appear here with their recorded times.",
+                createdAt: ""
+            }]).map(item => {
+                const article = document.createElement("article");
+                article.innerHTML = `
+                    <strong>${escapeHtml(item.title || "Untitled offering")}</strong>
+                    <span>${escapeHtml(item.meta || item.category || "offering")} · ${escapeHtml(item.body || "No description stored.")}</span>
+                    ${item.createdAt ? `<span>Submitted ${escapeHtml(formatSubmissionTime(item.createdAt))}</span>` : ""}
+                `;
+                return article;
+            }));
+        }
+
+        function renderSubmissionLedger() {
+            if (!submissionLedger) return;
+            const recent = recentOfferings(5);
+            if (!recent.length) {
+                submissionLedger.innerHTML = `
+                    <article>
+                        <strong>No offerings have been added yet.</strong>
+                        <span>Unlock the keeper console and add a piece to seed the submission ledger.</span>
+                    </article>
+                `;
+                return;
+            }
+            submissionLedger.innerHTML = "";
+            recent.forEach(item => {
+                const article = document.createElement("article");
+                article.innerHTML = `
+                    <strong>${escapeHtml(item.title || "Untitled offering")}</strong>
+                    <span>${escapeHtml(item.section || "portfolio")} · ${escapeHtml(item.category || "other")} · ${escapeHtml(item.meta || "")}</span>
+                    <span>Submitted ${escapeHtml(formatSubmissionTime(item.createdAt))}</span>
+                `;
+                submissionLedger.appendChild(article);
+            });
+        }
+
         function renderAll() {
             ["music", "writing", "visuals", "research"].forEach(renderSection);
+            renderPortfolioOverview();
+            renderSubmissionLedger();
         }
 
         function switchSection(name) {
@@ -1265,6 +1494,7 @@
             window.setTimeout(() => {
                 gate.classList.add("open");
                 document.body.classList.remove("locked");
+                document.body.classList.add("unlocked");
             }, 1450);
             window.setTimeout(() => {
                 titleSparkState.active = false;
