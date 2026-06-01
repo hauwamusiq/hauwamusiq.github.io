@@ -854,16 +854,76 @@
         }
         .archive-stream {
             display: grid;
+            gap: 18px;
+        }
+        .archive-summary {
+            display: grid;
             gap: 14px;
+            margin-bottom: 18px;
+        }
+        .archive-shelf {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .archive-shelf button {
+            border: 1px solid var(--line);
+            background: rgba(255,255,255,0.04);
+            color: var(--muted);
+            min-height: 38px;
+            padding: 0 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            font-size: 0.7rem;
+            font-weight: 900;
+        }
+        .archive-shelf button.active {
+            color: var(--ink);
+            border-color: rgba(246,204,114,0.42);
+            background: rgba(246,204,114,0.09);
+        }
+        .archive-shelf small {
+            align-self: center;
+            color: var(--muted);
+            font-size: 0.78rem;
+            letter-spacing: 0.04em;
+        }
+        .archive-group {
+            display: grid;
+            gap: 12px;
+            padding: 16px;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            background: rgba(255,255,255,0.025);
+        }
+        .archive-group-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+        }
+        .archive-group-head strong {
+            font-family: var(--ritual);
+            font-size: 0.92rem;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+        }
+        .archive-group-head span {
+            color: var(--muted);
+            font-size: 0.76rem;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
         }
         .archive-entry {
             border: 1px solid var(--line);
             background: var(--panel);
             backdrop-filter: blur(18px);
             padding: 16px;
-            border-radius: 8px;
+            border-radius: 10px;
             display: grid;
-            gap: 8px;
+            gap: 10px;
             box-shadow: 0 18px 50px rgba(0,0,0,0.12);
         }
         .archive-entry-head {
@@ -884,6 +944,19 @@
             text-transform: uppercase;
             white-space: nowrap;
         }
+        .archive-entry .archive-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            width: fit-content;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 999px;
+            padding: 5px 9px;
+            color: var(--muted);
+            font-size: 0.68rem;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+        }
         .archive-entry p {
             margin: 0;
             color: var(--muted);
@@ -896,6 +969,25 @@
             color: #d9ced8;
             font-size: 0.8rem;
             letter-spacing: 0.04em;
+        }
+        .archive-media {
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.08);
+            background: rgba(0,0,0,0.24);
+        }
+        .archive-media img,
+        .archive-media video,
+        .archive-media iframe {
+            display: block;
+            width: 100%;
+            border: 0;
+            aspect-ratio: 16 / 9;
+            background: #000;
+        }
+        .archive-media audio {
+            display: block;
+            width: 100%;
         }
         .archive-empty {
             border: 1px dashed var(--line);
@@ -937,6 +1029,7 @@
             .gallery { grid-template-columns: repeat(2, minmax(0, 1fr)); }
             .section-head { display: block; }
             .section-head p { margin-top: 14px; }
+            .archive-group-head { align-items: flex-start; flex-direction: column; }
             .hero::before, .hero::after { opacity: 0.72; }
             .sanctum-aura {
                 opacity: 0.76;
@@ -952,6 +1045,7 @@
             .gallery { grid-template-columns: 1fr; }
             .hero-ornaments { gap: 8px; margin-top: 22px; }
             .hero::before, .hero::after { opacity: 0.54; }
+            .archive-group { padding: 13px; }
             .gate-copy {
                 width: min(100% - 24px, 560px);
                 padding: 28px 10px;
@@ -1173,6 +1267,10 @@
                     <h2>Curated archive</h2>
                     <p>A single river of offerings across all chambers, ordered by arrival so the portfolio can be read as a living chronology.</p>
                 </div>
+                <div class="archive-summary">
+                    <div class="archive-shelf" id="archive-shelf" aria-label="Archive filters"></div>
+                    <small id="archive-summary-note">Showing the full living archive.</small>
+                </div>
                 <div class="archive-stream" id="archive-stream" aria-label="Curated archive"></div>
             </section>
 
@@ -1299,6 +1397,7 @@
             published: [],
             local: loadLocalOfferings(),
             filters: { music: "all", writing: "all", research: "all" },
+            archiveFilter: "all",
             keeper: false
         };
 
@@ -1311,6 +1410,8 @@
         const heroStatRecent = $("hero-stat-recent");
         const heroStatLast = $("hero-stat-last");
         const heroLedger = $("hero-ledger");
+        const archiveShelf = $("archive-shelf");
+        const archiveSummaryNote = $("archive-summary-note");
         const archiveStream = $("archive-stream");
         const submissionLedger = $("submission-ledger");
         const submitStatus = $("submit-status");
@@ -1564,6 +1665,52 @@
                 .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
         }
 
+        function archiveVisibleItems() {
+            const filter = state.archiveFilter || "all";
+            return archiveItems().filter(item => filter === "all" || item.section === filter);
+        }
+
+        function archiveGroupKey(item) {
+            const date = new Date(item.createdAt || 0);
+            if (Number.isNaN(date.getTime())) return "Undated";
+            return date.toLocaleDateString([], { month: "short", year: "numeric" });
+        }
+
+        function archiveFilterLabel(value) {
+            if (value === "all") return "All";
+            if (value === "music") return "Music";
+            if (value === "writing") return "Writing";
+            if (value === "visuals") return "Visuals";
+            if (value === "research") return "Research";
+            return value;
+        }
+
+        function renderArchiveShelf() {
+            if (!archiveShelf) return;
+            const items = archiveItems();
+            const counts = {
+                all: items.length,
+                music: items.filter(item => item.section === "music").length,
+                writing: items.filter(item => item.section === "writing").length,
+                visuals: items.filter(item => item.section === "visuals").length,
+                research: items.filter(item => item.section === "research").length
+            };
+            archiveShelf.replaceChildren(...["all", "music", "writing", "visuals", "research"].map(value => {
+                const button = document.createElement("button");
+                button.type = "button";
+                button.dataset.filter = value;
+                button.className = state.archiveFilter === value ? "active" : "";
+                button.textContent = `${archiveFilterLabel(value)} (${String(counts[value] || 0).padStart(2, "0")})`;
+                return button;
+            }));
+            if (archiveSummaryNote) {
+                const active = archiveFilterLabel(state.archiveFilter || "all");
+                archiveSummaryNote.textContent = state.archiveFilter === "all"
+                    ? "Showing the full living archive."
+                    : `Showing only ${active.toLowerCase()} offerings.`;
+            }
+        }
+
         function inferSectionFromKind(item) {
             if (!item) return "writing";
             if (item.kind === "sound-card" || item.kind === "track-card") return "music";
@@ -1637,7 +1784,7 @@
 
         function renderArchiveStream() {
             if (!archiveStream) return;
-            const items = archiveItems().slice(0, 18);
+            const items = archiveVisibleItems().slice(0, 18);
             if (!items.length) {
                 archiveStream.innerHTML = `
                     <div class="archive-empty">
@@ -1647,30 +1794,51 @@
                 return;
             }
             archiveStream.innerHTML = "";
-            items.forEach(item => {
-                const entry = document.createElement("article");
-                entry.className = "archive-entry";
-                entry.innerHTML = `
-                    <div class="archive-entry-head">
-                        <strong>${escapeHtml(item.title || "Untitled offering")}</strong>
-                        <small>${escapeHtml(item.section || "archive")}</small>
+            const groups = items.reduce((map, item) => {
+                const key = archiveGroupKey(item);
+                if (!map.has(key)) map.set(key, []);
+                map.get(key).push(item);
+                return map;
+            }, new Map());
+            [...groups.entries()].forEach(([key, entries]) => {
+                const group = document.createElement("section");
+                group.className = "archive-group";
+                group.innerHTML = `
+                    <div class="archive-group-head">
+                        <strong>${escapeHtml(key)}</strong>
+                        <span>${entries.length} ${entries.length === 1 ? "offering" : "offerings"}</span>
                     </div>
-                    <div class="archive-meta">
-                        <span>${escapeHtml(item.category || "other")}</span>
-                        <span>${escapeHtml(item.meta || "")}</span>
-                        <span>${escapeHtml(item.createdAt ? formatSubmissionTime(item.createdAt) : "undated")}</span>
-                    </div>
-                    <p>${escapeHtml(item.body || "No description stored.")}</p>
                 `;
-                const media = createMediaNode(item);
-                if (media) entry.appendChild(media);
-                archiveStream.appendChild(entry);
+                entries.forEach(item => {
+                    const entry = document.createElement("article");
+                    entry.className = "archive-entry";
+                    entry.innerHTML = `
+                        <div class="archive-entry-head">
+                            <strong>${escapeHtml(item.title || "Untitled offering")}</strong>
+                            <small>${escapeHtml(item.section || "archive")}</small>
+                        </div>
+                        <div class="archive-pill">${escapeHtml(item.category || "other")} · ${escapeHtml(item.meta || "")}</div>
+                        <div class="archive-meta">
+                            <span>${escapeHtml(item.createdAt ? formatSubmissionTime(item.createdAt) : "undated")}</span>
+                            ${item.edgeId ? `<span>Edge #${escapeHtml(String(item.edgeId))}</span>` : ""}
+                        </div>
+                        <p>${escapeHtml(item.body || "No description stored.")}</p>
+                    `;
+                    const media = createMediaNode(item);
+                    if (media) {
+                        media.classList.add("archive-media");
+                        entry.appendChild(media);
+                    }
+                    group.appendChild(entry);
+                });
+                archiveStream.appendChild(group);
             });
         }
 
         function renderAll() {
             ["music", "writing", "visuals", "research"].forEach(renderSection);
             renderPortfolioOverview();
+            renderArchiveShelf();
             renderSubmissionLedger();
             renderArchiveStream();
         }
@@ -1692,6 +1860,13 @@
                     renderSection(key);
                 });
             });
+        });
+        archiveShelf?.addEventListener("click", event => {
+            const button = event.target.closest("button[data-filter]");
+            if (!button) return;
+            state.archiveFilter = button.dataset.filter || "all";
+            renderArchiveShelf();
+            renderArchiveStream();
         });
 
         $("enter-btn").addEventListener("click", () => {
