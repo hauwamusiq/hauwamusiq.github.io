@@ -584,6 +584,86 @@
             font-size: 0.9rem;
             line-height: 1.65;
         }
+        .viewer-playback {
+            display: grid;
+            gap: 10px;
+            margin-top: 14px;
+            padding: 14px;
+            border: 1px solid var(--line);
+            background: rgba(255,255,255,0.03);
+        }
+        .playback-header {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .playback-header strong {
+            font-size: 0.92rem;
+        }
+        .playback-header span {
+            color: var(--muted);
+            font-size: 0.8rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+        .playback-rail {
+            position: relative;
+            height: 10px;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.06);
+            overflow: hidden;
+        }
+        .playback-rail > i {
+            display: block;
+            height: 100%;
+            width: 0%;
+            border-radius: inherit;
+            background: linear-gradient(90deg, rgba(255,95,135,0.85), rgba(100,216,212,0.9));
+            box-shadow: 0 0 18px rgba(255,95,135,0.28);
+            transition: width 180ms ease;
+        }
+        .playback-meta {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+            color: var(--muted);
+            font-size: 0.82rem;
+        }
+        .playback-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .playback-timeline {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 10px;
+        }
+        .playback-beat {
+            padding: 10px 12px;
+            border: 1px solid var(--line);
+            background: rgba(255,255,255,0.03);
+            display: grid;
+            gap: 4px;
+            min-width: 0;
+        }
+        .playback-beat.active {
+            border-color: rgba(255,95,135,0.4);
+            background: rgba(255,95,135,0.12);
+        }
+        .playback-beat strong {
+            font-size: 0.84rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+        .playback-beat span {
+            color: var(--muted);
+            font-size: 0.8rem;
+            line-height: 1.5;
+        }
         .viewer-sidebar {
             display: grid;
             gap: 10px;
@@ -854,6 +934,7 @@
                     <button type="button" data-phase-target="publish">Publish</button>
                     <button type="button" data-phase-target="review">Review</button>
                     <button type="button" data-phase-target="templates">Templates</button>
+                    <button type="button" data-phase-target="automation">Automation</button>
                 </div>
 
                 <div class="panel storyboard-editor phase-panel active" data-phase-panel="storyboard">
@@ -956,6 +1037,24 @@
                                 <b>Render preview</b>
                                 <h3 id="viewer-title">Select a scene to watch its composition here.</h3>
                                 <p id="viewer-description">Phase 4 is where the scene becomes watchable. The backend render pipeline can later swap this preview for a real player or generated clip.</p>
+                                <div class="viewer-playback" aria-label="Playback controls">
+                                    <div class="playback-header">
+                                        <strong id="playback-title">Playback idle</strong>
+                                        <span id="playback-state">paused</span>
+                                    </div>
+                                    <div class="playback-rail" aria-hidden="true"><i id="playback-progress"></i></div>
+                                    <div class="playback-meta">
+                                        <span id="playback-frame">Beat 01 of 03</span>
+                                        <span id="playback-clock">00:00</span>
+                                    </div>
+                                    <div class="playback-actions">
+                                        <button class="button" type="button" id="playback-prev-btn">Previous</button>
+                                        <button class="button primary" type="button" id="playback-play-btn">Play</button>
+                                        <button class="button" type="button" id="playback-next-btn">Next</button>
+                                        <button class="button" type="button" id="playback-reset-btn">Reset</button>
+                                    </div>
+                                    <div class="playback-timeline" id="playback-timeline" aria-label="Storyboard timeline"></div>
+                                </div>
                             </div>
                         </div>
                         <div class="viewer-sidebar">
@@ -1114,6 +1213,79 @@
                         </div>
                     </div>
                 </div>
+
+                <div class="panel history phase-panel" data-phase-panel="automation">
+                    <div class="surface-head">
+                        <strong>Automation engine</strong>
+                        <span>Phase 10: rules, triggers, and run now</span>
+                    </div>
+                    <div class="history-list">
+                        <div class="history-item">
+                            <strong>Create a rule</strong>
+                            <span>Define how a scene should move through render, archive, clone, or export when the trigger fires.</span>
+                            <div class="form-grid" style="margin-top: 12px;">
+                                <div class="field">
+                                    <label for="automation-title">Rule title</label>
+                                    <input id="automation-title" maxlength="180" placeholder="Example: Auto render after review">
+                                </div>
+                                <div class="field">
+                                    <label for="automation-trigger">Trigger type</label>
+                                    <select id="automation-trigger">
+                                        <option value="manual">Manual</option>
+                                        <option value="review">After review</option>
+                                        <option value="archive">After archive</option>
+                                        <option value="schedule">Scheduled</option>
+                                    </select>
+                                </div>
+                                <div class="field">
+                                    <label for="automation-source-kind">Source kind</label>
+                                    <select id="automation-source-kind">
+                                        <option value="scene">Latest scene</option>
+                                        <option value="template">Template</option>
+                                        <option value="review">Review selection</option>
+                                        <option value="bundle">Bundle JSON</option>
+                                    </select>
+                                </div>
+                                <div class="field">
+                                    <label for="automation-action-kind">Action</label>
+                                    <select id="automation-action-kind">
+                                        <option value="render">Render job</option>
+                                        <option value="archive">Archive scene</option>
+                                        <option value="clone">Clone scene</option>
+                                        <option value="export">Export bundle</option>
+                                    </select>
+                                </div>
+                                <div class="field full">
+                                    <label for="automation-source-ref">Source reference</label>
+                                    <input id="automation-source-ref" maxlength="180" placeholder="Optional scene id, template id, or selection hint">
+                                </div>
+                                <div class="field full">
+                                    <label for="automation-schedule-cron">Schedule cron</label>
+                                    <input id="automation-schedule-cron" maxlength="180" placeholder="Optional cron expression, for example */30 * * * *">
+                                </div>
+                                <div class="field full">
+                                    <label for="automation-notes">Rule notes</label>
+                                    <textarea id="automation-notes" maxlength="4000" placeholder="What the rule does, when it should run, and any guardrails."></textarea>
+                                </div>
+                            </div>
+                            <div class="archive-actions">
+                                <button class="button primary" type="button" id="create-automation-btn">Create rule</button>
+                                <button class="button" type="button" id="run-automation-btn">Run now</button>
+                                <button class="button" type="button" id="refresh-automation-btn">Refresh rules</button>
+                            </div>
+                        </div>
+                        <div class="history-item">
+                            <strong>Automation rules</strong>
+                            <span>Rules stay local-first and sync to the edge when owner credentials are available.</span>
+                        </div>
+                        <div class="history-list" id="automation-list">
+                            <div class="history-item">
+                                <strong>No automation rules yet.</strong>
+                                <span>Create a rule to connect a trigger to a scene action.</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </section>
 
@@ -1190,8 +1362,19 @@
         const resetAssetButton = document.getElementById("reset-asset-btn");
         const viewerTitle = document.getElementById("viewer-title");
         const viewerDescription = document.getElementById("viewer-description");
+        const viewerStage = document.getElementById("viewer-stage");
         const viewerPhase = document.getElementById("viewer-phase");
         const viewerStatus = document.getElementById("viewer-status");
+        const playbackTitle = document.getElementById("playback-title");
+        const playbackState = document.getElementById("playback-state");
+        const playbackFrame = document.getElementById("playback-frame");
+        const playbackClock = document.getElementById("playback-clock");
+        const playbackProgress = document.getElementById("playback-progress");
+        const playbackTimeline = document.getElementById("playback-timeline");
+        const playbackPrevButton = document.getElementById("playback-prev-btn");
+        const playbackPlayButton = document.getElementById("playback-play-btn");
+        const playbackNextButton = document.getElementById("playback-next-btn");
+        const playbackResetButton = document.getElementById("playback-reset-btn");
         const watchSceneButton = document.getElementById("watch-scene-btn");
         const markReadyButton = document.getElementById("mark-ready-btn");
         const archiveList = document.getElementById("archive-list");
@@ -1211,6 +1394,17 @@
         const refreshReviewButton = document.getElementById("refresh-review-btn");
         const saveTemplateButton = document.getElementById("save-template-btn");
         const templateList = document.getElementById("template-list");
+        const automationTitle = document.getElementById("automation-title");
+        const automationTrigger = document.getElementById("automation-trigger");
+        const automationSourceKind = document.getElementById("automation-source-kind");
+        const automationSourceRef = document.getElementById("automation-source-ref");
+        const automationActionKind = document.getElementById("automation-action-kind");
+        const automationScheduleCron = document.getElementById("automation-schedule-cron");
+        const automationNotes = document.getElementById("automation-notes");
+        const createAutomationButton = document.getElementById("create-automation-btn");
+        const runAutomationButton = document.getElementById("run-automation-btn");
+        const refreshAutomationButton = document.getElementById("refresh-automation-btn");
+        const automationList = document.getElementById("automation-list");
         const LOCAL_KEY = "tilelli-anime-scenes";
         const STORYBOARD_KEY = "tilelli-anime-storyboard";
         const ASSET_KEY = "tilelli-anime-assets";
@@ -1218,14 +1412,20 @@
         const RENDER_KEY = "tilelli-anime-render-jobs";
         const RENDER_DRAFT_KEY = "tilelli-anime-render-draft";
         const TEMPLATE_KEY = "tilelli-anime-templates";
+        const AUTOMATION_KEY = "tilelli-anime-automation-rules";
+        const AUTOMATION_DRAFT_KEY = "tilelli-anime-automation-draft";
         const PHASE_KEY = "tilelli-anime-phase";
         const OWNER_KEY = "tilelli-owner-key";
         const phaseButtons = Array.from(document.querySelectorAll("[data-phase-target]"));
         const phasePanels = Array.from(document.querySelectorAll("[data-phase-panel]"));
         let latestScene = null;
+        let playbackIndex = 0;
+        let playbackTimer = null;
+        let playbackPlaying = false;
+        let playbackSignature = "";
 
         function setWorkspacePhase(phase) {
-            const nextPhase = ["storyboard", "assets", "render", "queue", "archive", "publish", "review", "templates"].includes(phase) ? phase : "storyboard";
+            const nextPhase = ["storyboard", "assets", "render", "queue", "archive", "publish", "review", "templates", "automation"].includes(phase) ? phase : "storyboard";
             phaseButtons.forEach(button => {
                 button.classList.toggle("active", button.dataset.phaseTarget === nextPhase);
             });
@@ -1240,18 +1440,117 @@
             updateViewer(latestScene);
         }
 
-        function updateViewer(scene = latestScene) {
+        function playbackAccent(payload) {
+            return payload.setting === "orbital-lab"
+                ? "radial-gradient(circle at 20% 20%, rgba(100,216,212,0.18), transparent 26%), radial-gradient(circle at 80% 36%, rgba(159,134,255,0.14), transparent 22%), linear-gradient(145deg, rgba(255,255,255,0.06), rgba(0,0,0,0.18))"
+                : payload.setting === "shrine-forest"
+                    ? "radial-gradient(circle at 22% 20%, rgba(201,242,95,0.16), transparent 26%), radial-gradient(circle at 78% 28%, rgba(245,185,95,0.14), transparent 22%), linear-gradient(145deg, rgba(255,255,255,0.06), rgba(0,0,0,0.18))"
+                    : "radial-gradient(circle at 18% 18%, rgba(255,95,135,0.18), transparent 28%), radial-gradient(circle at 80% 28%, rgba(100,216,212,0.12), transparent 24%), linear-gradient(145deg, rgba(255,255,255,0.06), rgba(0,0,0,0.18))";
+        }
+
+        function playbackSequence(scene = latestScene) {
             const payload = scene ? normalizeScene(scene) : normalizeScene(currentPayload());
-            const storyboard = readStoryboard();
-            latestScene = scene || latestScene;
+            const storyboard = Array.isArray(payload.storyboard) && payload.storyboard.length
+                ? payload.storyboard.map((item, index) => normalizeStoryboardItem(item, index, payload))
+                : scene
+                    ? generateStoryboard(payload)
+                    : readStoryboard();
+            return {
+                payload,
+                storyboard: storyboard.length ? storyboard : generateStoryboard(payload)
+            };
+        }
+
+        function stopPlayback() {
+            playbackPlaying = false;
+            if (playbackTimer) {
+                clearInterval(playbackTimer);
+                playbackTimer = null;
+            }
+        }
+
+        function startPlayback() {
+            const { storyboard } = playbackSequence();
+            if (storyboard.length < 2) {
+                playbackIndex = 0;
+                renderPlaybackPanel(latestScene);
+                return;
+            }
+            stopPlayback();
+            playbackPlaying = true;
+            renderPlaybackPanel(latestScene);
+            playbackTimer = setInterval(() => {
+                const next = playbackIndex + 1;
+                if (next >= storyboard.length) {
+                    stopPlayback();
+                    renderPlaybackPanel(latestScene);
+                    return;
+                }
+                playbackIndex = next;
+                renderPlaybackPanel(latestScene);
+            }, 2200);
+        }
+
+        function stepPlayback(direction) {
+            const { storyboard } = playbackSequence();
+            if (!storyboard.length) return;
+            playbackIndex = Math.max(0, Math.min(storyboard.length - 1, playbackIndex + direction));
+            renderPlaybackPanel(latestScene);
+        }
+
+        function renderPlaybackPanel(scene = latestScene) {
+            if (!viewerStage || !playbackTitle || !playbackState || !playbackFrame || !playbackClock || !playbackProgress || !playbackTimeline) {
+                return;
+            }
+            const { payload, storyboard } = playbackSequence(scene);
+            const signature = [
+                payload.title,
+                payload.prompt,
+                payload.setting,
+                payload.status,
+                storyboard.map(item => [item.title, item.camera, item.action, item.mood].join("~")).join("|")
+            ].join("::");
+            if (signature !== playbackSignature) {
+                playbackSignature = signature;
+                playbackIndex = 0;
+            }
+            const activeIndex = Math.min(playbackIndex, Math.max(0, storyboard.length - 1));
+            const active = storyboard[activeIndex] || storyboard[0] || {};
+            const completed = storyboard.length ? ((activeIndex + 1) / storyboard.length) : 0;
+            if (document.querySelector("[data-phase-target].active")?.dataset.phaseTarget !== "render" && playbackPlaying) {
+                stopPlayback();
+            }
             viewerPhase.textContent = document.querySelector("[data-phase-target].active")?.textContent || "Storyboard";
             viewerStatus.textContent = payload.status ? `${payload.status} · ${payload.art_style || "scene"}` : "No scene queued";
             viewerTitle.textContent = payload.title || "Select a scene to watch its composition here.";
             viewerDescription.textContent = storyboard.length
-                ? `${storyboard[0]?.camera || "Wide establishing shot"} leads into ${storyboard[1]?.action || "the central motion"} and resolves with ${storyboard[2]?.mood || "a finished frame"}.`
+                ? `${active.camera || "Wide establishing shot"} · ${active.action || "the central motion"} · ${active.mood || "a finished frame"}`
                 : "Phase 4 is where the scene becomes watchable. The backend render pipeline can later swap this preview for a real player or generated clip.";
-            const accent = payload.setting === "orbital-lab" ? "radial-gradient(circle at 20% 20%, rgba(100,216,212,0.18), transparent 26%), radial-gradient(circle at 80% 36%, rgba(159,134,255,0.14), transparent 22%), linear-gradient(145deg, rgba(255,255,255,0.06), rgba(0,0,0,0.18))" : payload.setting === "shrine-forest" ? "radial-gradient(circle at 22% 20%, rgba(201,242,95,0.16), transparent 26%), radial-gradient(circle at 78% 28%, rgba(245,185,95,0.14), transparent 22%), linear-gradient(145deg, rgba(255,255,255,0.06), rgba(0,0,0,0.18))" : "radial-gradient(circle at 18% 18%, rgba(255,95,135,0.18), transparent 28%), radial-gradient(circle at 80% 28%, rgba(100,216,212,0.12), transparent 24%), linear-gradient(145deg, rgba(255,255,255,0.06), rgba(0,0,0,0.18))";
-            document.getElementById("viewer-stage").style.background = accent;
+            viewerStage.style.background = playbackAccent(payload);
+            playbackTitle.textContent = active.title || payload.title || "Playback idle";
+            playbackState.textContent = playbackPlaying ? "playing" : "paused";
+            playbackFrame.textContent = storyboard.length
+                ? `Beat ${String(activeIndex + 1).padStart(2, "0")} of ${String(storyboard.length).padStart(2, "0")}`
+                : "Beat 00 of 00";
+            playbackClock.textContent = storyboard.length ? `${String(activeIndex + 1).padStart(2, "0")}:00` : "00:00";
+            playbackProgress.style.width = `${Math.max(0, Math.min(100, completed * 100))}%`;
+            playbackPlayButton.textContent = playbackPlaying ? "Pause" : "Play";
+            playbackTimeline.innerHTML = storyboard.length ? storyboard.map((item, index) => `
+                <article class="playback-beat${index === activeIndex ? " active" : ""}" data-playback-index="${index}">
+                    <strong>${escapeHtml(item.title || `Beat ${String(index + 1).padStart(2, "0")}`)}</strong>
+                    <span>${escapeHtml(item.camera || "Camera note pending")}</span>
+                </article>
+            `).join("") : `
+                <article class="playback-beat active">
+                    <strong>Awaiting storyboard</strong>
+                    <span>Define the three beats above to populate the playback strip.</span>
+                </article>
+            `;
+        }
+
+        function updateViewer(scene = latestScene) {
+            latestScene = scene || latestScene;
+            renderPlaybackPanel(scene);
         }
 
         function renderArchive() {
@@ -2112,6 +2411,339 @@
             setWorkspacePhase("templates");
         }
 
+        function automationRuleSignature(rule) {
+            return [
+                rule.title || "",
+                rule.trigger_type || "",
+                rule.source_kind || "",
+                rule.source_ref || "",
+                rule.action_kind || "",
+                rule.schedule_cron || "",
+                rule.status || "",
+                rule.payload_json || ""
+            ].join("|");
+        }
+
+        function normalizeAutomationRule(rule) {
+            return {
+                id: rule.id || rule.edge_id || rule.title || `automation-${Date.now()}`,
+                title: rule.title || "Untitled rule",
+                trigger_type: rule.trigger_type || rule.triggerType || "manual",
+                source_kind: rule.source_kind || rule.sourceKind || "scene",
+                source_ref: rule.source_ref || rule.sourceRef || "",
+                action_kind: rule.action_kind || rule.actionKind || "render",
+                schedule_cron: rule.schedule_cron || rule.scheduleCron || "",
+                status: rule.status || "active",
+                payload_json: rule.payload_json || rule.payloadJson || "{}",
+                notes: rule.notes || "",
+                source: rule.source || "anime-html",
+                created_at: rule.created_at || rule.createdAt || new Date().toISOString(),
+                updated_at: rule.updated_at || rule.updatedAt || new Date().toISOString(),
+                edge_id: rule.edge_id || rule.id || null
+            };
+        }
+
+        function loadAutomationRules() {
+            const stored = readStore(AUTOMATION_KEY, []);
+            return Array.isArray(stored) ? stored.map(normalizeAutomationRule) : [];
+        }
+
+        function commitAutomationRules(rules) {
+            const next = uniqueBy(rules.map(normalizeAutomationRule), automationRuleSignature).slice(0, 24);
+            writeStore(AUTOMATION_KEY, next);
+            renderAutomationRules(next);
+            return next;
+        }
+
+        function saveLocalAutomationRule(rule) {
+            commitAutomationRules([normalizeAutomationRule(rule), ...loadAutomationRules()]);
+        }
+
+        function loadLocalAutomationRules() {
+            commitAutomationRules(loadAutomationRules());
+        }
+
+        function readAutomationDraft() {
+            return {
+                title: automationTitle.value.trim(),
+                trigger_type: automationTrigger.value,
+                source_kind: automationSourceKind.value,
+                source_ref: automationSourceRef.value.trim(),
+                action_kind: automationActionKind.value,
+                schedule_cron: automationScheduleCron.value.trim(),
+                notes: automationNotes.value.trim(),
+                source: "anime-html"
+            };
+        }
+
+        function saveAutomationDraft() {
+            writeStore(AUTOMATION_DRAFT_KEY, readAutomationDraft());
+        }
+
+        function loadAutomationDraft() {
+            const draft = readStore(AUTOMATION_DRAFT_KEY, null);
+            automationTitle.value = draft?.title || "";
+            automationTrigger.value = draft?.trigger_type || "manual";
+            automationSourceKind.value = draft?.source_kind || "scene";
+            automationSourceRef.value = draft?.source_ref || "";
+            automationActionKind.value = draft?.action_kind || "render";
+            automationScheduleCron.value = draft?.schedule_cron || "";
+            automationNotes.value = draft?.notes || "";
+        }
+
+        function populateAutomationDraft(rule) {
+            const next = normalizeAutomationRule(rule);
+            automationTitle.value = next.title || "";
+            automationTrigger.value = next.trigger_type || "manual";
+            automationSourceKind.value = next.source_kind || "scene";
+            automationSourceRef.value = next.source_ref || "";
+            automationActionKind.value = next.action_kind || "render";
+            automationScheduleCron.value = next.schedule_cron || "";
+            automationNotes.value = next.notes || "";
+            saveAutomationDraft();
+        }
+
+        function renderAutomationRules(rules) {
+            if (!automationList) return;
+            if (!rules.length) {
+                automationList.innerHTML = `
+                    <div class="history-item">
+                        <strong>No automation rules yet.</strong>
+                        <span>Create a rule to connect a trigger to a scene action.</span>
+                    </div>
+                `;
+                return;
+            }
+            automationList.innerHTML = "";
+            rules.forEach(rule => {
+                const card = document.createElement("article");
+                card.className = "history-item";
+                card.dataset.signature = automationRuleSignature(rule);
+                card.innerHTML = `
+                    <strong>${escapeHtml(rule.title)}</strong>
+                    <span>${escapeHtml(rule.notes || "No notes saved.")}</span>
+                    <em>${escapeHtml(rule.trigger_type)} · ${escapeHtml(rule.source_kind)} · ${escapeHtml(rule.action_kind)}${rule.schedule_cron ? ` · ${escapeHtml(rule.schedule_cron)}` : ""}</em>
+                    <em>${escapeHtml(rule.status || "active")} · ${escapeHtml(rule.created_at)}</em>
+                    <div class="archive-actions">
+                        <button class="button" type="button" data-automation-apply>Apply</button>
+                        <button class="button primary" type="button" data-automation-run>Run now</button>
+                    </div>
+                `;
+                card.querySelector("[data-automation-apply]")?.addEventListener("click", () => populateAutomationDraft(rule));
+                card.querySelector("[data-automation-run]")?.addEventListener("click", () => runAutomationRule(rule));
+                automationList.appendChild(card);
+            });
+        }
+
+        async function loadRemoteAutomationRules() {
+            if (!window.TilelliEdge) return;
+            try {
+                const response = await window.TilelliEdge.request("/v1/anime/automations?limit=12");
+                const rules = response?.rules || response?.items || [];
+                if (Array.isArray(rules) && rules.length) {
+                    const localRules = loadAutomationRules();
+                    const merged = uniqueBy([...rules.reverse().map(normalizeAutomationRule), ...localRules], automationRuleSignature).slice(0, 24);
+                    commitAutomationRules(merged);
+                }
+                apiState.textContent = "Edge API: automation connected";
+            } catch {
+                apiState.textContent = "Edge API: automation offline";
+            }
+        }
+
+        async function submitAutomationRule() {
+            const draft = readAutomationDraft();
+            if (!draft.title) {
+                apiState.textContent = "Automation rule title is required.";
+                return null;
+            }
+            const rule = {
+                ...draft,
+                payload_json: JSON.stringify({
+                    title: draft.title,
+                    trigger_type: draft.trigger_type,
+                    source_kind: draft.source_kind,
+                    source_ref: draft.source_ref,
+                    action_kind: draft.action_kind,
+                    schedule_cron: draft.schedule_cron,
+                    notes: draft.notes
+                }),
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+                source: "anime-html"
+            };
+            saveLocalAutomationRule(rule);
+            saveAutomationDraft();
+            setWorkspacePhase("automation");
+
+            if (!window.TilelliEdge) {
+                apiState.textContent = "Automation saved locally.";
+                return rule;
+            }
+
+            const ownerKey = localStorage.getItem(OWNER_KEY) || "";
+            if (!ownerKey) {
+                apiState.textContent = "Automation sync requires owner key.";
+                return rule;
+            }
+
+            try {
+                apiState.textContent = "Edge API: syncing automation rule";
+                const response = await window.TilelliEdge.request("/v1/anime/automations", {
+                    method: "POST",
+                    headers: { "X-Tilelli-Owner-Key": ownerKey },
+                    body: JSON.stringify({
+                        title: draft.title,
+                        trigger_type: draft.trigger_type,
+                        source_kind: draft.source_kind,
+                        source_ref: draft.source_ref,
+                        action_kind: draft.action_kind,
+                        schedule_cron: draft.schedule_cron,
+                        status: "active",
+                        payload: JSON.parse(rule.payload_json),
+                        notes: draft.notes,
+                        source: "anime-html"
+                    })
+                });
+                if (response?.id) {
+                    rule.edge_id = response.id;
+                    saveLocalAutomationRule(rule);
+                    apiState.textContent = `Edge API: automation rule #${response.id}`;
+                    await loadRemoteAutomationRules();
+                }
+            } catch {
+                apiState.textContent = "Edge API: automation saved locally";
+            }
+            return rule;
+        }
+
+        function buildAutomationBundle(rule) {
+            const bundle = buildSceneBundle();
+            return {
+                ...bundle,
+                automation: normalizeAutomationRule(rule),
+                automation_trigger: rule.trigger_type,
+                automation_source_kind: rule.source_kind,
+                automation_source_ref: rule.source_ref,
+                automation_action_kind: rule.action_kind
+            };
+        }
+
+        async function queueRenderJobFromBundle(bundle, overrides = {}) {
+            const scene = normalizeScene(bundle?.scene || latestScene || currentPayload());
+            const storyboard = Array.isArray(bundle?.storyboard) && bundle.storyboard.length ? bundle.storyboard : readStoryboard();
+            const render = bundle?.render || {};
+            const job = {
+                scene_id: overrides.scene_id ?? render.scene_id ?? scene.edge_id ?? scene.id ?? null,
+                title: overrides.title || render.title || renderJobTitle.value.trim() || defaultRenderTitle(scene),
+                render_kind: overrides.render_kind || render.render_kind || renderKind.value || "clip",
+                status: "queued",
+                bundle_json: JSON.stringify(bundle),
+                output_url: "",
+                thumbnail_url: "",
+                error: "",
+                source: overrides.source || "anime-html",
+                created_at: new Date().toISOString()
+            };
+
+            saveLocalRenderJob(job);
+            latestScene = normalizeScene({
+                ...scene,
+                status: "rendering",
+                storyboard
+            });
+            saveLocalHistory(latestScene);
+            loadLocalHistory();
+            updateViewer(latestScene);
+            setWorkspacePhase("render");
+            queueState.textContent = `Queue: ${job.title}`;
+
+            if (!window.TilelliEdge) {
+                return job;
+            }
+
+            const ownerKey = localStorage.getItem(OWNER_KEY) || "";
+            if (!ownerKey) {
+                apiState.textContent = "Render job sync requires owner key.";
+                return job;
+            }
+
+            try {
+                apiState.textContent = "Edge API: syncing render job";
+                const response = await window.TilelliEdge.request("/v1/anime/renders", {
+                    method: "POST",
+                    headers: { "X-Tilelli-Owner-Key": ownerKey },
+                    body: JSON.stringify({
+                        scene_id: job.scene_id,
+                        title: job.title,
+                        render_kind: job.render_kind,
+                        status: "queued",
+                        bundle,
+                        source: job.source
+                    })
+                });
+                if (response?.id) {
+                    job.edge_id = response.id;
+                    saveLocalRenderJob(job);
+                    apiState.textContent = `Edge API: render job #${response.id}`;
+                    await loadRemoteRenderJobs();
+                } else {
+                    apiState.textContent = "Edge API: render queued";
+                }
+            } catch {
+                apiState.textContent = "Edge API: local render queue only";
+            }
+            return job;
+        }
+
+        async function runAutomationRule(rule) {
+            const automation = normalizeAutomationRule(rule);
+            const bundle = buildAutomationBundle(automation);
+            if (automation.action_kind === "archive") {
+                const sourceScene = normalizeScene(bundle.scene || latestScene || currentPayload());
+                sourceScene.status = "archived";
+                saveLocalHistory(sourceScene);
+                latestScene = sourceScene;
+                loadLocalHistory();
+                updateViewer(latestScene);
+                if (window.TilelliEdge && sourceScene.edge_id) {
+                    const ownerKey = localStorage.getItem(OWNER_KEY) || "";
+                    if (ownerKey) {
+                        try {
+                            await window.TilelliEdge.request(`/v1/anime/scenes/${sourceScene.edge_id}`, {
+                                method: "PATCH",
+                                headers: { "X-Tilelli-Owner-Key": ownerKey },
+                                body: JSON.stringify({ status: "archived", title: sourceScene.title, prompt: sourceScene.prompt })
+                            });
+                        } catch {
+                            // Keep local archive state.
+                        }
+                    }
+                }
+                apiState.textContent = `Automation ran: archived ${automation.title}`;
+                return { action: "archive", scene: sourceScene };
+            }
+            if (automation.action_kind === "clone") {
+                if (bundle?.scene) {
+                    cloneArchivedScene(bundle.scene);
+                    apiState.textContent = `Automation ran: cloned ${automation.title}`;
+                    return { action: "clone", scene: bundle.scene };
+                }
+            }
+            if (automation.action_kind === "export") {
+                downloadJson(`anime-automation-${Date.now()}.json`, bundle);
+                apiState.textContent = `Automation ran: exported ${automation.title}`;
+                return { action: "export", bundle };
+            }
+            const job = await queueRenderJobFromBundle(bundle, {
+                title: automation.title ? `${automation.title} render` : defaultRenderTitle(bundle.scene),
+                render_kind: "clip",
+                source: "anime-html-automation"
+            });
+            apiState.textContent = `Automation ran: render queued for ${automation.title}`;
+            return { action: "render", job };
+        }
+
         async function submitRenderJob() {
             const draft = readRenderJobDraft();
             const payload = draft.bundle;
@@ -2549,19 +3181,66 @@
             } else {
                 latestScene = normalizeScene(entry.item);
             }
+            stopPlayback();
+            playbackIndex = 0;
             updateViewer(latestScene);
             setWorkspacePhase("render");
+            startPlayback();
         });
         reopenReviewButton.addEventListener("click", reopenReviewSelection);
         refreshReviewButton.addEventListener("click", () => {
             refreshReviewSources();
             updateReviewPanel();
         });
+        playbackPrevButton.addEventListener("click", () => {
+            stopPlayback();
+            stepPlayback(-1);
+        });
+        playbackPlayButton.addEventListener("click", () => {
+            if (playbackPlaying) {
+                stopPlayback();
+                renderPlaybackPanel(latestScene);
+                return;
+            }
+            startPlayback();
+        });
+        playbackNextButton.addEventListener("click", () => {
+            stopPlayback();
+            stepPlayback(1);
+        });
+        playbackResetButton.addEventListener("click", () => {
+            stopPlayback();
+            playbackIndex = 0;
+            renderPlaybackPanel(latestScene);
+        });
         saveTemplateButton.addEventListener("click", saveTemplateFromCurrentScene);
+        automationTitle.addEventListener("input", saveAutomationDraft);
+        automationTrigger.addEventListener("change", saveAutomationDraft);
+        automationSourceKind.addEventListener("change", saveAutomationDraft);
+        automationSourceRef.addEventListener("input", saveAutomationDraft);
+        automationActionKind.addEventListener("change", saveAutomationDraft);
+        automationScheduleCron.addEventListener("input", saveAutomationDraft);
+        automationNotes.addEventListener("input", saveAutomationDraft);
+        createAutomationButton.addEventListener("click", submitAutomationRule);
+        runAutomationButton.addEventListener("click", async () => {
+            const rule = await submitAutomationRule();
+            if (rule) {
+                await runAutomationRule(rule);
+            }
+        });
+        refreshAutomationButton.addEventListener("click", async () => {
+            loadLocalAutomationRules();
+            await loadRemoteAutomationRules();
+        });
         phaseButtons.forEach(button => {
             button.addEventListener("click", () => setWorkspacePhase(button.dataset.phaseTarget));
         });
-        watchSceneButton.addEventListener("click", () => setWorkspacePhase("render"));
+        watchSceneButton.addEventListener("click", () => {
+            stopPlayback();
+            playbackIndex = 0;
+            setWorkspacePhase("render");
+            startPlayback();
+        });
         markReadyButton.addEventListener("click", () => {
             if (!latestScene) return;
             latestScene.status = "ready";
@@ -2595,12 +3274,17 @@
         loadAssetDraft();
         loadRenderJobDraft();
         loadLocalRenderJobs();
+        loadAutomationDraft();
+        loadLocalAutomationRules();
         refreshReviewSources();
         updateReviewPanel();
+        renderPlaybackPanel();
         renderTemplateLibrary();
+        renderAutomationRules(loadAutomationRules());
         renderAssetPreview(readAssetDraft());
         loadRemoteHistory();
         loadRemoteRenderJobs();
+        loadRemoteAutomationRules();
         if (window.TilelliEdge) {
             window.TilelliEdge.event("anime.page.view", { surface: "generator" });
         }

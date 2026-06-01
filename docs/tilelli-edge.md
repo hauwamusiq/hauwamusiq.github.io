@@ -6,6 +6,7 @@ This repo now has the base structure for Cloudflare-backed edge endpoints:
 - `workers/tilelli-api/schema/0001_initial.sql`: D1 schema.
 - `workers/tilelli-api/wrangler.toml`: Worker, D1, and cron config.
 - `anime.html`: Prompt-driven anime scene generator foundation with local storyboard, asset editing, render-job tracking, playback review, and template reuse.
+- `anime.html`: Prompt-driven anime scene generator foundation with local storyboard, asset editing, render-job tracking, playback review, template reuse, and automation rules.
 - `agents/tilelli/base-agent.json`: Base capability map.
 - `agents/tilelli/coding-agent.json`: Coding-agent harness contract.
 - `agents/tilelli/forms/coding-task.request.json`: Example coding-task request.
@@ -162,3 +163,21 @@ Template reuse adds starter scenes:
 - browse built-in and saved templates
 - apply a template back into the intake form
 - keep recurring looks and scene structures available without copy-paste
+
+## Anime Scene Phase 10
+
+Automation turns the workspace into a rule-driven studio:
+
+- create rules for render, archive, clone, or export actions
+- save rules locally and sync them to the edge when owner credentials are available
+- run a rule immediately from the automation panel
+- archive scenes remotely through `PATCH /v1/anime/scenes/:id`
+
+## Portfolio Submission Flow
+
+`tilaelia.html` now supports richer private submissions:
+
+- text-only poetry or essays
+- image, audio, or video attachments via file upload
+- automatic local timestamps on submitted entries
+- optional edge publication to `/v1/portfolio/entries` when owner credentials are configured

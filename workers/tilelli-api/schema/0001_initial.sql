@@ -117,6 +117,24 @@ CREATE TABLE IF NOT EXISTS anime_render_jobs (
 
 CREATE INDEX IF NOT EXISTS idx_anime_render_jobs_status_created ON anime_render_jobs(status, created_at);
 CREATE INDEX IF NOT EXISTS idx_anime_render_jobs_scene_created ON anime_render_jobs(scene_id, created_at);
+CREATE TABLE IF NOT EXISTS anime_automation_rules (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  title TEXT NOT NULL,
+  trigger_type TEXT NOT NULL DEFAULT 'manual' CHECK (trigger_type IN ('manual', 'review', 'archive', 'schedule')),
+  source_kind TEXT NOT NULL DEFAULT 'scene' CHECK (source_kind IN ('scene', 'template', 'review', 'bundle')),
+  source_ref TEXT NOT NULL DEFAULT '',
+  action_kind TEXT NOT NULL DEFAULT 'render' CHECK (action_kind IN ('render', 'archive', 'clone', 'export')),
+  schedule_cron TEXT NOT NULL DEFAULT '',
+  status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'paused', 'archived')),
+  payload_json TEXT NOT NULL DEFAULT '{}',
+  notes TEXT NOT NULL DEFAULT '',
+  source TEXT NOT NULL DEFAULT 'anime-html',
+  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_anime_automation_rules_status_created ON anime_automation_rules(status, created_at);
+CREATE INDEX IF NOT EXISTS idx_anime_automation_rules_trigger_created ON anime_automation_rules(trigger_type, created_at);
 CREATE INDEX IF NOT EXISTS idx_physics_notes_status ON physics_notes(status, created_at);
 CREATE INDEX IF NOT EXISTS idx_dashboard_reminders_status_due ON dashboard_reminders(status, due_at);
 CREATE INDEX IF NOT EXISTS idx_agent_runs_type_created ON agent_runs(run_type, created_at);

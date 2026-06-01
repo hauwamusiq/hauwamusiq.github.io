@@ -99,6 +99,16 @@
             0%, 58% { opacity: 1; visibility: visible; }
             100% { opacity: 0; visibility: hidden; }
         }
+        @media (max-width: 620px) {
+            #gate.entering .gate-copy {
+                animation: gateDiveMobile 1.08s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+            }
+            @keyframes gateDiveMobile {
+                0% { transform: translate3d(0, 0, 0) scale(1); opacity: 1; filter: blur(0); }
+                62% { transform: translate3d(0, 0, 0) scale(1.2); opacity: 0.96; filter: blur(0.3px); }
+                100% { transform: translate3d(0, 0, 0) scale(1.68); opacity: 0; filter: blur(7px); }
+            }
+        }
         #gate-canvas {
             position: absolute;
             inset: 0;
@@ -903,7 +913,7 @@
                             </div>
                             <div class="field">
                                 <label for="submit-category">Category</label>
-                                <input id="submit-category" placeholder="poem, sounds, tracks, physics, gallery...">
+                                <input id="submit-category" placeholder="poem, poetry, picture, sounds, tracks, physics, gallery...">
                             </div>
                             <div class="field">
                                 <label for="submit-title">Title</label>
@@ -927,6 +937,11 @@
                                 <label for="submit-media-url">Content URL</label>
                                 <input id="submit-media-url" placeholder="https://...">
                                 <small>Use a public audio, video, image, essay, SoundCloud, YouTube, Drive, or archive URL. Browser-only file uploads cannot publish to GitHub Pages.</small>
+                            </div>
+                            <div class="field">
+                                <label for="submit-media-file">File upload</label>
+                                <input id="submit-media-file" type="file" accept="image/*,audio/*,video/*">
+                                <small>Select an image, track, or clip to save it into your local portfolio draft. Text submissions like poetry can remain URL-free.</small>
                             </div>
                         </div>
                         <div class="field" style="margin-top:12px;">
@@ -987,6 +1002,8 @@
         const $ = id => document.getElementById(id);
         const sectionTargets = { music: "music-grid", writing: "writing-grid", visuals: "visual-grid", research: "research-grid" };
         const keeperHash = "tilleli";
+        const edgeOwnerKeyStorage = "tilelli-owner-key";
+        const submitMediaFile = $("submit-media-file");
 
         function loadLocalOfferings() {
             try {
@@ -1001,10 +1018,11 @@
         function normalizeOffering(item) {
             if (!item || !baseData[item.section] || !item.title) return null;
             const section = item.section;
-            const mediaType = String(item.mediaType || "").trim().toLowerCase();
+            const mediaType = String(item.mediaType || item.media_type || "").trim().toLowerCase();
             const rawCategory = String(item.category || defaultCategory(section)).trim().toLowerCase();
-            const category = routeCategory(section, rawCategory, mediaType, item.mediaUrl);
-            const createdAt = item.createdAt || new Date().toISOString();
+            const mediaUrl = String(item.mediaUrl || item.media_url || "").trim();
+            const category = routeCategory(section, rawCategory, mediaType, mediaUrl);
+            const createdAt = item.createdAt || item.created_at || new Date().toISOString();
             return {
                 section,
                 category,
@@ -1012,17 +1030,18 @@
                 meta: withTimestamp(String(item.meta || category).trim(), createdAt),
                 body: String(item.body || "").trim(),
                 mediaType,
-                mediaUrl: String(item.mediaUrl || "").trim(),
+                mediaUrl,
                 createdAt,
-                kind: item.kind || defaultKind(section, category)
+                kind: item.kind || item.cardKind || defaultKind(section, category),
+                edgeId: item.edgeId || item.edge_id || item.id || null
             };
         }
 
         function routeCategory(section, category, mediaType, mediaUrl) {
             const inferred = mediaType || inferMediaType(String(mediaUrl || ""));
-            const imageWords = ["sketch", "sketches", "painting", "paintings", "drawing", "drawings", "visual", "visuals", "art", "gallery", "image"];
+            const imageWords = ["sketch", "sketches", "painting", "paintings", "drawing", "drawings", "visual", "visuals", "art", "gallery", "image", "picture", "pictures", "photo", "photos"];
             const musicWords = ["music", "song", "songs", "sound", "sounds", "leak", "leaks", "track", "tracks", "audio"];
-            const writingWords = ["essay", "essays", "poem", "poems", "story", "stories", "writing", "writings"];
+            const writingWords = ["essay", "essays", "poem", "poems", "poetry", "story", "stories", "writing", "writings"];
             if (section === "visuals" || inferred === "image" || imageWords.includes(category)) return "gallery";
             if (section === "music" || inferred === "audio" || musicWords.includes(category)) return category === "track" || category === "tracks" ? "tracks" : "sounds";
             if (section === "writing" || writingWords.includes(category)) {
@@ -1053,6 +1072,15 @@
             } catch {
                 return false;
             }
+        }
+
+        async function fileToDataUrl(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(String(reader.result || ""));
+                reader.onerror = () => reject(reader.error || new Error("Unable to read file."));
+                reader.readAsDataURL(file);
+            });
         }
 
         function allItems(section) {
@@ -1087,6 +1115,9 @@
                     createTextNode("p", "", item.meta || item.category),
                     createTextNode("p", "", item.body)
                 );
+                if (item.createdAt) {
+                    body.appendChild(createTextNode("p", "", `Submitted ${formatSubmissionTime(item.createdAt)}`));
+                }
                 article.appendChild(body);
                 return article;
             }
@@ -1099,9 +1130,18 @@
                 createTextNode("h3", "", item.title),
                 createTextNode("p", "", item.body)
             );
+            if (item.createdAt) {
+                article.appendChild(createTextNode("p", "meta", `Submitted ${formatSubmissionTime(item.createdAt)}`));
+            }
             const media = createMediaNode(item);
             if (media) article.appendChild(media);
             return article;
+        }
+
+        function formatSubmissionTime(value) {
+            const date = new Date(value);
+            if (Number.isNaN(date.getTime())) return new Date().toLocaleString();
+            return date.toLocaleString([], { year: "numeric", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
         }
 
         function createMediaNode(item) {
@@ -1220,12 +1260,11 @@
 
         $("enter-btn").addEventListener("click", () => {
             const gate = $("gate");
+            if (gate.classList.contains("entering") || gate.classList.contains("open")) return;
             gate.classList.add("entering");
             window.setTimeout(() => {
-                document.body.classList.remove("locked");
-            }, 960);
-            window.setTimeout(() => {
                 gate.classList.add("open");
+                document.body.classList.remove("locked");
             }, 1450);
             window.setTimeout(() => {
                 titleSparkState.active = false;
@@ -1409,15 +1448,26 @@
             }
         });
 
-        $("submission-form").addEventListener("submit", event => {
+        $("submission-form").addEventListener("submit", async event => {
             event.preventDefault();
             if (!state.keeper) return;
             let section = $("submit-section").value;
             const mediaType = $("submit-media-type").value;
             const mediaUrl = $("submit-media-url").value.trim();
             const typedCategory = $("submit-category").value.trim().toLowerCase();
-            section = routeSection(section, typedCategory, mediaType, mediaUrl);
-            const category = routeCategory(section, typedCategory || defaultCategory(section), mediaType, mediaUrl);
+            const file = submitMediaFile?.files?.[0] || null;
+            let mediaPayload = mediaUrl;
+            let mediaKind = mediaType;
+            if (file) {
+                try {
+                    mediaPayload = await fileToDataUrl(file);
+                    mediaKind = file.type ? file.type.split("/")[0] : mediaType || inferMediaType(file.name);
+                } catch {
+                    mediaPayload = "";
+                }
+            }
+            section = routeSection(section, typedCategory, mediaKind, mediaPayload || mediaUrl);
+            const category = routeCategory(section, typedCategory || defaultCategory(section), mediaKind, mediaPayload || mediaUrl);
             if (!baseData[section]) return;
             const item = {
                 section,
@@ -1425,8 +1475,8 @@
                 title: $("submit-title").value.trim() || "Untitled Offering",
                 meta: $("submit-meta").value.trim() || category,
                 body: $("submit-body").value.trim(),
-                mediaType,
-                mediaUrl,
+                mediaType: mediaKind,
+                mediaUrl: mediaPayload || mediaUrl,
                 createdAt: new Date().toISOString(),
                 kind: defaultKind(section, category)
             };
@@ -1436,6 +1486,35 @@
             const saved = saveLocalOfferings();
             event.target.reset();
             renderAll();
+            if (window.TilelliEdge) {
+                const ownerKey = localStorage.getItem(edgeOwnerKeyStorage) || "";
+                if (ownerKey && normalized.mediaUrl.length < 120000) {
+                    try {
+                        const response = await window.TilelliEdge.request("/v1/portfolio/entries", {
+                            method: "POST",
+                            headers: { "X-Tilelli-Owner-Key": ownerKey },
+                            body: JSON.stringify({
+                                section: normalized.section,
+                                category: normalized.category,
+                                title: normalized.title,
+                                meta: normalized.meta,
+                                body: normalized.body,
+                                mediaType: normalized.mediaType,
+                                mediaUrl: normalized.mediaUrl,
+                                visibility: "published"
+                            })
+                        });
+                        if (response?.id) {
+                            normalized.edgeId = response.id;
+                            state.local = state.local.map(entry => entry.createdAt === normalized.createdAt ? normalized : entry);
+                            saveLocalOfferings();
+                            await loadPublishedOfferings();
+                        }
+                    } catch {
+                        // Keep the local offering even if the edge publish path is unavailable.
+                    }
+                }
+            }
             if (!saved) {
                 $("submit-body").placeholder = "This browser could not save locally. Export additions before leaving.";
             }
@@ -1478,6 +1557,19 @@
         });
 
         async function loadPublishedOfferings() {
+            if (window.TilelliEdge) {
+                try {
+                    const response = await window.TilelliEdge.portfolioEntries("visibility=published");
+                    const incoming = response?.results || response?.items || response?.entries || [];
+                    if (Array.isArray(incoming) && incoming.length) {
+                        state.published = incoming.map(normalizeOffering).filter(Boolean);
+                        renderAll();
+                        return;
+                    }
+                } catch {
+                    // Fall through to static content.
+                }
+            }
             try {
                 const response = await fetch("content/tilaelia-offerings.json", { cache: "no-store" });
                 if (!response.ok) return;
@@ -1496,9 +1588,9 @@
 
         function routeSection(section, category, mediaType, mediaUrl) {
             const inferred = mediaType || inferMediaType(String(mediaUrl || ""));
-            const imageWords = ["sketch", "sketches", "painting", "paintings", "drawing", "drawings", "visual", "visuals", "art", "gallery", "image"];
+            const imageWords = ["sketch", "sketches", "painting", "paintings", "drawing", "drawings", "visual", "visuals", "art", "gallery", "image", "picture", "pictures", "photo", "photos"];
             const musicWords = ["music", "song", "songs", "sound", "sounds", "leak", "leaks", "track", "tracks", "audio"];
-            const writingWords = ["essay", "essays", "poem", "poems", "story", "stories", "writing", "writings"];
+            const writingWords = ["essay", "essays", "poem", "poems", "poetry", "story", "stories", "writing", "writings"];
             if (inferred === "image" || imageWords.includes(category)) return "visuals";
             if (inferred === "audio" || musicWords.includes(category)) return "music";
             if (writingWords.includes(category)) return "writing";

@@ -1,7 +1,7 @@
 /*
 Form: Cloudflare Worker JavaScript
 Runtime: Cloudflare Workers
-Purpose: Tilelli edge API for project inventory, portfolio entries, anime scenes/assets/render jobs, physics notes, reminders, audit events, and cron heartbeat.
+Purpose: Tilelli edge API for project inventory, portfolio entries, anime scenes/assets/render jobs/automation rules, physics notes, reminders, audit events, and cron heartbeat.
 Inputs: HTTP requests, DB D1 binding, TILELLI_ALLOWED_ORIGINS, TILELLI_OWNER_WRITE_KEY.
 Outputs: JSON responses, D1 rows, CORS headers.
 Safety: Client writes are validated; owner-only writes require X-Tilelli-Owner-Key; no raw secrets are returned.
@@ -113,7 +113,7 @@ async function createPortfolio(env, request) {
     meta: cleanText(body.meta, 240),
     body: cleanText(body.body, 8000),
     media_type: cleanChoice(body.mediaType || body.media_type, ["none", "image", "audio", "video", "link"], "none"),
-    media_url: cleanText(body.mediaUrl || body.media_url, 1200),
+    media_url: cleanText(body.mediaUrl || body.media_url, 250000),
     visibility: cleanChoice(body.visibility, ["draft", "published", "archived"], "draft")
   };
   const result = await env.DB.prepare(
@@ -226,6 +226,48 @@ async function createAnimeScene(env, request) {
     .run();
   await logEvent(env, "anime_scene.created", { id: result.meta.last_row_id, title: item.title }, request);
   return { id: result.meta.last_row_id, ...item };
+}
+
+async function updateAnimeScene(env, request, sceneId) {
+  requireOwner(request, env);
+  const id = Number.parseInt(sceneId, 10);
+  if (!Number.isFinite(id)) throw statusError(400, "Anime scene id is required.");
+  const current = await env.DB.prepare("SELECT * FROM anime_scenes WHERE id = ?").bind(id).first();
+  if (!current) throw statusError(404, "Anime scene not found.");
+  const body = await readJson(request);
+  const next = {
+    title: cleanText(body.title, 180) || current.title,
+    prompt: cleanText(body.prompt, 4000) || current.prompt,
+    art_style: cleanChoice(body.art_style || body.artStyle, ["shonen", "shojo", "cinematic"], current.art_style),
+    setting: cleanChoice(body.setting || body.scene_setting || body.sceneSetting, ["neon-city", "shrine-forest", "orbital-lab"], current.setting),
+    duration: cleanChoice(body.duration, ["5s", "10s", "15s", "30s"], current.duration),
+    aspect_ratio: cleanChoice(body.aspect_ratio || body.aspectRatio || body.aspect, ["16:9", "9:16", "1:1"], current.aspect_ratio),
+    notes: cleanText(body.notes || body.extra_notes, 4000) || current.notes,
+    status: cleanChoice(body.status, ["queued", "draft", "rendering", "ready", "archived"], current.status),
+    output_url: cleanText(body.output_url || body.outputUrl, 1200) || current.output_url,
+    source: cleanText(body.source, 120) || current.source
+  };
+  await env.DB.prepare(
+    `UPDATE anime_scenes
+      SET title = ?, prompt = ?, art_style = ?, setting = ?, duration = ?, aspect_ratio = ?, notes = ?, status = ?, output_url = ?, source = ?, updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
+      WHERE id = ?`
+  )
+    .bind(
+      next.title,
+      next.prompt,
+      next.art_style,
+      next.setting,
+      next.duration,
+      next.aspect_ratio,
+      next.notes,
+      next.status,
+      next.output_url,
+      next.source,
+      id
+    )
+    .run();
+  await logEvent(env, "anime_scene.updated", { id, title: next.title, status: next.status }, request);
+  return { id, ...next };
 }
 
 async function listAnimeAssets(env, url) {
@@ -430,6 +472,114 @@ async function updateAnimeRenderJob(env, request, jobId) {
   return { id, ...next };
 }
 
+async function listAnimeAutomations(env, url) {
+  const limit = Math.max(1, Math.min(100, Number.parseInt(url.searchParams.get("limit") || "12", 10) || 12));
+  const result = await env.DB.prepare(
+    "SELECT * FROM anime_automation_rules ORDER BY created_at DESC LIMIT ?"
+  )
+    .bind(limit)
+    .all();
+  return {
+    rules: result.results || [],
+    count: result.results?.length || 0
+  };
+}
+
+function serializeAutomationPayload(body) {
+  const payload = body.payload || body.payload_json || body.payloadJson || {
+    title: body.title || "",
+    trigger_type: body.trigger_type || body.triggerType || "manual",
+    source_kind: body.source_kind || body.sourceKind || "scene",
+    source_ref: body.source_ref || body.sourceRef || "",
+    action_kind: body.action_kind || body.actionKind || "render",
+    schedule_cron: body.schedule_cron || body.scheduleCron || "",
+    notes: body.notes || ""
+  };
+  if (typeof payload === "string") return payload.trim() || "{}";
+  return JSON.stringify(payload || {});
+}
+
+async function createAnimeAutomationRule(env, request) {
+  requireOwner(request, env);
+  const body = await readJson(request);
+  const title = cleanText(body.title, 180);
+  if (!title) throw statusError(400, "Automation rule title is required.");
+  const item = {
+    title,
+    trigger_type: cleanChoice(body.trigger_type || body.triggerType, ["manual", "review", "archive", "schedule"], "manual"),
+    source_kind: cleanChoice(body.source_kind || body.sourceKind, ["scene", "template", "review", "bundle"], "scene"),
+    source_ref: cleanText(body.source_ref || body.sourceRef, 180),
+    action_kind: cleanChoice(body.action_kind || body.actionKind, ["render", "archive", "clone", "export"], "render"),
+    schedule_cron: cleanText(body.schedule_cron || body.scheduleCron, 180),
+    status: cleanChoice(body.status, ["active", "paused", "archived"], "active"),
+    payload_json: serializeAutomationPayload(body),
+    notes: cleanText(body.notes, 4000),
+    source: cleanText(body.source, 120) || "anime-html"
+  };
+  const result = await env.DB.prepare(
+    `INSERT INTO anime_automation_rules
+      (title, trigger_type, source_kind, source_ref, action_kind, schedule_cron, status, payload_json, notes, source)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+  )
+    .bind(
+      item.title,
+      item.trigger_type,
+      item.source_kind,
+      item.source_ref,
+      item.action_kind,
+      item.schedule_cron,
+      item.status,
+      item.payload_json,
+      item.notes,
+      item.source
+    )
+    .run();
+  await logEvent(env, "anime_automation_rule.created", { id: result.meta.last_row_id, title: item.title, trigger_type: item.trigger_type }, request);
+  return { id: result.meta.last_row_id, ...item };
+}
+
+async function updateAnimeAutomationRule(env, request, ruleId) {
+  requireOwner(request, env);
+  const id = Number.parseInt(ruleId, 10);
+  if (!Number.isFinite(id)) throw statusError(400, "Automation rule id is required.");
+  const current = await env.DB.prepare("SELECT * FROM anime_automation_rules WHERE id = ?").bind(id).first();
+  if (!current) throw statusError(404, "Automation rule not found.");
+  const body = await readJson(request);
+  const next = {
+    title: cleanText(body.title, 180) || current.title,
+    trigger_type: cleanChoice(body.trigger_type || body.triggerType, ["manual", "review", "archive", "schedule"], current.trigger_type),
+    source_kind: cleanChoice(body.source_kind || body.sourceKind, ["scene", "template", "review", "bundle"], current.source_kind),
+    source_ref: cleanText(body.source_ref || body.sourceRef, 180) || current.source_ref,
+    action_kind: cleanChoice(body.action_kind || body.actionKind, ["render", "archive", "clone", "export"], current.action_kind),
+    schedule_cron: cleanText(body.schedule_cron || body.scheduleCron, 180) || current.schedule_cron,
+    status: cleanChoice(body.status, ["active", "paused", "archived"], current.status),
+    payload_json: body.payload || body.payload_json || body.payloadJson ? serializeAutomationPayload(body) : current.payload_json,
+    notes: cleanText(body.notes, 4000) || current.notes,
+    source: cleanText(body.source, 120) || current.source
+  };
+  await env.DB.prepare(
+    `UPDATE anime_automation_rules
+      SET title = ?, trigger_type = ?, source_kind = ?, source_ref = ?, action_kind = ?, schedule_cron = ?, status = ?, payload_json = ?, notes = ?, source = ?, updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
+      WHERE id = ?`
+  )
+    .bind(
+      next.title,
+      next.trigger_type,
+      next.source_kind,
+      next.source_ref,
+      next.action_kind,
+      next.schedule_cron,
+      next.status,
+      next.payload_json,
+      next.notes,
+      next.source,
+      id
+    )
+    .run();
+  await logEvent(env, "anime_automation_rule.updated", { id, title: next.title, status: next.status }, request);
+  return { id, ...next };
+}
+
 async function listAgentRuns(env) {
   return env.DB.prepare("SELECT * FROM agent_runs ORDER BY created_at DESC LIMIT 100").all();
 }
@@ -495,6 +645,10 @@ async function route(request, env) {
   if (pathname === "/v1/anime/scenes" && request.method === "POST") {
     return json(await createAnimeScene(env, request), { status: 201 }, env, request);
   }
+  const sceneMatch = pathname.match(/^\/v1\/anime\/scenes\/(\d+)$/);
+  if (sceneMatch && request.method === "PATCH") {
+    return json(await updateAnimeScene(env, request, sceneMatch[1]), {}, env, request);
+  }
   if (pathname === "/v1/anime/assets" && request.method === "GET") {
     return json(await listAnimeAssets(env, url), {}, env, request);
   }
@@ -510,6 +664,16 @@ async function route(request, env) {
   const renderJobMatch = pathname.match(/^\/v1\/anime\/renders\/(\d+)$/);
   if (renderJobMatch && request.method === "PATCH") {
     return json(await updateAnimeRenderJob(env, request, renderJobMatch[1]), {}, env, request);
+  }
+  if (pathname === "/v1/anime/automations" && request.method === "GET") {
+    return json(await listAnimeAutomations(env, url), {}, env, request);
+  }
+  if (pathname === "/v1/anime/automations" && request.method === "POST") {
+    return json(await createAnimeAutomationRule(env, request), { status: 201 }, env, request);
+  }
+  const automationMatch = pathname.match(/^\/v1\/anime\/automations\/(\d+)$/);
+  if (automationMatch && request.method === "PATCH") {
+    return json(await updateAnimeAutomationRule(env, request, automationMatch[1]), {}, env, request);
   }
   if (pathname === "/v1/agent/runs" && request.method === "GET") {
     return json(await listAgentRuns(env), {}, env, request);
