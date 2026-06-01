@@ -5,7 +5,7 @@ This repo now has the base structure for Cloudflare-backed edge endpoints:
 - `workers/tilelli-api/src/index.js`: Worker API.
 - `workers/tilelli-api/schema/0001_initial.sql`: D1 schema.
 - `workers/tilelli-api/wrangler.toml`: Worker, D1, and cron config.
-- `anime.html`: Prompt-driven anime scene generator foundation with local storyboard, asset editing, and render-job tracking.
+- `anime.html`: Prompt-driven anime scene generator foundation with local storyboard, asset editing, render-job tracking, and playback review.
 - `agents/tilelli/base-agent.json`: Base capability map.
 - `agents/tilelli/coding-agent.json`: Coding-agent harness contract.
 - `agents/tilelli/forms/coding-task.request.json`: Example coding-task request.
@@ -144,3 +144,12 @@ Render integration turns the publish bundle into a tracked job:
 - update jobs with `PATCH /v1/anime/renders/:id`
 - status values: `queued`, `rendering`, `ready`, `failed`
 - local UI stores job drafts and job history so the workspace still functions before a renderer exists
+
+## Anime Scene Phase 8
+
+Playback review adds a local-first review surface:
+
+- select a scene or render job
+- inspect the bundle, storyboard, assets, and render metadata
+- reopen a scene or render draft back into the intake flow
+- keep the review panel available before a real player or frame scrubber is connected

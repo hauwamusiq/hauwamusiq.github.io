@@ -852,6 +852,7 @@
                     <button type="button" data-phase-target="queue">Queue</button>
                     <button type="button" data-phase-target="archive">Archive</button>
                     <button type="button" data-phase-target="publish">Publish</button>
+                    <button type="button" data-phase-target="review">Review</button>
                 </div>
 
                 <div class="panel storyboard-editor phase-panel active" data-phase-panel="storyboard">
@@ -1059,6 +1060,45 @@
                         </div>
                     </div>
                 </div>
+
+                <div class="panel history phase-panel" data-phase-panel="review">
+                    <div class="surface-head">
+                        <strong>Playback review</strong>
+                        <span>Phase 8: inspect, compare, and reopen</span>
+                    </div>
+                    <div class="history-list">
+                        <div class="history-item">
+                            <strong>Review surface</strong>
+                            <span>Choose a scene or render job to inspect the bundle, status, and linked assets before you commit to the next render pass.</span>
+                            <div class="form-grid" style="margin-top: 12px;">
+                                <div class="field full">
+                                    <label for="review-source">Review source</label>
+                                    <select id="review-source">
+                                        <option value="">Latest scene</option>
+                                    </select>
+                                </div>
+                                <div class="field full">
+                                    <label for="review-status">Review status</label>
+                                    <input id="review-status" readonly value="Idle">
+                                </div>
+                            </div>
+                            <div class="archive-actions">
+                                <button class="button primary" type="button" id="watch-review-btn">Watch selection</button>
+                                <button class="button" type="button" id="reopen-review-btn">Reopen draft</button>
+                                <button class="button" type="button" id="refresh-review-btn">Refresh sources</button>
+                            </div>
+                        </div>
+                        <div class="history-item">
+                            <strong>Bundle preview</strong>
+                            <span>Shows the scene, storyboard, assets, and render metadata for the selected item.</span>
+                            <pre id="review-bundle" style="margin:12px 0 0; white-space:pre-wrap; word-break:break-word; color:var(--muted); line-height:1.6; font-family:inherit;">Nothing selected yet.</pre>
+                        </div>
+                        <div class="history-item">
+                            <strong>Playback notes</strong>
+                            <span>Review is intentionally local-first. When the renderer exists, this phase can become a real player or frame scrubber without changing the intake flow.</span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </section>
 
@@ -1148,6 +1188,12 @@
         const renderJobNotes = document.getElementById("render-job-notes");
         const createRenderJobButton = document.getElementById("create-render-job-btn");
         const refreshRenderJobsButton = document.getElementById("refresh-render-jobs-btn");
+        const reviewSource = document.getElementById("review-source");
+        const reviewStatus = document.getElementById("review-status");
+        const reviewBundle = document.getElementById("review-bundle");
+        const watchReviewButton = document.getElementById("watch-review-btn");
+        const reopenReviewButton = document.getElementById("reopen-review-btn");
+        const refreshReviewButton = document.getElementById("refresh-review-btn");
         const LOCAL_KEY = "tilelli-anime-scenes";
         const STORYBOARD_KEY = "tilelli-anime-storyboard";
         const ASSET_KEY = "tilelli-anime-assets";
@@ -1161,7 +1207,7 @@
         let latestScene = null;
 
         function setWorkspacePhase(phase) {
-            const nextPhase = ["storyboard", "assets", "render", "queue", "archive", "publish"].includes(phase) ? phase : "storyboard";
+            const nextPhase = ["storyboard", "assets", "render", "queue", "archive", "publish", "review"].includes(phase) ? phase : "storyboard";
             phaseButtons.forEach(button => {
                 button.classList.toggle("active", button.dataset.phaseTarget === nextPhase);
             });
@@ -1283,6 +1329,16 @@
                 updated_at: job.updated_at || job.updatedAt || new Date().toISOString(),
                 edge_id: job.edge_id || job.id || null
             };
+        }
+
+        function parseJsonSafe(value, fallback = {}) {
+            try {
+                if (!value) return fallback;
+                if (typeof value === "object") return value;
+                return JSON.parse(value);
+            } catch {
+                return fallback;
+            }
         }
 
         function defaultRenderTitle(scene = normalizeScene(latestScene || currentPayload())) {
@@ -1738,16 +1794,21 @@
             jobs.forEach(job => renderJobsList.appendChild(renderRenderJobCard(normalizeRenderJob(job))));
         }
 
+        function commitRenderJobs(jobs) {
+            const nextJobs = uniqueBy(jobs.map(normalizeRenderJob), renderJobSignature).slice(0, 18);
+            writeStore(RENDER_KEY, nextJobs);
+            renderRenderJobs(nextJobs);
+            refreshReviewSources();
+            return nextJobs;
+        }
+
         function saveLocalRenderJob(job) {
-            const normalized = normalizeRenderJob(job);
-            const jobs = uniqueBy([normalized, ...(readStore(RENDER_KEY, []) || [])], renderJobSignature).slice(0, 18);
-            writeStore(RENDER_KEY, jobs);
-            renderRenderJobs(jobs.map(normalizeRenderJob));
+            commitRenderJobs([normalizeRenderJob(job), ...(readStore(RENDER_KEY, []) || [])]);
         }
 
         function loadLocalRenderJobs() {
             const jobs = readStore(RENDER_KEY, []);
-            renderRenderJobs(Array.isArray(jobs) ? jobs.map(normalizeRenderJob) : []);
+            commitRenderJobs(Array.isArray(jobs) ? jobs : []);
         }
 
         async function loadRemoteRenderJobs() {
@@ -1758,13 +1819,111 @@
                 if (Array.isArray(jobs) && jobs.length) {
                     const localJobs = readStore(RENDER_KEY, []).map(normalizeRenderJob);
                     const merged = uniqueBy([...jobs.reverse().map(normalizeRenderJob), ...localJobs], renderJobSignature).slice(0, 18);
-                    writeStore(RENDER_KEY, merged);
-                    renderRenderJobs(merged);
+                    commitRenderJobs(merged);
                 }
                 apiState.textContent = "Edge API: connected";
             } catch {
                 apiState.textContent = "Edge API: offline";
             }
+        }
+
+        function selectedReviewValue() {
+            return reviewSource?.value || "";
+        }
+
+        function reviewSources() {
+            const scenes = readStore(LOCAL_KEY, []).map(normalizeScene);
+            const jobs = readStore(RENDER_KEY, []).map(normalizeRenderJob);
+            return {
+                scenes,
+                jobs
+            };
+        }
+
+        function refreshReviewSources() {
+            if (!reviewSource) return;
+            const previousValue = reviewSource.value;
+            const { scenes, jobs } = reviewSources();
+            const options = [`<option value="">Latest scene</option>`];
+            scenes.slice(0, 8).forEach((scene, index) => {
+                options.push(`<option value="scene:${index}">${escapeHtml(scene.title || `Scene ${index + 1}`)} · ${escapeHtml(scene.status || "queued")}</option>`);
+            });
+            jobs.slice(0, 8).forEach((job, index) => {
+                options.push(`<option value="job:${index}">${escapeHtml(job.title || `Render job ${index + 1}`)} · ${escapeHtml(job.status || "queued")}</option>`);
+            });
+            reviewSource.innerHTML = options.join("");
+            reviewSource.value = Array.from(reviewSource.options).some(option => option.value === previousValue) ? previousValue : "";
+            updateReviewPanel();
+        }
+
+        function selectedReviewEntry() {
+            const value = selectedReviewValue();
+            const { scenes, jobs } = reviewSources();
+            if (!value) {
+                return {
+                    kind: "scene",
+                    item: normalizeScene(latestScene || scenes[0] || currentPayload())
+                };
+            }
+            const [kind, rawIndex] = value.split(":");
+            const index = Number.parseInt(rawIndex, 10);
+            if (kind === "job" && Number.isFinite(index) && jobs[index]) {
+                return { kind: "job", item: jobs[index] };
+            }
+            if (kind === "scene" && Number.isFinite(index) && scenes[index]) {
+                return { kind: "scene", item: scenes[index] };
+            }
+            return {
+                kind: "scene",
+                item: normalizeScene(latestScene || scenes[0] || currentPayload())
+            };
+        }
+
+        function updateReviewPanel() {
+            if (!reviewBundle || !reviewStatus) return;
+            const entry = selectedReviewEntry();
+            if (entry.kind === "job") {
+                const bundle = parseJsonSafe(entry.item.bundle_json, {});
+                reviewStatus.value = `${entry.item.status || "queued"} · ${entry.item.render_kind || "clip"}`;
+                reviewBundle.textContent = JSON.stringify({
+                    render_job: entry.item,
+                    bundle
+                }, null, 2);
+                return;
+            }
+            reviewStatus.value = `${entry.item.status || "queued"} · ${entry.item.art_style || "scene"}`;
+            reviewBundle.textContent = JSON.stringify({
+                scene: entry.item,
+                storyboard: entry.item.storyboard || readStoryboard(),
+                assets: readStore(ASSET_KEY, []).map(normalizeAsset)
+            }, null, 2);
+        }
+
+        function reopenReviewSelection() {
+            const entry = selectedReviewEntry();
+            if (entry.kind === "job") {
+                const bundle = parseJsonSafe(entry.item.bundle_json, {});
+                if (bundle?.scene) {
+                    latestScene = normalizeScene({ ...bundle.scene, storyboard: bundle.storyboard || [] });
+                    cloneArchivedScene(latestScene);
+                } else if (entry.item.scene_id) {
+                    const scene = readStore(LOCAL_KEY, []).map(normalizeScene).find(item => String(item.edge_id || item.id) === String(entry.item.scene_id));
+                    if (scene) {
+                        latestScene = scene;
+                        cloneArchivedScene(scene);
+                    }
+                }
+                renderJobTitle.value = entry.item.title || renderJobTitle.value || defaultRenderTitle(latestScene);
+                renderKind.value = entry.item.render_kind || renderKind.value || "clip";
+                renderJobNotes.value = bundle?.render?.notes || entry.item.error || "";
+                setWorkspacePhase("storyboard");
+                updateReviewPanel();
+                return;
+            }
+            latestScene = normalizeScene(entry.item);
+            cloneArchivedScene(latestScene);
+            setWorkspacePhase("storyboard");
+            updateReviewPanel();
         }
 
         async function submitRenderJob() {
@@ -1954,6 +2113,7 @@
             const scenes = readStore(LOCAL_KEY, []);
             if (!Array.isArray(scenes)) {
                 refreshAssetSceneOptions();
+                refreshReviewSources();
                 return;
             }
             if (scenes.length) {
@@ -1963,6 +2123,7 @@
                 latestScene = normalized[0] || latestScene;
             }
             refreshAssetSceneOptions();
+            refreshReviewSources();
             updateViewer(latestScene);
             renderArchive();
         }
@@ -1972,6 +2133,7 @@
             const scenes = uniqueBy([normalized, ...(readStore(LOCAL_KEY, []) || [])], sceneSignature).slice(0, 12);
             writeStore(LOCAL_KEY, scenes);
             renderArchive();
+            refreshReviewSources();
         }
 
         async function loadRemoteHistory() {
@@ -2190,6 +2352,25 @@
         renderJobNotes.addEventListener("input", saveRenderJobDraft);
         createRenderJobButton.addEventListener("click", submitRenderJob);
         refreshRenderJobsButton.addEventListener("click", loadRemoteRenderJobs);
+        reviewSource.addEventListener("change", updateReviewPanel);
+        watchReviewButton.addEventListener("click", () => {
+            const entry = selectedReviewEntry();
+            if (entry.kind === "job") {
+                const bundle = parseJsonSafe(entry.item.bundle_json, {});
+                if (bundle?.scene) {
+                    latestScene = normalizeScene({ ...bundle.scene, storyboard: bundle.storyboard || [] });
+                }
+            } else {
+                latestScene = normalizeScene(entry.item);
+            }
+            updateViewer(latestScene);
+            setWorkspacePhase("render");
+        });
+        reopenReviewButton.addEventListener("click", reopenReviewSelection);
+        refreshReviewButton.addEventListener("click", () => {
+            refreshReviewSources();
+            updateReviewPanel();
+        });
         phaseButtons.forEach(button => {
             button.addEventListener("click", () => setWorkspacePhase(button.dataset.phaseTarget));
         });
@@ -2227,6 +2408,8 @@
         loadAssetDraft();
         loadRenderJobDraft();
         loadLocalRenderJobs();
+        refreshReviewSources();
+        updateReviewPanel();
         renderAssetPreview(readAssetDraft());
         loadRemoteHistory();
         loadRemoteRenderJobs();
