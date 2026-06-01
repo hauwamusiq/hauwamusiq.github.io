@@ -45,6 +45,7 @@ Relations: workers/tilelli-api/src/index.js, index.html, tilaelia.html, clock.ht
     event,
     projects: () => request("/v1/projects"),
     portfolioEntries: query => request(`/v1/portfolio/entries${query ? `?${query}` : ""}`),
+    animeScenes: query => request(`/v1/anime/scenes${query ? `?${query}` : ""}`),
     physicsNotes: () => request("/v1/physics/notes"),
     reminders: () => request("/v1/dashboard/reminders")
   };

@@ -176,6 +176,58 @@ async function createReminder(env, request) {
   return { id: result.meta.last_row_id, ...item };
 }
 
+async function listAnimeScenes(env, url) {
+  const limit = Math.max(1, Math.min(100, Number.parseInt(url.searchParams.get("limit") || "12", 10) || 12));
+  const result = await env.DB.prepare(
+    "SELECT * FROM anime_scenes ORDER BY created_at DESC LIMIT ?"
+  )
+    .bind(limit)
+    .all();
+  return {
+    scenes: result.results || [],
+    count: result.results?.length || 0
+  };
+}
+
+async function createAnimeScene(env, request) {
+  requireOwner(request, env);
+  const body = await readJson(request);
+  const title = cleanText(body.title, 180);
+  if (!title) throw statusError(400, "Anime scene title is required.");
+  const item = {
+    title,
+    prompt: cleanText(body.prompt, 4000),
+    art_style: cleanChoice(body.art_style || body.artStyle, ["shonen", "shojo", "cinematic"], "shonen"),
+    setting: cleanChoice(body.setting || body.scene_setting || body.sceneSetting, ["neon-city", "shrine-forest", "orbital-lab"], "neon-city"),
+    duration: cleanChoice(body.duration, ["5s", "10s", "15s", "30s"], "10s"),
+    aspect_ratio: cleanChoice(body.aspect_ratio || body.aspectRatio || body.aspect, ["16:9", "9:16", "1:1"], "16:9"),
+    notes: cleanText(body.notes || body.extra_notes, 4000),
+    status: cleanChoice(body.status, ["queued", "draft", "rendering", "ready", "archived"], "queued"),
+    output_url: cleanText(body.output_url || body.outputUrl, 1200),
+    source: cleanText(body.source, 120) || "anime-html"
+  };
+  const result = await env.DB.prepare(
+    `INSERT INTO anime_scenes
+      (title, prompt, art_style, setting, duration, aspect_ratio, notes, status, output_url, source)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+  )
+    .bind(
+      item.title,
+      item.prompt,
+      item.art_style,
+      item.setting,
+      item.duration,
+      item.aspect_ratio,
+      item.notes,
+      item.status,
+      item.output_url,
+      item.source
+    )
+    .run();
+  await logEvent(env, "anime_scene.created", { id: result.meta.last_row_id, title: item.title }, request);
+  return { id: result.meta.last_row_id, ...item };
+}
+
 async function listAgentRuns(env) {
   return env.DB.prepare("SELECT * FROM agent_runs ORDER BY created_at DESC LIMIT 100").all();
 }
@@ -234,6 +286,12 @@ async function route(request, env) {
   if (pathname === "/v1/dashboard/reminders" && request.method === "POST") {
     requireOwner(request, env);
     return json(await createReminder(env, request), { status: 201 }, env, request);
+  }
+  if (pathname === "/v1/anime/scenes" && request.method === "GET") {
+    return json(await listAnimeScenes(env, url), {}, env, request);
+  }
+  if (pathname === "/v1/anime/scenes" && request.method === "POST") {
+    return json(await createAnimeScene(env, request), { status: 201 }, env, request);
   }
   if (pathname === "/v1/agent/runs" && request.method === "GET") {
     return json(await listAgentRuns(env), {}, env, request);

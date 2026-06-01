@@ -5,6 +5,7 @@ This repo now has the base structure for Cloudflare-backed edge endpoints:
 - `workers/tilelli-api/src/index.js`: Worker API.
 - `workers/tilelli-api/schema/0001_initial.sql`: D1 schema.
 - `workers/tilelli-api/wrangler.toml`: Worker, D1, and cron config.
+- `anime.html`: Prompt-driven anime scene generator foundation with local storyboard editing.
 - `agents/tilelli/base-agent.json`: Base capability map.
 - `agents/tilelli/coding-agent.json`: Coding-agent harness contract.
 - `agents/tilelli/forms/coding-task.request.json`: Example coding-task request.
@@ -94,3 +95,17 @@ Add repository secrets/variables:
 - Variable: `TILELLI_API_BASE_URL`
 
 The workflow checks HTML/Worker syntax, deploys on `main`, and performs a scheduled health ping.
+
+## Anime Scene Phase 1
+
+`anime.html` is the intake surface for prompt-driven scene production:
+
+- scene title
+- scene prompt
+- three visual styles
+- three settings
+- storyboard draft editor
+- local queue history
+- optional owner-gated sync to `/v1/anime/scenes`
+
+The page keeps the scene record local-first so the user can work even when the edge backend is unavailable.

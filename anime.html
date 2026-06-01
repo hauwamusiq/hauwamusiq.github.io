@@ -3,17 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Anime Archive</title>
+    <title>Anime Scene Generator</title>
     <style>
         :root {
             --ink: #f6f2ec;
-            --muted: #ada6ad;
+            --muted: #aea7ae;
             --bg: #09090d;
-            --panel: rgba(17, 18, 24, 0.78);
+            --panel: rgba(18, 19, 26, 0.82);
             --line: rgba(255, 255, 255, 0.12);
             --rose: #ff5f87;
             --cyan: #64d8d4;
             --lime: #c9f25f;
+            --violet: #9f86ff;
+            --amber: #f5b95f;
         }
         * { box-sizing: border-box; }
         html { min-height: 100%; background: var(--bg); }
@@ -23,23 +25,25 @@
             color: var(--ink);
             font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
             background:
-                radial-gradient(circle at 15% 20%, rgba(255,95,135,0.16), transparent 30rem),
-                radial-gradient(circle at 80% 24%, rgba(100,216,212,0.12), transparent 26rem),
-                linear-gradient(140deg, #08090b 0%, #10111a 50%, #08090b 100%);
+                radial-gradient(circle at 16% 18%, rgba(255,95,135,0.15), transparent 30rem),
+                radial-gradient(circle at 82% 16%, rgba(100,216,212,0.12), transparent 26rem),
+                radial-gradient(circle at 68% 86%, rgba(159,134,255,0.1), transparent 24rem),
+                linear-gradient(140deg, #08090b 0%, #10111a 48%, #08090b 100%);
+            overflow-x: hidden;
         }
         a { color: inherit; text-decoration: none; }
+        button, input, select, textarea { font: inherit; }
         .wrap {
-            width: min(1180px, calc(100% - 32px));
+            width: min(1280px, calc(100% - 32px));
             margin: 0 auto;
             padding: 24px 0 40px;
-            position: relative;
         }
         .topbar {
             display: flex;
             align-items: center;
             justify-content: space-between;
             gap: 16px;
-            margin-bottom: 28px;
+            margin-bottom: 24px;
         }
         .home {
             display: inline-flex;
@@ -59,8 +63,8 @@
         .brand strong {
             display: block;
             font-size: 0.8rem;
-            letter-spacing: 0.18em;
             text-transform: uppercase;
+            letter-spacing: 0.18em;
         }
         .brand span {
             display: block;
@@ -77,8 +81,8 @@
         }
         .hero {
             display: grid;
-            grid-template-columns: minmax(0, 1fr) minmax(320px, 0.8fr);
-            gap: 20px;
+            grid-template-columns: minmax(0, 1.2fr) minmax(360px, 0.8fr);
+            gap: 16px;
             align-items: start;
         }
         .panel {
@@ -109,14 +113,14 @@
         }
         h1 {
             margin: 0;
-            font-size: clamp(3rem, 8vw, 6.4rem);
+            font-size: clamp(2.9rem, 7.8vw, 6.4rem);
             line-height: 0.9;
             letter-spacing: 0;
             text-transform: uppercase;
         }
         .lede {
-            max-width: 60ch;
-            margin: 20px 0 0;
+            max-width: 66ch;
+            margin: 18px 0 0;
             color: #d7d1d4;
             font-size: 1rem;
             line-height: 1.75;
@@ -125,7 +129,7 @@
             display: flex;
             flex-wrap: wrap;
             gap: 10px;
-            margin-top: 24px;
+            margin-top: 22px;
         }
         .button {
             display: inline-flex;
@@ -144,54 +148,311 @@
             border-color: rgba(255,95,135,0.45);
             background: rgba(255,95,135,0.12);
         }
-        .stack {
+        .statusline {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 16px;
+        }
+        .chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            min-height: 34px;
+            padding: 0 12px;
+            border: 1px solid var(--line);
+            background: rgba(255,255,255,0.04);
+            color: var(--muted);
+            font-size: 0.74rem;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+        .main {
             display: grid;
+            gap: 16px;
+        }
+        .surface {
+            padding: 18px;
+        }
+        .surface-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .surface-head strong {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.16em;
+        }
+        .surface-head span {
+            color: var(--muted);
+            font-size: 0.76rem;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
             gap: 12px;
         }
-        .card {
-            padding: 18px;
-            min-height: 124px;
+        .field {
+            display: grid;
+            gap: 7px;
         }
-        .card small {
-            display: block;
-            color: var(--rose);
-            font-size: 0.68rem;
-            font-weight: 900;
+        .field.full { grid-column: 1 / -1; }
+        .field label {
+            color: var(--muted);
+            font-size: 0.72rem;
+            font-weight: 800;
             letter-spacing: 0.16em;
             text-transform: uppercase;
-            margin-bottom: 10px;
         }
-        .card strong {
-            display: block;
-            font-size: 1rem;
-            margin-bottom: 8px;
+        .field input,
+        .field select,
+        .field textarea {
+            width: 100%;
+            border: 1px solid rgba(255,255,255,0.12);
+            background: rgba(0,0,0,0.28);
+            color: var(--ink);
+            padding: 12px 13px;
+            outline: none;
+            resize: vertical;
+            min-height: 44px;
         }
-        .card span {
-            display: block;
-            color: var(--muted);
-            font-size: 0.84rem;
-            line-height: 1.45;
+        .field textarea {
+            min-height: 128px;
+            line-height: 1.6;
         }
-        .grid {
+        .field input:focus,
+        .field select:focus,
+        .field textarea:focus {
+            border-color: var(--cyan);
+        }
+        .choices {
             display: grid;
             grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 10px;
+        }
+        .choice {
+            position: relative;
+            border: 1px solid var(--line);
+            background: rgba(255,255,255,0.035);
+            padding: 14px;
+            cursor: pointer;
+            min-height: 110px;
+            transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
+        }
+        .choice:hover {
+            transform: translateY(-2px);
+            border-color: var(--accent, var(--cyan));
+            background: rgba(255,255,255,0.07);
+        }
+        .choice input {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            margin: 0;
+        }
+        .choice strong {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.98rem;
+        }
+        .choice span {
+            display: block;
+            color: var(--muted);
+            font-size: 0.82rem;
+            line-height: 1.5;
+        }
+        .choice[data-accent="rose"] { --accent: var(--rose); }
+        .choice[data-accent="cyan"] { --accent: var(--cyan); }
+        .choice[data-accent="violet"] { --accent: var(--violet); }
+        .choice[data-accent="amber"] { --accent: var(--amber); }
+        .choice:has(input:checked) {
+            border-color: var(--accent, var(--cyan));
+            background: rgba(255,255,255,0.08);
+        }
+        .side {
+            display: grid;
             gap: 12px;
+        }
+        .preview {
+            min-height: 360px;
+            padding: 18px;
+            position: relative;
+            overflow: hidden;
+        }
+        .preview::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(circle at 25% 30%, rgba(255,95,135,0.2), transparent 24%),
+                radial-gradient(circle at 72% 30%, rgba(100,216,212,0.18), transparent 22%),
+                radial-gradient(circle at 52% 80%, rgba(201,242,95,0.12), transparent 18%);
+            opacity: 0.95;
+            pointer-events: none;
+        }
+        .preview-inner {
+            position: relative;
+            z-index: 1;
+            height: 100%;
+            display: grid;
+            align-content: space-between;
+            gap: 20px;
+        }
+        .preview-title {
+            display: grid;
+            gap: 8px;
+        }
+        .preview-title b {
+            color: var(--cyan);
+            font-size: 0.72rem;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+        }
+        .preview-title h2 {
+            margin: 0;
+            font-size: clamp(1.6rem, 4vw, 2.6rem);
+            line-height: 1.05;
+        }
+        .preview-title p {
+            margin: 0;
+            color: var(--muted);
+            line-height: 1.6;
+        }
+        .storyboard {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+        }
+        .storyboard-editor {
+            padding: 18px;
+        }
+        .storyboard-toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+        .storyboard-toolbar p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 0.8rem;
+            line-height: 1.5;
+        }
+        .shot-editor-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+        }
+        .shot-editor {
+            border: 1px solid var(--line);
+            background: rgba(0,0,0,0.22);
+            padding: 12px;
+            display: grid;
+            gap: 10px;
+        }
+        .shot-editor-head {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 10px;
+        }
+        .shot-editor-head strong {
+            font-size: 0.78rem;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+        }
+        .shot-editor-head small {
+            color: var(--muted);
+            font-size: 0.68rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+        .shot-editor .field {
+            gap: 6px;
+        }
+        .shot-editor .field label {
+            font-size: 0.68rem;
+        }
+        .shot-editor .field input,
+        .shot-editor .field textarea {
+            min-height: 40px;
+            padding: 10px 11px;
+        }
+        .shot-editor .field textarea {
+            min-height: 84px;
+            resize: vertical;
+        }
+        .shot {
+            border: 1px solid var(--line);
+            background: rgba(0,0,0,0.22);
+            min-height: 96px;
+            padding: 12px;
+        }
+        .shot small {
+            display: block;
+            color: var(--rose);
+            font-size: 0.66rem;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+        .shot span {
+            color: var(--muted);
+            font-size: 0.8rem;
+            line-height: 1.45;
+        }
+        .history {
+            padding: 18px;
+        }
+        .history-list {
+            display: grid;
+            gap: 10px;
             margin-top: 12px;
         }
-        .full {
-            margin-top: 14px;
-            padding: 18px 20px;
+        .history-item {
+            border: 1px solid var(--line);
+            background: rgba(255,255,255,0.035);
+            padding: 14px;
+        }
+        .history-item strong {
+            display: block;
+            margin-bottom: 6px;
+        }
+        .history-item span {
+            display: block;
+            color: var(--muted);
+            font-size: 0.82rem;
+            line-height: 1.5;
+        }
+        .history-item em {
+            display: block;
+            margin-top: 8px;
+            color: var(--cyan);
+            font-size: 0.72rem;
+            font-style: normal;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+        .footer {
+            margin-top: 16px;
+            padding: 18px;
             color: var(--muted);
             line-height: 1.65;
         }
-        .full b {
-            color: var(--ink);
+        .footer b { color: var(--ink); }
+        @media (max-width: 1080px) {
+            .hero { grid-template-columns: 1fr; }
         }
         @media (max-width: 920px) {
-            .hero, .grid { grid-template-columns: 1fr; }
+            .form-grid, .choices, .storyboard, .shot-editor-grid { grid-template-columns: 1fr; }
         }
         @media (max-width: 620px) {
-            .wrap { width: min(100% - 22px, 1180px); }
+            .wrap { width: min(100% - 22px, 1280px); }
             .topbar { flex-direction: column; align-items: flex-start; }
         }
     </style>
@@ -202,45 +463,565 @@
             <a class="home" href="index.html" aria-label="Back to Ariadni Command Center">
                 <span class="sigil">A</span>
                 <span class="brand">
-                    <strong>Anime Archive</strong>
-                    <span>Tilelli / HauwaMusiq index</span>
+                    <strong>Anime Scene Generator</strong>
+                    <span>Foundation for prompt-to-scene production</span>
                 </span>
             </a>
             <a class="back" href="index.html">Back Home</a>
         </header>
 
-        <section class="hero" aria-label="Anime archive">
+        <section class="hero" aria-label="Anime scene generator foundation">
             <div class="panel hero-copy">
-                <div class="eyebrow">Special collection</div>
-                <h1>Anime archive</h1>
+                <div class="eyebrow">Scene forge</div>
+                <h1>Build anime scenes from an idea.</h1>
                 <p class="lede">
-                    This is the dedicated entry for anime-related work, references, experiments, and future curation.
-                    If you already have a fuller anime generator or showcase page, this page can become the front door to it.
+                    This is phase one of a prompt-driven anime scene generator. Choose one of three visual styles,
+                    pick one of three settings, then describe the scene you want. The page stores requests locally first,
+                    shows a storyboard preview, and can sync the scene record to the Tilelli edge backend when the owner key is configured.
                 </p>
                 <div class="actions">
-                    <a class="button primary" href="index.html#modules">Open Main Portal</a>
-                    <a class="button" href="tilaelia.html">Portfolio</a>
+                    <button class="button primary" type="button" id="generate-btn">Queue Scene</button>
+                    <a class="button" href="index.html#modules">Main Portal</a>
                 </div>
+                <div class="statusline" aria-label="Generator status">
+                    <span class="chip" id="api-state">Edge API: idle</span>
+                    <span class="chip" id="queue-state">Queue: empty</span>
+                    <span class="chip">Local first</span>
+                    <span class="chip">Owner sync optional</span>
+                </div>
+
+                <form id="scene-form" class="surface panel" style="margin-top: 18px;">
+                    <div class="surface-head">
+                        <strong>Scene Input</strong>
+                        <span>Saved locally first and synced when permitted</span>
+                    </div>
+                    <div class="form-grid">
+                        <div class="field full">
+                            <label for="scene-title">Scene title</label>
+                            <input id="scene-title" name="title" placeholder="Example: Neon vows in the rain" maxlength="180" required>
+                        </div>
+                        <div class="field full">
+                            <label for="scene-prompt">Scene prompt</label>
+                            <textarea id="scene-prompt" name="prompt" placeholder="Describe the exact moment you want to see, who is there, what happens, camera movement, mood, and visual beats." maxlength="4000" required></textarea>
+                        </div>
+                        <div class="field">
+                            <label for="style-select">Style</label>
+                            <select id="style-select" name="style">
+                                <option value="shonen">Shonen dynamic</option>
+                                <option value="shojo">Shojo luminous</option>
+                                <option value="cinematic">Cinematic modern</option>
+                            </select>
+                        </div>
+                        <div class="field">
+                            <label for="setting-select">Setting</label>
+                            <select id="setting-select" name="setting">
+                                <option value="neon-city">Neon city</option>
+                                <option value="shrine-forest">Shrine forest</option>
+                                <option value="orbital-lab">Orbital lab</option>
+                            </select>
+                        </div>
+                        <div class="field">
+                            <label for="duration-select">Length</label>
+                            <select id="duration-select" name="duration">
+                                <option value="5s">5 seconds</option>
+                                <option value="10s">10 seconds</option>
+                                <option value="15s">15 seconds</option>
+                            </select>
+                        </div>
+                        <div class="field">
+                            <label for="aspect-select">Aspect</label>
+                            <select id="aspect-select" name="aspect">
+                                <option value="16:9">16:9</option>
+                                <option value="9:16">9:16</option>
+                                <option value="1:1">1:1</option>
+                            </select>
+                        </div>
+                        <div class="field full">
+                            <label>Art style</label>
+                            <div class="choices" role="radiogroup" aria-label="Art style">
+                                <label class="choice" data-accent="rose">
+                                    <input type="radio" name="art_style" value="shonen" checked>
+                                    <strong>Shonen dynamic</strong>
+                                    <span>High motion, stronger line action, impact frames, battle energy, sharper contrast.</span>
+                                </label>
+                                <label class="choice" data-accent="cyan">
+                                    <input type="radio" name="art_style" value="shojo">
+                                    <strong>Shojo luminous</strong>
+                                    <span>Soft glow, romantic lighting, expressive eyes, floating petals, elegant compositions.</span>
+                                </label>
+                                <label class="choice" data-accent="violet">
+                                    <input type="radio" name="art_style" value="cinematic">
+                                    <strong>Cinematic modern</strong>
+                                    <span>Moody color, film framing, atmospheric detail, smooth camera movement, dramatic pacing.</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="field full">
+                            <label>Setting panel</label>
+                            <div class="choices" role="radiogroup" aria-label="Scene setting">
+                                <label class="choice" data-accent="amber">
+                                    <input type="radio" name="scene_setting" value="neon-city" checked>
+                                    <strong>Neon city</strong>
+                                    <span>Rain-slick streets, signage, reflections, motion trails, urban energy.</span>
+                                </label>
+                                <label class="choice" data-accent="lime">
+                                    <input type="radio" name="scene_setting" value="shrine-forest">
+                                    <strong>Shrine forest</strong>
+                                    <span>Moss, lanterns, sacred space, wind in the trees, twilight atmosphere.</span>
+                                </label>
+                                <label class="choice" data-accent="rose">
+                                    <input type="radio" name="scene_setting" value="orbital-lab">
+                                    <strong>Orbital lab</strong>
+                                    <span>Floating consoles, stars through glass, clean geometry, research sci-fi mood.</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="field full">
+                            <label for="scene-notes">Extra direction</label>
+                            <textarea id="scene-notes" name="notes" placeholder="Camera angle, color palette, emotional beat, special props, or reference notes." maxlength="2000"></textarea>
+                        </div>
+                    </div>
+                </form>
             </div>
 
-            <div class="stack">
-                <div class="panel card">
-                    <small>Current role</small>
-                    <strong>Launcher</strong>
-                    <span>Shows anime work in the main navigation so it is visible from the homepage.</span>
+            <div class="main">
+                <div class="panel preview">
+                    <div class="preview-inner">
+                        <div class="preview-title">
+                            <b>Storyboard preview</b>
+                            <h2 id="preview-heading">Neon city / Shonen dynamic</h2>
+                            <p id="preview-text">
+                                A scene placeholder showing how the prompt will be interpreted before real render generation is wired in.
+                            </p>
+                        </div>
+                        <div class="storyboard" aria-label="Storyboard beats">
+                            <div class="shot">
+                                <small>Beat 01</small>
+                                <span id="beat-1">Establish the setting and frame the subject.</span>
+                            </div>
+                            <div class="shot">
+                                <small>Beat 02</small>
+                                <span id="beat-2">Push the camera in and raise the emotional intensity.</span>
+                            </div>
+                            <div class="shot">
+                                <small>Beat 03</small>
+                                <span id="beat-3">Resolve the moment and cue the output sequence.</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="panel card">
-                    <small>Next step</small>
-                    <strong>Connect the real content</strong>
-                    <span>If you have an existing anime generator or archive page elsewhere, this is the place to connect or migrate it.</span>
+
+                <div class="panel storyboard-editor">
+                    <div class="surface-head">
+                        <strong>Storyboard editor</strong>
+                        <span>Editable before generation</span>
+                    </div>
+                    <div class="storyboard-toolbar">
+                        <button class="button" type="button" id="regenerate-storyboard">Regenerate beats</button>
+                        <p>Three shots are drafted from the prompt, style, and setting. Edit the beat cards before the scene is queued.</p>
+                    </div>
+                    <div class="shot-editor-grid" id="storyboard-editor" aria-label="Storyboard editor"></div>
+                </div>
+
+                <div class="panel history">
+                    <div class="surface-head">
+                        <strong>Scene Queue</strong>
+                        <span>Recent submissions and status</span>
+                    </div>
+                    <div id="history-list" class="history-list">
+                        <div class="history-item">
+                            <strong>No scenes queued yet.</strong>
+                            <span>Submit a prompt above to start building the request history.</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
 
-        <section class="panel full">
-            <b>Notes</b>
-            If you want, I can turn this into a full anime generator, gallery, or media hub next. Right now it is intentionally minimal so the homepage link works and the site has a real target instead of a dead path.
+        <section class="panel footer">
+            <b>Foundation note:</b>
+            This page does not generate video yet. It gives you the proper inputs, queue record, storyboard draft, and edge storage hooks so the future backend can convert a scene request into storyboard frames, stills, or video renders without redesigning the UI.
         </section>
     </div>
+
+    <script src="tilelli-edge-client.js"></script>
+    <script>
+        const styleMap = {
+            shonen: {
+                label: "Shonen dynamic",
+                summary: "Fast motion, bold angles, dramatic framing, impact cuts.",
+                beat1: "Introduce the subject with strong silhouette and motion energy.",
+                beat2: "Drive the camera forward and intensify the action.",
+                beat3: "Lock the frame on the moment that matters most."
+            },
+            shojo: {
+                label: "Shojo luminous",
+                summary: "Soft glow, delicate movement, emotional atmosphere, graceful detail.",
+                beat1: "Open on a tender composition with ambient light and space.",
+                beat2: "Let the emotional moment bloom with delicate motion.",
+                beat3: "Resolve the scene with a luminous, memorable finish."
+            },
+            cinematic: {
+                label: "Cinematic modern",
+                summary: "Moody film lighting, composed movement, atmospheric tension.",
+                beat1: "Establish a grounded shot with cinematic contrast.",
+                beat2: "Shift the camera to elevate depth and emotion.",
+                beat3: "Finish on a clean, filmic image with strong visual payoff."
+            }
+        };
+
+        const settingMap = {
+            "neon-city": {
+                label: "Neon city",
+                summary: "Rain, reflections, signs, night motion, urban pulse."
+            },
+            "shrine-forest": {
+                label: "Shrine forest",
+                summary: "Lanterns, trees, sacred quiet, wind, dusk color."
+            },
+            "orbital-lab": {
+                label: "Orbital lab",
+                summary: "Research glass, stars, consoles, precision, suspended motion."
+            }
+        };
+
+        const apiState = document.getElementById("api-state");
+        const queueState = document.getElementById("queue-state");
+        const historyList = document.getElementById("history-list");
+        const previewHeading = document.getElementById("preview-heading");
+        const previewText = document.getElementById("preview-text");
+        const beat1 = document.getElementById("beat-1");
+        const beat2 = document.getElementById("beat-2");
+        const beat3 = document.getElementById("beat-3");
+        const form = document.getElementById("scene-form");
+        const generateButton = document.getElementById("generate-btn");
+        const regenerateStoryboardButton = document.getElementById("regenerate-storyboard");
+        const storyboardEditor = document.getElementById("storyboard-editor");
+        const LOCAL_KEY = "tilelli-anime-scenes";
+        const STORYBOARD_KEY = "tilelli-anime-storyboard";
+        const OWNER_KEY = "tilelli-owner-key";
+
+        function selectedValue(name) {
+            const selected = form.querySelector(`input[name="${name}"]:checked`);
+            return selected ? selected.value : "";
+        }
+
+        function currentPayload() {
+            const artStyle = selectedValue("art_style");
+            const sceneSetting = selectedValue("scene_setting");
+            return {
+                title: document.getElementById("scene-title").value.trim(),
+                prompt: document.getElementById("scene-prompt").value.trim(),
+                style: document.getElementById("style-select").value,
+                setting: document.getElementById("setting-select").value,
+                duration: document.getElementById("duration-select").value,
+                aspect: document.getElementById("aspect-select").value,
+                artStyle,
+                sceneSetting,
+                notes: document.getElementById("scene-notes").value.trim()
+            };
+        }
+
+        function refreshPreview() {
+            const payload = currentPayload();
+            const style = styleMap[payload.artStyle] || styleMap.shonen;
+            const setting = settingMap[payload.sceneSetting] || settingMap["neon-city"];
+            previewHeading.textContent = `${setting.label} / ${style.label}`;
+            previewText.textContent = payload.prompt || "Enter a prompt to see the scene interpreted here before you queue it.";
+            const storyboard = readStoryboard();
+            beat1.textContent = storyboard[0]?.camera ? `${storyboard[0].camera} · ${storyboard[0].title}` : style.beat1;
+            beat2.textContent = storyboard[1]?.action || `${setting.summary} ${payload.duration} and ${payload.aspect} composition can steer pacing and framing.`;
+            beat3.textContent = storyboard[2]?.mood || style.beat3;
+            queueState.textContent = payload.title ? `Draft: ${payload.title}` : "Queue: empty";
+        }
+
+        function promptSlice(value, limit = 120) {
+            const text = String(value || "").replace(/\s+/g, " ").trim();
+            if (!text) return "";
+            return text.length > limit ? `${text.slice(0, limit - 1).trimEnd()}…` : text;
+        }
+
+        function generateStoryboard(payload) {
+            const style = styleMap[payload.artStyle] || styleMap.shonen;
+            const setting = settingMap[payload.sceneSetting] || settingMap["neon-city"];
+            const prompt = promptSlice(payload.prompt, 120) || "the requested scene";
+            return [
+                {
+                    title: `Establish ${setting.label.toLowerCase()}`,
+                    camera: "Wide establishing shot",
+                    action: `Open on ${setting.summary.toLowerCase()} while framing the first readable shape of the scene.`,
+                    mood: `${style.label} energy with the opening tone of ${prompt}.`
+                },
+                {
+                    title: "Advance the moment",
+                    camera: "Medium tracking shot",
+                    action: `Move closer as the idea from "${prompt}" begins to unfold inside the chosen setting.`,
+                    mood: `Keep the emotional and visual pressure rising while the scene stays ${payload.duration} focused.`
+                },
+                {
+                    title: "Seal the final frame",
+                    camera: "Close-up or pull-back finish",
+                    action: `Resolve on the strongest visual beat so the future renderer knows exactly what to preserve.`,
+                    mood: `${style.beat3} Leave the frame ready for render output or a later cut sequence.`
+                }
+            ];
+        }
+
+        function normalizeStoryboardItem(item, index, payload) {
+            const defaults = generateStoryboard(payload)[index] || {};
+            return {
+                title: item?.title || defaults.title || `Beat ${String(index + 1).padStart(2, "0")}`,
+                camera: item?.camera || defaults.camera || "",
+                action: item?.action || defaults.action || "",
+                mood: item?.mood || defaults.mood || ""
+            };
+        }
+
+        function readStoryboard() {
+            const cards = Array.from(storyboardEditor.querySelectorAll(".shot-editor"));
+            const payload = currentPayload();
+            return cards.map((card, index) => {
+                return {
+                    title: card.querySelector('[data-shot-field="title"]').value.trim(),
+                    camera: card.querySelector('[data-shot-field="camera"]').value.trim(),
+                    action: card.querySelector('[data-shot-field="action"]').value.trim(),
+                    mood: card.querySelector('[data-shot-field="mood"]').value.trim()
+                };
+            }).map((item, index) => normalizeStoryboardItem(item, index, payload));
+        }
+
+        function renderStoryboardEditor(items) {
+            storyboardEditor.innerHTML = items.map((item, index) => `
+                <article class="shot-editor" data-shot-index="${index}">
+                    <div class="shot-editor-head">
+                        <strong>Beat ${String(index + 1).padStart(2, "0")}</strong>
+                        <small>${escapeHtml(item.title || "Draft")}</small>
+                    </div>
+                    <div class="field">
+                        <label>Shot title</label>
+                        <input type="text" data-shot-field="title" value="${escapeHtmlAttr(item.title)}" maxlength="120">
+                    </div>
+                    <div class="field">
+                        <label>Camera</label>
+                        <input type="text" data-shot-field="camera" value="${escapeHtmlAttr(item.camera)}" maxlength="180">
+                    </div>
+                    <div class="field">
+                        <label>Action</label>
+                        <textarea data-shot-field="action" maxlength="1200">${escapeHtml(item.action)}</textarea>
+                    </div>
+                    <div class="field">
+                        <label>Mood</label>
+                        <textarea data-shot-field="mood" maxlength="1200">${escapeHtml(item.mood)}</textarea>
+                    </div>
+                </article>
+            `).join("");
+            saveStoryboardDraft();
+        }
+
+        function escapeHtmlAttr(value) {
+            return escapeHtml(value).replaceAll("\"", "&quot;");
+        }
+
+        function saveStoryboardDraft() {
+            try {
+                localStorage.setItem(STORYBOARD_KEY, JSON.stringify(readStoryboard()));
+            } catch {
+                // Ignore local storage failures.
+            }
+        }
+
+        function loadStoryboardDraft(payload) {
+            try {
+                const raw = localStorage.getItem(STORYBOARD_KEY);
+                if (!raw) {
+                    renderStoryboardEditor(generateStoryboard(payload));
+                    return;
+                }
+                const parsed = JSON.parse(raw);
+                if (Array.isArray(parsed) && parsed.length === 3) {
+                    renderStoryboardEditor(parsed.map((item, index) => normalizeStoryboardItem(item, index, payload)));
+                    return;
+                }
+            } catch {
+                // Ignore malformed local state.
+            }
+            renderStoryboardEditor(generateStoryboard(payload));
+        }
+
+        function addHistoryCard(scene, fromApi = false) {
+            const createdAt = scene.created_at || scene.createdAt || new Date().toISOString();
+            const signature = sceneSignature(scene);
+            if (Array.from(historyList.querySelectorAll(".history-item")).some(item => item.dataset.signature === signature)) return;
+            const card = document.createElement("article");
+            card.className = "history-item";
+            card.dataset.signature = signature;
+            card.innerHTML = `
+                <strong>${escapeHtml(scene.title || "Untitled scene")}</strong>
+                <span>${escapeHtml(scene.prompt || scene.description || "No prompt stored.")}</span>
+                <em>${escapeHtml(scene.art_style || scene.artStyle || "scene")} · ${escapeHtml(scene.setting || scene.scene_setting || "setting")} · ${escapeHtml(scene.status || "queued")} · ${escapeHtml(createdAt)}</em>
+                <span>${Array.isArray(scene.storyboard) ? `Storyboard: ${scene.storyboard.length} shots.` : "Storyboard: draft ready for editing."}</span>
+                <span>${fromApi ? "Synced to the edge queue." : "Saved locally and queued for sync."}</span>
+            `;
+            if (historyList.firstElementChild && historyList.firstElementChild.querySelector("strong")?.textContent === "No scenes queued yet.") {
+                historyList.innerHTML = "";
+            }
+            historyList.prepend(card);
+        }
+
+        function sceneSignature(scene) {
+            return [
+                scene.title || "",
+                scene.prompt || "",
+                scene.art_style || scene.artStyle || "",
+                scene.setting || scene.scene_setting || "",
+                scene.duration || "",
+                scene.aspect_ratio || scene.aspectRatio || scene.aspect || "",
+                JSON.stringify((scene.storyboard || []).slice(0, 3).map(item => [
+                    item?.title || "",
+                    item?.camera || "",
+                    item?.action || "",
+                    item?.mood || ""
+                ]))
+            ].join("|");
+        }
+
+        function normalizeScene(scene) {
+            return {
+                title: scene.title || "",
+                prompt: scene.prompt || scene.description || "",
+                art_style: scene.art_style || scene.artStyle || scene.style || "shonen",
+                setting: scene.setting || scene.scene_setting || scene.sceneSetting || "neon-city",
+                duration: scene.duration || "10s",
+                aspect_ratio: scene.aspect_ratio || scene.aspectRatio || scene.aspect || "16:9",
+                notes: scene.notes || "",
+                status: scene.status || "queued",
+                storyboard: Array.isArray(scene.storyboard) ? scene.storyboard : [],
+                source: scene.source || "anime-html",
+                created_at: scene.created_at || scene.createdAt || new Date().toISOString(),
+                edge_id: scene.edge_id || scene.id || null
+            };
+        }
+
+        function escapeHtml(value) {
+            return String(value)
+                .replaceAll("&", "&amp;")
+                .replaceAll("<", "&lt;")
+                .replaceAll(">", "&gt;")
+                .replaceAll("\"", "&quot;")
+                .replaceAll("'", "&#39;");
+        }
+
+        function loadLocalHistory() {
+            try {
+                const raw = localStorage.getItem(LOCAL_KEY);
+                if (!raw) return;
+                const scenes = JSON.parse(raw);
+                if (Array.isArray(scenes) && scenes.length) {
+                    historyList.innerHTML = "";
+                    scenes.slice(0, 6).map(normalizeScene).forEach(scene => addHistoryCard(scene));
+                }
+            } catch {
+                // Ignore malformed local state.
+            }
+        }
+
+        function saveLocalHistory(scene) {
+            try {
+                const raw = localStorage.getItem(LOCAL_KEY);
+                const scenes = raw ? JSON.parse(raw) : [];
+                const normalized = normalizeScene(scene);
+                const deduped = scenes.filter(item => sceneSignature(item) !== sceneSignature(normalized));
+                deduped.unshift(normalized);
+                localStorage.setItem(LOCAL_KEY, JSON.stringify(deduped.slice(0, 12)));
+            } catch {
+                // Ignore local storage failures.
+            }
+        }
+
+        async function loadRemoteHistory() {
+            if (!window.TilelliEdge) return;
+            try {
+                apiState.textContent = "Edge API: loading";
+                const response = await window.TilelliEdge.request("/v1/anime/scenes?limit=6");
+                const scenes = response?.items || response?.scenes || [];
+                if (Array.isArray(scenes) && scenes.length) {
+                    scenes.slice().reverse().map(normalizeScene).forEach(scene => addHistoryCard(scene, true));
+                }
+                apiState.textContent = "Edge API: connected";
+            } catch (error) {
+                apiState.textContent = "Edge API: offline";
+            }
+        }
+
+        async function submitScene(event) {
+            event.preventDefault();
+            const payload = currentPayload();
+            if (!payload.title || !payload.prompt) {
+                apiState.textContent = "Title and prompt are required.";
+                return;
+            }
+
+            const scene = {
+                title: payload.title,
+                prompt: payload.prompt,
+                art_style: payload.artStyle,
+                setting: payload.sceneSetting,
+                duration: payload.duration,
+                aspect_ratio: payload.aspect,
+                notes: payload.notes,
+                storyboard: readStoryboard(),
+                status: "queued",
+                created_at: new Date().toISOString(),
+                source: "anime-html"
+            };
+
+            saveLocalHistory(scene);
+            addHistoryCard(scene);
+            apiState.textContent = "Edge API: syncing";
+
+            if (window.TilelliEdge) {
+                try {
+                    const ownerKey = localStorage.getItem(OWNER_KEY) || "";
+                    const response = await window.TilelliEdge.request("/v1/anime/scenes", {
+                        method: "POST",
+                        headers: ownerKey ? { "X-Tilelli-Owner-Key": ownerKey } : {},
+                        body: JSON.stringify(scene)
+                    });
+                    if (response?.id) {
+                        apiState.textContent = `Edge API: queued #${response.id}`;
+                        scene.edge_id = response.id;
+                    } else {
+                        apiState.textContent = "Edge API: queued";
+                    }
+                } catch (error) {
+                    apiState.textContent = "Edge API: local only";
+                }
+            } else {
+                apiState.textContent = "Edge API: unavailable";
+            }
+        }
+
+        form.addEventListener("input", refreshPreview);
+        form.addEventListener("change", refreshPreview);
+        form.addEventListener("submit", submitScene);
+        generateButton.addEventListener("click", submitScene);
+        storyboardEditor.addEventListener("input", () => {
+            saveStoryboardDraft();
+            refreshPreview();
+        });
+        regenerateStoryboardButton.addEventListener("click", () => {
+            renderStoryboardEditor(generateStoryboard(currentPayload()));
+            refreshPreview();
+        });
+
+        refreshPreview();
+        loadStoryboardDraft(currentPayload());
+        refreshPreview();
+        loadLocalHistory();
+        loadRemoteHistory();
+        if (window.TilelliEdge) {
+            window.TilelliEdge.event("anime.page.view", { surface: "generator" });
+        }
+    </script>
 </body>
 </html>

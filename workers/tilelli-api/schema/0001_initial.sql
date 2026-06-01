@@ -30,6 +30,22 @@ CREATE TABLE IF NOT EXISTS portfolio_entries (
   updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
 );
 
+CREATE TABLE IF NOT EXISTS anime_scenes (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  title TEXT NOT NULL,
+  prompt TEXT NOT NULL DEFAULT '',
+  art_style TEXT NOT NULL DEFAULT 'shonen' CHECK (art_style IN ('shonen', 'shojo', 'cinematic')),
+  setting TEXT NOT NULL DEFAULT 'neon-city' CHECK (setting IN ('neon-city', 'shrine-forest', 'orbital-lab')),
+  duration TEXT NOT NULL DEFAULT '10s',
+  aspect_ratio TEXT NOT NULL DEFAULT '16:9',
+  notes TEXT NOT NULL DEFAULT '',
+  status TEXT NOT NULL DEFAULT 'queued' CHECK (status IN ('queued', 'draft', 'rendering', 'ready', 'archived')),
+  output_url TEXT NOT NULL DEFAULT '',
+  source TEXT NOT NULL DEFAULT 'anime-html',
+  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+);
+
 CREATE TABLE IF NOT EXISTS physics_notes (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   title TEXT NOT NULL,
@@ -62,6 +78,7 @@ CREATE TABLE IF NOT EXISTS agent_runs (
 
 CREATE INDEX IF NOT EXISTS idx_audit_events_created_at ON audit_events(created_at);
 CREATE INDEX IF NOT EXISTS idx_portfolio_entries_visibility ON portfolio_entries(visibility, section, category);
+CREATE INDEX IF NOT EXISTS idx_anime_scenes_status_created ON anime_scenes(status, created_at);
 CREATE INDEX IF NOT EXISTS idx_physics_notes_status ON physics_notes(status, created_at);
 CREATE INDEX IF NOT EXISTS idx_dashboard_reminders_status_due ON dashboard_reminders(status, due_at);
 CREATE INDEX IF NOT EXISTS idx_agent_runs_type_created ON agent_runs(run_type, created_at);
