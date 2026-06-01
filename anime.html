@@ -1006,7 +1006,7 @@
                 <div class="panel history phase-panel" data-phase-panel="publish">
                     <div class="surface-head">
                         <strong>Publish bundle</strong>
-                        <span>Phase 6: export and handoff</span>
+                        <span>Phase 6-7: export, handoff, and render integration</span>
                     </div>
                     <div class="history-list">
                         <div class="history-item">
@@ -1021,6 +1021,42 @@
                             <strong>Publish targets</strong>
                             <span>Later phases can route this bundle into a renderer, a clip generator, or a live preview endpoint without rebuilding the page.</span>
                         </div>
+                        <div class="history-item">
+                            <strong>Create a render job</strong>
+                            <span>Send the current bundle to the edge backend as a tracked job with queued, rendering, ready, and failed states.</span>
+                            <div class="form-grid" style="margin-top: 12px;">
+                                <div class="field">
+                                    <label for="render-job-title">Job title</label>
+                                    <input id="render-job-title" maxlength="180" placeholder="Example: Neon vows render">
+                                </div>
+                                <div class="field">
+                                    <label for="render-kind">Render kind</label>
+                                    <select id="render-kind">
+                                        <option value="clip">Clip</option>
+                                        <option value="still">Still frame</option>
+                                        <option value="sequence">Sequence</option>
+                                    </select>
+                                </div>
+                                <div class="field full">
+                                    <label for="render-job-notes">Job notes</label>
+                                    <textarea id="render-job-notes" maxlength="2000" placeholder="Optional notes for the downstream renderer, clip generator, or preview service."></textarea>
+                                </div>
+                            </div>
+                            <div class="publish-actions">
+                                <button class="button primary" type="button" id="create-render-job-btn">Create job</button>
+                                <button class="button" type="button" id="refresh-render-jobs-btn">Refresh jobs</button>
+                            </div>
+                        </div>
+                        <div class="history-item">
+                            <strong>Render jobs</strong>
+                            <span>Latest jobs synced to the edge are shown here alongside local drafts.</span>
+                        </div>
+                        <div id="render-jobs-list" class="history-list">
+                            <div class="history-item">
+                                <strong>No render jobs yet.</strong>
+                                <span>Create a job from the current bundle to start tracking render progress.</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1028,7 +1064,7 @@
 
         <section class="panel footer">
             <b>Foundation note:</b>
-            This page does not generate video yet. It gives you the proper inputs, queue record, storyboard draft, and edge storage hooks so the future backend can convert a scene request into storyboard frames, stills, or video renders without redesigning the UI.
+            This page does not generate video yet. It now gives you the proper inputs, queue record, storyboard draft, render job tracking, and edge storage hooks so the future backend can convert a scene request into storyboard frames, stills, or video renders without redesigning the UI.
         </section>
     </div>
 
@@ -1106,10 +1142,18 @@
         const archiveList = document.getElementById("archive-list");
         const exportBundleButton = document.getElementById("export-bundle-btn");
         const copyBundleButton = document.getElementById("copy-bundle-btn");
+        const renderJobsList = document.getElementById("render-jobs-list");
+        const renderJobTitle = document.getElementById("render-job-title");
+        const renderKind = document.getElementById("render-kind");
+        const renderJobNotes = document.getElementById("render-job-notes");
+        const createRenderJobButton = document.getElementById("create-render-job-btn");
+        const refreshRenderJobsButton = document.getElementById("refresh-render-jobs-btn");
         const LOCAL_KEY = "tilelli-anime-scenes";
         const STORYBOARD_KEY = "tilelli-anime-storyboard";
         const ASSET_KEY = "tilelli-anime-assets";
         const ASSET_DRAFT_KEY = "tilelli-anime-asset-draft";
+        const RENDER_KEY = "tilelli-anime-render-jobs";
+        const RENDER_DRAFT_KEY = "tilelli-anime-render-draft";
         const PHASE_KEY = "tilelli-anime-phase";
         const OWNER_KEY = "tilelli-owner-key";
         const phaseButtons = Array.from(document.querySelectorAll("[data-phase-target]"));
@@ -1214,7 +1258,62 @@
             setWorkspacePhase("storyboard");
         }
 
-        function currentBundle() {
+        function renderJobSignature(job) {
+            return [
+                job.title || "",
+                job.scene_id || job.sceneId || "",
+                job.render_kind || job.renderKind || "",
+                job.created_at || job.createdAt || "",
+                job.edge_id || job.id || ""
+            ].join("|");
+        }
+
+        function normalizeRenderJob(job) {
+            return {
+                scene_id: job.scene_id || job.sceneId || null,
+                title: job.title || "Untitled render job",
+                render_kind: job.render_kind || job.renderKind || "clip",
+                status: job.status || "queued",
+                bundle_json: job.bundle_json || job.bundleJson || "{}",
+                output_url: job.output_url || job.outputUrl || "",
+                thumbnail_url: job.thumbnail_url || job.thumbnailUrl || "",
+                error: job.error || "",
+                source: job.source || "anime-html",
+                created_at: job.created_at || job.createdAt || new Date().toISOString(),
+                updated_at: job.updated_at || job.updatedAt || new Date().toISOString(),
+                edge_id: job.edge_id || job.id || null
+            };
+        }
+
+        function readRenderJobDraft() {
+            return {
+                title: renderJobTitle.value.trim() || (latestScene?.title ? `${latestScene.title} render` : "Untitled render job"),
+                render_kind: renderKind.value,
+                notes: renderJobNotes.value.trim(),
+                scene_id: latestScene?.edge_id || latestScene?.id || null,
+                bundle: currentBundlePayload()
+            };
+        }
+
+        function saveRenderJobDraft() {
+            writeStore(RENDER_DRAFT_KEY, readRenderJobDraft());
+        }
+
+        function loadRenderJobDraft() {
+            const draft = readStore(RENDER_DRAFT_KEY, null);
+            if (!draft) {
+                loadRenderJobDraftDefaults();
+                return;
+            }
+            renderJobTitle.value = draft.title || "";
+            renderKind.value = draft.render_kind || "clip";
+            renderJobNotes.value = draft.notes || "";
+            if (!renderJobTitle.value.trim()) {
+                loadRenderJobDraftDefaults();
+            }
+        }
+
+        function currentBundlePayload() {
             const payload = normalizeScene(latestScene || currentPayload());
             const storyboard = readStoryboard();
             const assets = readStore(ASSET_KEY, []).map(normalizeAsset);
@@ -1224,6 +1323,12 @@
                 scene: payload,
                 storyboard,
                 assets,
+                render: {
+                    title: renderJobTitle.value.trim() || (payload.title ? `${payload.title} render` : "Untitled render job"),
+                    render_kind: renderKind.value,
+                    notes: renderJobNotes.value.trim(),
+                    scene_id: payload.edge_id || payload.id || null
+                },
                 render_phase: document.querySelector("[data-phase-panel='render']")?.classList.contains("active") ? "render" : "draft",
                 archive_count: (readStore(LOCAL_KEY, []) || []).filter(item => normalizeScene(item).status === "archived").length
             };
@@ -1560,6 +1665,177 @@
             renderAssetGrid(assets.map(normalizeAsset));
         }
 
+        function renderRenderJobCard(job) {
+            const card = document.createElement("article");
+            card.className = "history-item";
+            card.dataset.signature = renderJobSignature(job);
+            const bundle = (() => {
+                try {
+                    return typeof job.bundle_json === "string" ? JSON.parse(job.bundle_json) : (job.bundle_json || {});
+                } catch {
+                    return {};
+                }
+            })();
+            const sceneLabel = job.scene_id ? `Scene #${job.scene_id}` : "Scene not linked";
+            card.innerHTML = `
+                <strong>${escapeHtml(job.title || "Untitled render job")}</strong>
+                <span>${escapeHtml(job.render_kind || "clip")} · ${escapeHtml(job.status || "queued")} · ${escapeHtml(job.created_at || new Date().toISOString())}</span>
+                <em>${escapeHtml(sceneLabel)}${job.output_url ? ` · ${escapeHtml(job.output_url)}` : ""}${job.edge_id ? ` · EDGE #${escapeHtml(String(job.edge_id))}` : ""}</em>
+                <span>${escapeHtml(bundle?.render?.notes || job.error || "Waiting for render processing.")}</span>
+                <div class="archive-actions">
+                    <button class="button" type="button" data-job-watch>Watch</button>
+                    <button class="button" type="button" data-job-ready>Mark ready</button>
+                </div>
+            `;
+            card.querySelector("[data-job-watch]")?.addEventListener("click", () => {
+                if (bundle?.scene) {
+                    latestScene = normalizeScene({
+                        ...bundle.scene,
+                        storyboard: bundle.storyboard || []
+                    });
+                }
+                setWorkspacePhase("render");
+            });
+            card.querySelector("[data-job-ready]")?.addEventListener("click", async () => {
+                const next = { ...normalizeRenderJob(job), status: "ready" };
+                if (!next.output_url && bundle?.scene?.title) {
+                    next.output_url = `${bundle.scene.title.toLowerCase().replaceAll(/[^a-z0-9]+/g, "-").replaceAll(/^-+|-+$/g, "") || "scene"}-render.mp4`;
+                }
+                saveLocalRenderJob(next);
+                renderRenderJobs(readStore(RENDER_KEY, []).map(normalizeRenderJob));
+                if (window.TilelliEdge && next.edge_id) {
+                    try {
+                        const ownerKey = localStorage.getItem(OWNER_KEY) || "";
+                        if (ownerKey) {
+                            await window.TilelliEdge.request(`/v1/anime/renders/${next.edge_id}`, {
+                                method: "PATCH",
+                                headers: { "X-Tilelli-Owner-Key": ownerKey },
+                                body: JSON.stringify(next)
+                            });
+                            await loadRemoteRenderJobs();
+                        }
+                    } catch {
+                        // Keep local state even if sync fails.
+                    }
+                }
+            });
+            return card;
+        }
+
+        function renderRenderJobs(jobs) {
+            if (!renderJobsList) return;
+            if (!jobs.length) {
+                renderJobsList.innerHTML = `
+                    <div class="history-item">
+                        <strong>No render jobs yet.</strong>
+                        <span>Create a job from the current bundle to start tracking render progress.</span>
+                    </div>
+                `;
+                return;
+            }
+            renderJobsList.innerHTML = "";
+            jobs.forEach(job => renderJobsList.appendChild(renderRenderJobCard(normalizeRenderJob(job))));
+        }
+
+        function saveLocalRenderJob(job) {
+            const normalized = normalizeRenderJob(job);
+            const jobs = uniqueBy([normalized, ...(readStore(RENDER_KEY, []) || [])], renderJobSignature).slice(0, 18);
+            writeStore(RENDER_KEY, jobs);
+            renderRenderJobs(jobs.map(normalizeRenderJob));
+        }
+
+        function loadLocalRenderJobs() {
+            const jobs = readStore(RENDER_KEY, []);
+            renderRenderJobs(Array.isArray(jobs) ? jobs.map(normalizeRenderJob) : []);
+        }
+
+        function loadRenderJobDraftDefaults() {
+            if (renderJobTitle.value.trim()) return;
+            renderJobTitle.value = latestScene?.title ? `${latestScene.title} render` : "Untitled render job";
+        }
+
+        async function loadRemoteRenderJobs() {
+            if (!window.TilelliEdge) return;
+            try {
+                const response = await window.TilelliEdge.request("/v1/anime/renders?limit=6");
+                const jobs = response?.jobs || response?.items || [];
+                if (Array.isArray(jobs) && jobs.length) {
+                    const localJobs = readStore(RENDER_KEY, []).map(normalizeRenderJob);
+                    const merged = uniqueBy([...jobs.reverse().map(normalizeRenderJob), ...localJobs], renderJobSignature).slice(0, 18);
+                    writeStore(RENDER_KEY, merged);
+                    renderRenderJobs(merged);
+                }
+                apiState.textContent = "Edge API: connected";
+            } catch {
+                apiState.textContent = "Edge API: offline";
+            }
+        }
+
+        async function submitRenderJob() {
+            const draft = readRenderJobDraft();
+            const payload = draft.bundle;
+            const job = {
+                scene_id: draft.scene_id,
+                title: draft.title,
+                render_kind: draft.render_kind,
+                status: "queued",
+                bundle_json: JSON.stringify(payload),
+                output_url: "",
+                thumbnail_url: "",
+                error: "",
+                source: "anime-html",
+                created_at: new Date().toISOString()
+            };
+
+            saveLocalRenderJob(job);
+            latestScene = normalizeScene({
+                ...normalizeScene(latestScene || payload.scene || currentPayload()),
+                status: "rendering",
+                storyboard: payload.storyboard || readStoryboard()
+            });
+            saveLocalHistory(latestScene);
+            loadLocalHistory();
+            updateViewer(latestScene);
+            setWorkspacePhase("render");
+            queueState.textContent = `Queue: ${job.title}`;
+
+            if (!window.TilelliEdge) {
+                return;
+            }
+
+            const ownerKey = localStorage.getItem(OWNER_KEY) || "";
+            if (!ownerKey) {
+                apiState.textContent = "Render job sync requires owner key.";
+                return;
+            }
+
+            try {
+                apiState.textContent = "Edge API: syncing render job";
+                const response = await window.TilelliEdge.request("/v1/anime/renders", {
+                    method: "POST",
+                    headers: { "X-Tilelli-Owner-Key": ownerKey },
+                    body: JSON.stringify({
+                        scene_id: draft.scene_id,
+                        title: draft.title,
+                        render_kind: draft.render_kind,
+                        status: "queued",
+                        bundle: payload,
+                        source: "anime-html"
+                    })
+                });
+                if (response?.id) {
+                    job.edge_id = response.id;
+                    saveLocalRenderJob(job);
+                    apiState.textContent = `Edge API: render job #${response.id}`;
+                    await loadRemoteRenderJobs();
+                } else {
+                    apiState.textContent = "Edge API: render queued";
+                }
+            } catch {
+                apiState.textContent = "Edge API: local render queue only";
+            }
+        }
+
         function loadAssetDraft() {
             const draft = readStore(ASSET_DRAFT_KEY, null);
             if (!draft) return;
@@ -1691,6 +1967,7 @@
                 latestScene = normalized[0] || latestScene;
             }
             refreshAssetSceneOptions();
+            loadRenderJobDraftDefaults();
             updateViewer(latestScene);
             renderArchive();
         }
@@ -1913,6 +2190,11 @@
             saveAssetDraft();
         });
         syncAssetsButton.addEventListener("click", syncAssetsToEdge);
+        renderJobTitle.addEventListener("input", saveRenderJobDraft);
+        renderKind.addEventListener("change", saveRenderJobDraft);
+        renderJobNotes.addEventListener("input", saveRenderJobDraft);
+        createRenderJobButton.addEventListener("click", submitRenderJob);
+        refreshRenderJobsButton.addEventListener("click", loadRemoteRenderJobs);
         phaseButtons.forEach(button => {
             button.addEventListener("click", () => setWorkspacePhase(button.dataset.phaseTarget));
         });
@@ -1926,12 +2208,12 @@
             renderArchive();
         });
         exportBundleButton.addEventListener("click", () => {
-            const bundle = currentBundle();
+            const bundle = currentBundlePayload();
             downloadJson(`anime-scene-bundle-${Date.now()}.json`, bundle);
             setWorkspacePhase("publish");
         });
         copyBundleButton.addEventListener("click", async () => {
-            const bundle = currentBundle();
+            const bundle = currentBundlePayload();
             try {
                 await navigator.clipboard.writeText(JSON.stringify(bundle, null, 2));
                 setWorkspacePhase("publish");
@@ -1948,8 +2230,11 @@
         updateSceneSelectFromAssets();
         loadLocalAssets();
         loadAssetDraft();
+        loadRenderJobDraft();
+        loadLocalRenderJobs();
         renderAssetPreview(readAssetDraft());
         loadRemoteHistory();
+        loadRemoteRenderJobs();
         if (window.TilelliEdge) {
             window.TilelliEdge.event("anime.page.view", { surface: "generator" });
         }

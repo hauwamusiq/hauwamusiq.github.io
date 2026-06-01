@@ -1,7 +1,7 @@
 /*
 Form: Cloudflare Worker JavaScript
 Runtime: Cloudflare Workers
-Purpose: Tilelli edge API for project inventory, portfolio entries, anime scenes/assets, physics notes, reminders, audit events, and cron heartbeat.
+Purpose: Tilelli edge API for project inventory, portfolio entries, anime scenes/assets/render jobs, physics notes, reminders, audit events, and cron heartbeat.
 Inputs: HTTP requests, DB D1 binding, TILELLI_ALLOWED_ORIGINS, TILELLI_OWNER_WRITE_KEY.
 Outputs: JSON responses, D1 rows, CORS headers.
 Safety: Client writes are validated; owner-only writes require X-Tilelli-Owner-Key; no raw secrets are returned.
@@ -294,6 +294,142 @@ async function createAnimeAsset(env, request) {
   return { id: result.meta.last_row_id, ...item };
 }
 
+async function listAnimeRenderJobs(env, url) {
+  const limit = Math.max(1, Math.min(100, Number.parseInt(url.searchParams.get("limit") || "12", 10) || 12));
+  const sceneIdRaw = url.searchParams.get("scene_id") || url.searchParams.get("sceneId");
+  const status = cleanText(url.searchParams.get("status"), 80);
+  let query = "SELECT * FROM anime_render_jobs";
+  const params = [];
+  const clauses = [];
+
+  if (sceneIdRaw) {
+    clauses.push("scene_id = ?");
+    params.push(Number.parseInt(sceneIdRaw, 10));
+  }
+  if (status) {
+    clauses.push("status = ?");
+    params.push(cleanChoice(status, ["queued", "rendering", "ready", "failed"], "queued"));
+  }
+  if (clauses.length) query += ` WHERE ${clauses.join(" AND ")}`;
+  query += " ORDER BY created_at DESC LIMIT ?";
+  params.push(limit);
+
+  const result = await env.DB.prepare(query).bind(...params).all();
+  return {
+    jobs: result.results || [],
+    count: result.results?.length || 0
+  };
+}
+
+function serializeRenderBundle(body) {
+  const bundle = body.bundle || body.publish_bundle || body.bundle_json || body.bundleJson || body;
+  if (typeof bundle === "string") return bundle.trim() || "{}";
+  return JSON.stringify(bundle || {});
+}
+
+async function syncSceneFromRenderJob(env, job) {
+  if (!job.scene_id) return;
+  const updates = [];
+  const params = [];
+  if (job.status === "queued" || job.status === "rendering") {
+    updates.push("status = ?");
+    params.push("rendering");
+  } else if (job.status === "ready") {
+    updates.push("status = ?");
+    params.push("ready");
+    if (job.output_url) {
+      updates.push("output_url = ?");
+      params.push(job.output_url);
+    }
+  } else if (job.status === "failed") {
+    updates.push("status = ?");
+    params.push("queued");
+  }
+  if (!updates.length) return;
+  updates.push("updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')");
+  params.push(job.scene_id);
+  await env.DB.prepare(`UPDATE anime_scenes SET ${updates.join(", ")} WHERE id = ?`).bind(...params).run();
+}
+
+async function createAnimeRenderJob(env, request) {
+  requireOwner(request, env);
+  const body = await readJson(request);
+  const sceneId = body.scene_id || body.sceneId ? Number.parseInt(body.scene_id || body.sceneId, 10) || null : null;
+  const title = cleanText(body.title || body.name || body.scene_title, 180) || "Untitled render job";
+  const item = {
+    scene_id: sceneId,
+    title,
+    render_kind: cleanChoice(body.render_kind || body.renderKind, ["still", "clip", "sequence"], "clip"),
+    status: cleanChoice(body.status, ["queued", "rendering", "ready", "failed"], "queued"),
+    bundle_json: serializeRenderBundle(body),
+    output_url: cleanText(body.output_url || body.outputUrl, 1200),
+    thumbnail_url: cleanText(body.thumbnail_url || body.thumbnailUrl, 1200),
+    error: cleanText(body.error, 4000),
+    source: cleanText(body.source, 120) || "anime-html"
+  };
+  const result = await env.DB.prepare(
+    `INSERT INTO anime_render_jobs
+      (scene_id, title, render_kind, status, bundle_json, output_url, thumbnail_url, error, source)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+  )
+    .bind(
+      item.scene_id,
+      item.title,
+      item.render_kind,
+      item.status,
+      item.bundle_json,
+      item.output_url,
+      item.thumbnail_url,
+      item.error,
+      item.source
+    )
+    .run();
+  await syncSceneFromRenderJob(env, item);
+  await logEvent(env, "anime_render_job.created", { id: result.meta.last_row_id, title: item.title, render_kind: item.render_kind }, request);
+  return { id: result.meta.last_row_id, ...item };
+}
+
+async function updateAnimeRenderJob(env, request, jobId) {
+  requireOwner(request, env);
+  const id = Number.parseInt(jobId, 10);
+  if (!Number.isFinite(id)) throw statusError(400, "Render job id is required.");
+  const current = await env.DB.prepare("SELECT * FROM anime_render_jobs WHERE id = ?").bind(id).first();
+  if (!current) throw statusError(404, "Render job not found.");
+  const body = await readJson(request);
+  const next = {
+    scene_id: body.scene_id || body.sceneId ? Number.parseInt(body.scene_id || body.sceneId, 10) || current.scene_id : current.scene_id,
+    title: cleanText(body.title, 180) || current.title,
+    render_kind: cleanChoice(body.render_kind || body.renderKind, ["still", "clip", "sequence"], current.render_kind),
+    status: cleanChoice(body.status, ["queued", "rendering", "ready", "failed"], current.status),
+    bundle_json: body.bundle || body.publish_bundle || body.bundle_json || body.bundleJson ? serializeRenderBundle(body) : current.bundle_json,
+    output_url: cleanText(body.output_url || body.outputUrl, 1200) || current.output_url,
+    thumbnail_url: cleanText(body.thumbnail_url || body.thumbnailUrl, 1200) || current.thumbnail_url,
+    error: cleanText(body.error, 4000) || current.error,
+    source: cleanText(body.source, 120) || current.source
+  };
+  await env.DB.prepare(
+    `UPDATE anime_render_jobs
+      SET scene_id = ?, title = ?, render_kind = ?, status = ?, bundle_json = ?, output_url = ?, thumbnail_url = ?, error = ?, source = ?, updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
+      WHERE id = ?`
+  )
+    .bind(
+      next.scene_id,
+      next.title,
+      next.render_kind,
+      next.status,
+      next.bundle_json,
+      next.output_url,
+      next.thumbnail_url,
+      next.error,
+      next.source,
+      id
+    )
+    .run();
+  await syncSceneFromRenderJob(env, next);
+  await logEvent(env, "anime_render_job.updated", { id, title: next.title, status: next.status }, request);
+  return { id, ...next };
+}
+
 async function listAgentRuns(env) {
   return env.DB.prepare("SELECT * FROM agent_runs ORDER BY created_at DESC LIMIT 100").all();
 }
@@ -364,6 +500,16 @@ async function route(request, env) {
   }
   if (pathname === "/v1/anime/assets" && request.method === "POST") {
     return json(await createAnimeAsset(env, request), { status: 201 }, env, request);
+  }
+  if (pathname === "/v1/anime/renders" && request.method === "GET") {
+    return json(await listAnimeRenderJobs(env, url), {}, env, request);
+  }
+  if (pathname === "/v1/anime/renders" && request.method === "POST") {
+    return json(await createAnimeRenderJob(env, request), { status: 201 }, env, request);
+  }
+  const renderJobMatch = pathname.match(/^\/v1\/anime\/renders\/(\d+)$/);
+  if (renderJobMatch && request.method === "PATCH") {
+    return json(await updateAnimeRenderJob(env, request, renderJobMatch[1]), {}, env, request);
   }
   if (pathname === "/v1/agent/runs" && request.method === "GET") {
     return json(await listAgentRuns(env), {}, env, request);
