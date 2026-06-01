@@ -6,8 +6,11 @@ This repo now has the base structure for Cloudflare-backed edge endpoints:
 - `workers/tilelli-api/schema/0001_initial.sql`: D1 schema.
 - `workers/tilelli-api/wrangler.toml`: Worker, D1, and cron config.
 - `agents/tilelli/base-agent.json`: Base capability map.
+- `agents/tilelli/coding-agent.json`: Coding-agent harness contract.
+- `agents/tilelli/forms/coding-task.request.json`: Example coding-task request.
 - `scripts/tilelli-cloudflare.mjs`: Cloudflare account discovery, permission group lookup, and scoped token minting.
-- `docs/tilelli-edge.workflow.yml.template`: GitHub Actions check/deploy/heartbeat workflow template.
+- `.github/workflows/tilelli-edge.yml`: Live GitHub Actions check/deploy/heartbeat workflow.
+- `docs/tilelli-edge.workflow.yml.template`: GitHub Actions template copy.
 
 Live Worker:
 
@@ -44,6 +47,17 @@ node scripts/tilelli-cloudflare.mjs mint-token agents/tilelli/forms/deployer-tok
 
 The returned token is written to `.tilelli/*.token`, which is ignored by git.
 
+Inspect the coding-agent harness and validate the agent forms:
+
+```sh
+tilelli agent profile coding
+tilelli agent forms
+tilelli agent validate
+tilelli agent run agents/tilelli/forms/coding-task.request.json
+```
+
+Agent runs are synced to the Worker endpoint at `POST /v1/agent/runs` and also written locally to `.tilelli/agent-runs/` as a fallback record.
+
 ## D1 Lifecycle
 
 Create the remote database once:
@@ -68,13 +82,11 @@ scripts/tilelli-wrangler.sh secret put TILELLI_OWNER_WRITE_KEY --config workers/
 
 ## GitHub Actions
 
-The workflow is currently stored as:
+The live workflow is stored at:
 
 ```txt
-docs/tilelli-edge.workflow.yml.template
+.github/workflows/tilelli-edge.yml
 ```
-
-It can be copied to `.github/workflows/tilelli-edge.yml` after GitHub authentication has `workflow` scope.
 
 Add repository secrets/variables:
 

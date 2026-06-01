@@ -1,0 +1,126 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "form": "JSON",
+  "runtime": "Tilelli agent validator",
+  "purpose": "Schema for coding tasks that drive the Tilelli local coding agent.",
+  "inputs": [
+    "Coding-task request JSON",
+    "Tilelli agent context"
+  ],
+  "outputs": [
+    "Validated coding-task shape",
+    "Validation errors"
+  ],
+  "safety": [
+    "No secret values",
+    "No executable code in request metadata",
+    "Requests should stay owner-scoped"
+  ],
+  "relations": [
+    "agents/tilelli/coding-agent.json",
+    "agents/tilelli/forms/coding-task.request.json",
+    "scripts/tilelli-cli.mjs"
+  ],
+  "title": "Tilelli Coding Task",
+  "type": "object",
+  "required": [
+    "name",
+    "objective",
+    "scope",
+    "verification",
+    "ownerOnlyWrites"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "form": {
+      "type": "string",
+      "const": "JSON"
+    },
+    "runtime": {
+      "type": "string",
+      "minLength": 3
+    },
+    "purpose": {
+      "type": "string",
+      "minLength": 8
+    },
+    "inputs": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 3
+      }
+    },
+    "outputs": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 3
+      }
+    },
+    "safety": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 3
+      }
+    },
+    "relations": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 3
+      }
+    },
+    "name": {
+      "type": "string",
+      "pattern": "^tilelli-[a-z0-9-]+$",
+      "description": "Stable machine name for the coding task."
+    },
+    "objective": {
+      "type": "string",
+      "minLength": 12,
+      "description": "Clear task outcome for the coding agent."
+    },
+    "scope": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 3
+      },
+      "description": "Files, modules, or systems the task may touch."
+    },
+    "verification": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 3
+      },
+      "description": "Checks that must pass before handoff."
+    },
+    "ownerOnlyWrites": {
+      "type": "boolean",
+      "const": true,
+      "description": "True when the task may write only owner-scoped data or secrets."
+    },
+    "modelPreference": {
+      "type": "string",
+      "enum": [
+        "local",
+        "fallback",
+        "either"
+      ],
+      "default": "local"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Optional constraints, assumptions, or handoff notes."
+    }
+  }
+}

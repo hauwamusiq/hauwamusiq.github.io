@@ -3,8 +3,11 @@
 <!--
 Form: Markdown
 Runtime: Human reader, GitHub renderer, agent context loader.
-Execution: Read this file as doctrine. Validate machine-facing declarations against spec/specification-system.manifest.json.
+Purpose: Read this file as doctrine. Validate machine-facing declarations against spec/specification-system.manifest.json.
+Inputs: Repo files, native comment headers, agent context.
+Outputs: Specification rules, validation expectations, autopoietic conventions.
 Safety: This file may describe secrets, but must not contain secret values.
+Relations: spec/specification-system.manifest.json, scripts/tilelli-cli.mjs, agents/tilelli/*.json, workers/tilelli-api/*.
 -->
 
 ## Purpose
@@ -243,4 +246,3 @@ The first implementation pass must provide:
 - a validator that checks required artifacts,
 - native headers added to Worker, SQL, TOML, YAML, and agent JSON forms,
 - and a rule that no browser artifact contains private credentials.
-

@@ -1,0 +1,60 @@
+# Form: YAML
+# Runtime: GitHub Actions
+# Purpose: CI, deployment, and scheduled heartbeat for Tilelli.
+# Inputs: Repository source, GitHub secret TILELLI_CLOUDFLARE_API_TOKEN, GitHub variable TILELLI_API_BASE_URL.
+# Outputs: Worker deployment and scheduled health pings.
+# Safety: Secrets are referenced through GitHub contexts and must not be printed.
+# Relations: package.json, workers/tilelli-api/wrangler.toml, scripts/check-html.mjs.
+
+name: Tilelli Edge
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  schedule:
+    - cron: "17 */6 * * *"
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm install
+      - run: npm run check
+
+  deploy-worker:
+    if: github.event_name != 'schedule'
+    needs: check
+    runs-on: ubuntu-latest
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.TILELLI_CLOUDFLARE_API_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm install
+      - name: Deploy Tilelli API Worker
+        if: env.CLOUDFLARE_API_TOKEN != ''
+        run: npm run deploy:worker
+      - name: Skip deploy without Cloudflare token
+        if: env.CLOUDFLARE_API_TOKEN == ''
+        run: echo "TILELLI_CLOUDFLARE_API_TOKEN is not configured; skipping Worker deploy."
+
+  virtual-cron-heartbeat:
+    if: github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    env:
+      TILELLI_API_BASE_URL: ${{ vars.TILELLI_API_BASE_URL }}
+    steps:
+      - name: Ping Tilelli API health endpoint
+        if: env.TILELLI_API_BASE_URL != ''
+        run: |
+          curl --fail --silent --show-error "$TILELLI_API_BASE_URL/health"
+      - name: Skip heartbeat without API URL
+        if: env.TILELLI_API_BASE_URL == ''
+        run: echo "TILELLI_API_BASE_URL is not configured; skipping heartbeat."

@@ -176,6 +176,30 @@ async function createReminder(env, request) {
   return { id: result.meta.last_row_id, ...item };
 }
 
+async function listAgentRuns(env) {
+  return env.DB.prepare("SELECT * FROM agent_runs ORDER BY created_at DESC LIMIT 100").all();
+}
+
+async function createAgentRun(env, request) {
+  requireOwner(request, env);
+  const body = await readJson(request);
+  const item = {
+    run_type: cleanText(body.run_type || body.runType || body.task?.name || "tilelli-agent-run", 120),
+    status: cleanChoice(body.status, ["ok", "warn", "error"], "ok"),
+    details: JSON.stringify({
+      task: body.task || null,
+      modelPlan: body.modelPlan || null,
+      verificationResults: body.verificationResults || [],
+      createdAt: body.createdAt || new Date().toISOString()
+    })
+  };
+  const result = await env.DB.prepare("INSERT INTO agent_runs (run_type, status, details) VALUES (?, ?, ?)")
+    .bind(item.run_type, item.status, item.details)
+    .run();
+  await logEvent(env, "agent_run.created", { id: result.meta.last_row_id, run_type: item.run_type }, request);
+  return { id: result.meta.last_row_id, ...item };
+}
+
 async function route(request, env) {
   const url = new URL(request.url);
   const { pathname } = url;
@@ -210,6 +234,12 @@ async function route(request, env) {
   if (pathname === "/v1/dashboard/reminders" && request.method === "POST") {
     requireOwner(request, env);
     return json(await createReminder(env, request), { status: 201 }, env, request);
+  }
+  if (pathname === "/v1/agent/runs" && request.method === "GET") {
+    return json(await listAgentRuns(env), {}, env, request);
+  }
+  if (pathname === "/v1/agent/runs" && request.method === "POST") {
+    return json(await createAgentRun(env, request), { status: 201 }, env, request);
   }
   throw statusError(404, "Route not found.");
 }

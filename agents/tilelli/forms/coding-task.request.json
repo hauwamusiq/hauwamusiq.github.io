@@ -1,0 +1,39 @@
+{
+  "form": "JSON",
+  "runtime": "Tilelli coding request form",
+  "purpose": "Example coding-task request for the Tilelli local agent harness.",
+  "inputs": [
+    "Tilelli CLI",
+    "Local repo state"
+  ],
+  "outputs": [
+    "Coding task plan",
+    "Validation target"
+  ],
+  "safety": [
+    "No secret values",
+    "Owner-only scope",
+    "Requests should remain minimal and deterministic"
+  ],
+  "relations": [
+    "agents/tilelli/coding-agent.json",
+    "agents/tilelli/forms/coding-task.schema.json",
+    "scripts/tilelli-cli.mjs"
+  ],
+  "name": "tilelli-coding-bootstrap",
+  "objective": "Wire the Tilelli coding-agent harness into the CLI and validate the executable specification forms.",
+  "scope": [
+    "scripts/tilelli-cli.mjs",
+    "agents/tilelli/*",
+    "spec/*"
+  ],
+  "verification": [
+    "node --check scripts/tilelli-cli.mjs",
+    "tilelli agent validate",
+    "tilelli spec",
+    "git diff --check"
+  ],
+  "ownerOnlyWrites": true,
+  "modelPreference": "local",
+  "notes": "Prefer the smallest safe change set and preserve native-form validity."
+}

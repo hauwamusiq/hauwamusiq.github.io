@@ -2,6 +2,22 @@
   "form": "JSON",
   "runtime": "Tilelli agents and validation scripts",
   "purpose": "Machine-readable registry for the Tilelli executable specification system.",
+  "inputs": [
+    "Repo files",
+    "Native comment headers",
+    "Agent context"
+  ],
+  "outputs": [
+    "Specification rules",
+    "Validation expectations",
+    "Autopoietic conventions"
+  ],
+  "relations": [
+    "spec/specification-system.md",
+    "scripts/tilelli-cli.mjs",
+    "agents/tilelli/*.json",
+    "workers/tilelli-api/*"
+  ],
   "safety": [
     "This file must not contain secret values.",
     "Strict JSON does not allow comments, so documentation is represented as data."
@@ -96,7 +112,11 @@
     "workers/tilelli-api/schema/0001_initial.sql",
     "workers/tilelli-api/wrangler.toml",
     "docs/tilelli-edge.workflow.yml.template",
+    ".github/workflows/tilelli-edge.yml",
     "agents/tilelli/base-agent.json",
+    "agents/tilelli/coding-agent.json",
+    "agents/tilelli/forms/coding-task.schema.json",
+    "agents/tilelli/forms/coding-task.request.json",
     "scripts/tilelli-cloudflare.mjs"
   ]
 }
