@@ -3,7 +3,7 @@
 -- Purpose: Initial persistent memory schema for the Tilelli edge backend.
 -- Inputs: wrangler d1 execute, Cloudflare D1 binding.
 -- Outputs: audit_events, portfolio_entries, physics_notes, dashboard_reminders, and agent_runs tables.
--- Outputs: audit_events, portfolio_entries, anime_scenes, anime_assets, anime_render_jobs, physics_notes, dashboard_reminders, and agent_runs tables.
+-- Outputs: audit_events, portfolio_entries, anime_scenes, anime_assets, anime_render_jobs, anime_generation_jobs, physics_notes, dashboard_reminders, and agent_runs tables.
 -- Safety: Uses CREATE TABLE IF NOT EXISTS and CREATE INDEX IF NOT EXISTS to keep first migration idempotent.
 -- Relations: workers/tilelli-api/src/index.js, workers/tilelli-api/wrangler.toml.
 
@@ -135,6 +135,30 @@ CREATE TABLE IF NOT EXISTS anime_automation_rules (
 
 CREATE INDEX IF NOT EXISTS idx_anime_automation_rules_status_created ON anime_automation_rules(status, created_at);
 CREATE INDEX IF NOT EXISTS idx_anime_automation_rules_trigger_created ON anime_automation_rules(trigger_type, created_at);
+CREATE TABLE IF NOT EXISTS anime_generation_jobs (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  scene_id INTEGER,
+  title TEXT NOT NULL,
+  provider TEXT NOT NULL DEFAULT 'local' CHECK (provider IN ('local', 'cloudflare', 'external')),
+  model TEXT NOT NULL DEFAULT '',
+  generation_prompt TEXT NOT NULL DEFAULT '',
+  notes TEXT NOT NULL DEFAULT '',
+  duration TEXT NOT NULL DEFAULT '10s',
+  resolution TEXT NOT NULL DEFAULT '1920x1080',
+  fps TEXT NOT NULL DEFAULT '24',
+  status TEXT NOT NULL DEFAULT 'queued' CHECK (status IN ('queued', 'generating', 'ready', 'failed')),
+  bundle_json TEXT NOT NULL DEFAULT '{}',
+  output_url TEXT NOT NULL DEFAULT '',
+  thumbnail_url TEXT NOT NULL DEFAULT '',
+  error TEXT NOT NULL DEFAULT '',
+  source TEXT NOT NULL DEFAULT 'anime-html',
+  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+  FOREIGN KEY (scene_id) REFERENCES anime_scenes(id) ON DELETE SET NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_anime_generation_jobs_status_created ON anime_generation_jobs(status, created_at);
+CREATE INDEX IF NOT EXISTS idx_anime_generation_jobs_scene_created ON anime_generation_jobs(scene_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_physics_notes_status ON physics_notes(status, created_at);
 CREATE INDEX IF NOT EXISTS idx_dashboard_reminders_status_due ON dashboard_reminders(status, due_at);
 CREATE INDEX IF NOT EXISTS idx_agent_runs_type_created ON agent_runs(run_type, created_at);

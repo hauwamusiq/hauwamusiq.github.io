@@ -49,6 +49,7 @@ Relations: workers/tilelli-api/src/index.js, index.html, tilaelia.html, clock.ht
     animeAssets: query => request(`/v1/anime/assets${query ? `?${query}` : ""}`),
     animeRenderJobs: query => request(`/v1/anime/renders${query ? `?${query}` : ""}`),
     animeAutomations: query => request(`/v1/anime/automations${query ? `?${query}` : ""}`),
+    animeGenerations: query => request(`/v1/anime/generations${query ? `?${query}` : ""}`),
     physicsNotes: () => request("/v1/physics/notes"),
     reminders: () => request("/v1/dashboard/reminders")
   };

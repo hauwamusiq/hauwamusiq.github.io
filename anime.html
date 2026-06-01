@@ -935,6 +935,7 @@
                     <button type="button" data-phase-target="review">Review</button>
                     <button type="button" data-phase-target="templates">Templates</button>
                     <button type="button" data-phase-target="automation">Automation</button>
+                    <button type="button" data-phase-target="generation">Generation</button>
                 </div>
 
                 <div class="panel storyboard-editor phase-panel active" data-phase-panel="storyboard">
@@ -1286,12 +1287,90 @@
                         </div>
                     </div>
                 </div>
+
+                <div class="panel history phase-panel" data-phase-panel="generation">
+                    <div class="surface-head">
+                        <strong>Generation engine</strong>
+                        <span>Phase 11: actual video generation handoff</span>
+                    </div>
+                    <div class="history-list">
+                        <div class="history-item">
+                            <strong>Compose a generation job</strong>
+                            <span>This is the handoff where a scene can be sent to a real renderer or video model. The workspace stores the job now; the renderer can fulfill it later.</span>
+                            <div class="form-grid" style="margin-top: 12px;">
+                                <div class="field">
+                                    <label for="generation-title">Job title</label>
+                                    <input id="generation-title" maxlength="180" placeholder="Example: Neon vows video">
+                                </div>
+                                <div class="field">
+                                    <label for="generation-provider">Provider</label>
+                                    <select id="generation-provider">
+                                        <option value="local">Local renderer</option>
+                                        <option value="cloudflare">Cloudflare worker</option>
+                                        <option value="external">External model</option>
+                                    </select>
+                                </div>
+                                <div class="field">
+                                    <label for="generation-model">Model / engine</label>
+                                    <input id="generation-model" maxlength="180" placeholder="Example: qwen-video, sora, or local ffmpeg pipeline">
+                                </div>
+                                <div class="field">
+                                    <label for="generation-duration">Duration</label>
+                                    <select id="generation-duration">
+                                        <option value="5s">5 seconds</option>
+                                        <option value="10s" selected>10 seconds</option>
+                                        <option value="15s">15 seconds</option>
+                                        <option value="30s">30 seconds</option>
+                                    </select>
+                                </div>
+                                <div class="field">
+                                    <label for="generation-resolution">Resolution</label>
+                                    <select id="generation-resolution">
+                                        <option value="1920x1080">1920 x 1080</option>
+                                        <option value="1080x1920">1080 x 1920</option>
+                                        <option value="1024x1024">1024 x 1024</option>
+                                    </select>
+                                </div>
+                                <div class="field">
+                                    <label for="generation-fps">FPS</label>
+                                    <select id="generation-fps">
+                                        <option value="24">24</option>
+                                        <option value="30">30</option>
+                                        <option value="60">60</option>
+                                    </select>
+                                </div>
+                                <div class="field full">
+                                    <label for="generation-prompt">Generation prompt</label>
+                                    <textarea id="generation-prompt" maxlength="4000" placeholder="Describe the motion, framing, atmosphere, and clip behavior for the renderer or video model."></textarea>
+                                </div>
+                                <div class="field full">
+                                    <label for="generation-notes">Generation notes</label>
+                                    <textarea id="generation-notes" maxlength="4000" placeholder="Constraints, must-haves, camera rules, and post-processing notes."></textarea>
+                                </div>
+                            </div>
+                            <div class="archive-actions">
+                                <button class="button primary" type="button" id="create-generation-btn">Create job</button>
+                                <button class="button" type="button" id="refresh-generation-btn">Refresh jobs</button>
+                            </div>
+                        </div>
+                        <div class="history-item">
+                            <strong>Generation jobs</strong>
+                            <span>Queued jobs live here until a renderer produces video output. This is the first phase that is explicitly about actual video generation.</span>
+                        </div>
+                        <div id="generation-list" class="history-list">
+                            <div class="history-item">
+                                <strong>No generation jobs yet.</strong>
+                                <span>Create a job to hand a scene off to a renderer or model pipeline.</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </section>
 
         <section class="panel footer">
             <b>Foundation note:</b>
-            This page does not generate video yet. It now gives you the proper inputs, queue record, storyboard draft, render job tracking, and edge storage hooks so the future backend can convert a scene request into storyboard frames, stills, or video renders without redesigning the UI.
+            This page does not generate video directly yet. It now gives you the proper inputs, queue record, storyboard draft, render job tracking, generation job tracking, and edge storage hooks so the future backend can convert a scene request into storyboard frames, stills, or video renders without redesigning the UI.
         </section>
     </div>
 
@@ -1405,6 +1484,17 @@
         const runAutomationButton = document.getElementById("run-automation-btn");
         const refreshAutomationButton = document.getElementById("refresh-automation-btn");
         const automationList = document.getElementById("automation-list");
+        const generationTitle = document.getElementById("generation-title");
+        const generationProvider = document.getElementById("generation-provider");
+        const generationModel = document.getElementById("generation-model");
+        const generationDuration = document.getElementById("generation-duration");
+        const generationResolution = document.getElementById("generation-resolution");
+        const generationFps = document.getElementById("generation-fps");
+        const generationPrompt = document.getElementById("generation-prompt");
+        const generationNotes = document.getElementById("generation-notes");
+        const createGenerationButton = document.getElementById("create-generation-btn");
+        const refreshGenerationButton = document.getElementById("refresh-generation-btn");
+        const generationList = document.getElementById("generation-list");
         const LOCAL_KEY = "tilelli-anime-scenes";
         const STORYBOARD_KEY = "tilelli-anime-storyboard";
         const ASSET_KEY = "tilelli-anime-assets";
@@ -1414,6 +1504,8 @@
         const TEMPLATE_KEY = "tilelli-anime-templates";
         const AUTOMATION_KEY = "tilelli-anime-automation-rules";
         const AUTOMATION_DRAFT_KEY = "tilelli-anime-automation-draft";
+        const GENERATION_KEY = "tilelli-anime-generation-jobs";
+        const GENERATION_DRAFT_KEY = "tilelli-anime-generation-draft";
         const PHASE_KEY = "tilelli-anime-phase";
         const OWNER_KEY = "tilelli-owner-key";
         const phaseButtons = Array.from(document.querySelectorAll("[data-phase-target]"));
@@ -1425,7 +1517,7 @@
         let playbackSignature = "";
 
         function setWorkspacePhase(phase) {
-            const nextPhase = ["storyboard", "assets", "render", "queue", "archive", "publish", "review", "templates", "automation"].includes(phase) ? phase : "storyboard";
+            const nextPhase = ["storyboard", "assets", "render", "queue", "archive", "publish", "review", "templates", "automation", "generation"].includes(phase) ? phase : "storyboard";
             phaseButtons.forEach(button => {
                 button.classList.toggle("active", button.dataset.phaseTarget === nextPhase);
             });
@@ -2151,22 +2243,27 @@
         function reviewSources() {
             const scenes = readStore(LOCAL_KEY, []).map(normalizeScene);
             const jobs = readStore(RENDER_KEY, []).map(normalizeRenderJob);
+            const generations = readStore(GENERATION_KEY, []).map(normalizeGenerationJob);
             return {
                 scenes,
-                jobs
+                jobs,
+                generations
             };
         }
 
         function refreshReviewSources() {
             if (!reviewSource) return;
             const previousValue = reviewSource.value;
-            const { scenes, jobs } = reviewSources();
+            const { scenes, jobs, generations } = reviewSources();
             const options = [`<option value="">Latest scene</option>`];
             scenes.slice(0, 8).forEach((scene, index) => {
                 options.push(`<option value="scene:${index}">${escapeHtml(scene.title || `Scene ${index + 1}`)} · ${escapeHtml(scene.status || "queued")}</option>`);
             });
             jobs.slice(0, 8).forEach((job, index) => {
                 options.push(`<option value="job:${index}">${escapeHtml(job.title || `Render job ${index + 1}`)} · ${escapeHtml(job.status || "queued")}</option>`);
+            });
+            generations.slice(0, 8).forEach((job, index) => {
+                options.push(`<option value="generation:${index}">${escapeHtml(job.title || `Generation job ${index + 1}`)} · ${escapeHtml(job.status || "queued")}</option>`);
             });
             reviewSource.innerHTML = options.join("");
             reviewSource.value = Array.from(reviewSource.options).some(option => option.value === previousValue) ? previousValue : "";
@@ -2175,7 +2272,7 @@
 
         function selectedReviewEntry() {
             const value = selectedReviewValue();
-            const { scenes, jobs } = reviewSources();
+            const { scenes, jobs, generations } = reviewSources();
             if (!value) {
                 return {
                     kind: "scene",
@@ -2186,6 +2283,9 @@
             const index = Number.parseInt(rawIndex, 10);
             if (kind === "job" && Number.isFinite(index) && jobs[index]) {
                 return { kind: "job", item: jobs[index] };
+            }
+            if (kind === "generation" && Number.isFinite(index) && generations[index]) {
+                return { kind: "generation", item: generations[index] };
             }
             if (kind === "scene" && Number.isFinite(index) && scenes[index]) {
                 return { kind: "scene", item: scenes[index] };
@@ -2204,6 +2304,15 @@
                 reviewStatus.value = `${entry.item.status || "queued"} · ${entry.item.render_kind || "clip"}`;
                 reviewBundle.textContent = JSON.stringify({
                     render_job: entry.item,
+                    bundle
+                }, null, 2);
+                return;
+            }
+            if (entry.kind === "generation") {
+                const bundle = parseJsonSafe(entry.item.bundle_json, {});
+                reviewStatus.value = `${entry.item.status || "queued"} · ${entry.item.provider || "local"}`;
+                reviewBundle.textContent = JSON.stringify({
+                    generation_job: entry.item,
                     bundle
                 }, null, 2);
                 return;
@@ -2234,6 +2343,17 @@
                 renderKind.value = entry.item.render_kind || renderKind.value || "clip";
                 renderJobNotes.value = bundle?.render?.notes || entry.item.error || "";
                 setWorkspacePhase("storyboard");
+                updateReviewPanel();
+                return;
+            }
+            if (entry.kind === "generation") {
+                const bundle = parseJsonSafe(entry.item.bundle_json, {});
+                if (bundle?.scene) {
+                    latestScene = normalizeScene({ ...bundle.scene, storyboard: bundle.storyboard || [] });
+                    cloneArchivedScene(latestScene);
+                }
+                populateGenerationDraft(entry.item);
+                setWorkspacePhase("generation");
                 updateReviewPanel();
                 return;
             }
@@ -2692,6 +2812,223 @@
                 }
             } catch {
                 apiState.textContent = "Edge API: local render queue only";
+            }
+            return job;
+        }
+
+        function generationJobSignature(job) {
+            return [
+                job.title || "",
+                job.provider || "",
+                job.model || "",
+                job.generation_prompt || "",
+                job.duration || "",
+                job.resolution || "",
+                job.fps || "",
+                job.status || "",
+                job.bundle_json || ""
+            ].join("|");
+        }
+
+        function normalizeGenerationJob(job) {
+            return {
+                id: job.id || job.edge_id || job.title || `generation-${Date.now()}`,
+                scene_id: job.scene_id || job.sceneId || null,
+                title: job.title || "Untitled generation job",
+                provider: job.provider || "local",
+                model: job.model || job.model_name || job.modelName || "",
+                generation_prompt: job.generation_prompt || job.generationPrompt || job.prompt || "",
+                notes: job.notes || "",
+                duration: job.duration || "10s",
+                resolution: job.resolution || "1920x1080",
+                fps: job.fps || "24",
+                status: job.status || "queued",
+                bundle_json: job.bundle_json || job.bundleJson || "{}",
+                output_url: job.output_url || job.outputUrl || "",
+                thumbnail_url: job.thumbnail_url || job.thumbnailUrl || "",
+                error: job.error || "",
+                source: job.source || "anime-html",
+                created_at: job.created_at || job.createdAt || new Date().toISOString(),
+                updated_at: job.updated_at || job.updatedAt || new Date().toISOString(),
+                edge_id: job.edge_id || job.id || null
+            };
+        }
+
+        function loadGenerationJobs() {
+            const stored = readStore(GENERATION_KEY, []);
+            return Array.isArray(stored) ? stored.map(normalizeGenerationJob) : [];
+        }
+
+        function commitGenerationJobs(jobs) {
+            const next = uniqueBy(jobs.map(normalizeGenerationJob), generationJobSignature).slice(0, 24);
+            writeStore(GENERATION_KEY, next);
+            renderGenerationJobs(next);
+            return next;
+        }
+
+        function saveLocalGenerationJob(job) {
+            commitGenerationJobs([normalizeGenerationJob(job), ...loadGenerationJobs()]);
+        }
+
+        function loadLocalGenerationJobs() {
+            commitGenerationJobs(loadGenerationJobs());
+        }
+
+        function readGenerationDraft() {
+            return {
+                title: generationTitle.value.trim(),
+                provider: generationProvider.value,
+                model: generationModel.value.trim(),
+                duration: generationDuration.value,
+                resolution: generationResolution.value,
+                fps: generationFps.value,
+                generation_prompt: generationPrompt.value.trim(),
+                notes: generationNotes.value.trim(),
+                source: "anime-html"
+            };
+        }
+
+        function saveGenerationDraft() {
+            writeStore(GENERATION_DRAFT_KEY, readGenerationDraft());
+        }
+
+        function loadGenerationDraft() {
+            const draft = readStore(GENERATION_DRAFT_KEY, null);
+            generationTitle.value = draft?.title || "";
+            generationProvider.value = draft?.provider || "local";
+            generationModel.value = draft?.model || "";
+            generationDuration.value = draft?.duration || "10s";
+            generationResolution.value = draft?.resolution || "1920x1080";
+            generationFps.value = draft?.fps || "24";
+            generationPrompt.value = draft?.generation_prompt || "";
+            generationNotes.value = draft?.notes || "";
+        }
+
+        function populateGenerationDraft(job) {
+            const next = normalizeGenerationJob(job);
+            generationTitle.value = next.title || "";
+            generationProvider.value = next.provider || "local";
+            generationModel.value = next.model || "";
+            generationDuration.value = next.duration || "10s";
+            generationResolution.value = next.resolution || "1920x1080";
+            generationFps.value = next.fps || "24";
+            generationPrompt.value = next.generation_prompt || "";
+            generationNotes.value = next.notes || next.error || "";
+            saveGenerationDraft();
+        }
+
+        function renderGenerationJobs(jobs) {
+            if (!generationList) return;
+            if (!jobs.length) {
+                generationList.innerHTML = `
+                    <div class="history-item">
+                        <strong>No generation jobs yet.</strong>
+                        <span>Create a job to hand a scene off to a renderer or model pipeline.</span>
+                    </div>
+                `;
+                return;
+            }
+            generationList.innerHTML = "";
+            jobs.forEach(job => {
+                const card = document.createElement("article");
+                card.className = "history-item";
+                card.dataset.signature = generationJobSignature(job);
+                const bundle = (() => {
+                    try {
+                        return typeof job.bundle_json === "string" ? JSON.parse(job.bundle_json) : (job.bundle_json || {});
+                    } catch {
+                        return {};
+                    }
+                })();
+                card.innerHTML = `
+                    <strong>${escapeHtml(job.title || "Untitled generation job")}</strong>
+                    <span>${escapeHtml(job.provider || "local")} · ${escapeHtml(job.model || "no model set")} · ${escapeHtml(job.status || "queued")}</span>
+                    <em>${escapeHtml(job.duration || "10s")} · ${escapeHtml(job.resolution || "1920x1080")} · ${escapeHtml(job.fps || "24")} FPS${job.edge_id ? ` · EDGE #${escapeHtml(String(job.edge_id))}` : ""}</em>
+                    <span>${escapeHtml(job.generation_prompt || bundle?.render?.notes || job.notes || job.error || "Waiting for a renderer to claim this job.")}</span>
+                    <div class="archive-actions">
+                        <button class="button" type="button" data-generation-apply>Edit</button>
+                        <button class="button primary" type="button" data-generation-run>Queue render</button>
+                    </div>
+                `;
+                card.querySelector("[data-generation-apply]")?.addEventListener("click", () => populateGenerationDraft(job));
+                card.querySelector("[data-generation-run]")?.addEventListener("click", () => submitGenerationJob(job));
+                generationList.appendChild(card);
+            });
+        }
+
+        async function loadRemoteGenerationJobs() {
+            if (!window.TilelliEdge) return;
+            try {
+                const response = await window.TilelliEdge.request("/v1/anime/generations?limit=12");
+                const jobs = response?.jobs || response?.items || [];
+                if (Array.isArray(jobs) && jobs.length) {
+                    const localJobs = loadGenerationJobs();
+                    const merged = uniqueBy([...jobs.reverse().map(normalizeGenerationJob), ...localJobs], generationJobSignature).slice(0, 24);
+                    commitGenerationJobs(merged);
+                }
+                apiState.textContent = "Edge API: generation connected";
+            } catch {
+                apiState.textContent = "Edge API: generation offline";
+            }
+        }
+
+        async function submitGenerationJob(existingJob = null) {
+            const draft = existingJob ? normalizeGenerationJob(existingJob) : readGenerationDraft();
+            if (!draft.title) {
+                apiState.textContent = "Generation job title is required.";
+                return null;
+            }
+            const bundle = existingJob ? parseJsonSafe(draft.bundle_json, buildSceneBundle()) : buildSceneBundle();
+            const job = {
+                scene_id: draft.scene_id || bundle?.scene?.edge_id || bundle?.scene?.id || null,
+                title: draft.title,
+                provider: draft.provider || "local",
+                model: draft.model || "",
+                generation_prompt: draft.generation_prompt || bundle?.scene?.prompt || "",
+                notes: draft.notes || "",
+                duration: draft.duration || "10s",
+                resolution: draft.resolution || "1920x1080",
+                fps: draft.fps || "24",
+                status: "queued",
+                bundle_json: JSON.stringify(bundle),
+                output_url: "",
+                thumbnail_url: "",
+                error: "",
+                source: "anime-html",
+                created_at: new Date().toISOString()
+            };
+            saveLocalGenerationJob(job);
+            saveGenerationDraft();
+            setWorkspacePhase("generation");
+
+            if (!window.TilelliEdge) {
+                apiState.textContent = "Generation saved locally.";
+                return job;
+            }
+
+            const ownerKey = localStorage.getItem(OWNER_KEY) || "";
+            if (!ownerKey) {
+                apiState.textContent = "Generation sync requires owner key.";
+                return job;
+            }
+
+            try {
+                apiState.textContent = "Edge API: syncing generation job";
+                const response = await window.TilelliEdge.request("/v1/anime/generations", {
+                    method: "POST",
+                    headers: { "X-Tilelli-Owner-Key": ownerKey },
+                    body: JSON.stringify(job)
+                });
+                if (response?.id) {
+                    job.edge_id = response.id;
+                    saveLocalGenerationJob(job);
+                    apiState.textContent = `Edge API: generation job #${response.id}`;
+                    await loadRemoteGenerationJobs();
+                } else {
+                    apiState.textContent = "Edge API: generation queued";
+                }
+            } catch {
+                apiState.textContent = "Edge API: local generation queue only";
             }
             return job;
         }
@@ -3178,14 +3515,27 @@
                 if (bundle?.scene) {
                     latestScene = normalizeScene({ ...bundle.scene, storyboard: bundle.storyboard || [] });
                 }
+            } else if (entry.kind === "generation") {
+                const bundle = parseJsonSafe(entry.item.bundle_json, {});
+                populateGenerationDraft(entry.item);
+                if (bundle?.scene) {
+                    latestScene = normalizeScene({ ...bundle.scene, storyboard: bundle.storyboard || [] });
+                }
+                setWorkspacePhase("generation");
             } else {
                 latestScene = normalizeScene(entry.item);
+                setWorkspacePhase("render");
+                stopPlayback();
+                playbackIndex = 0;
+                updateViewer(latestScene);
+                startPlayback();
+                return;
             }
             stopPlayback();
             playbackIndex = 0;
             updateViewer(latestScene);
-            setWorkspacePhase("render");
-            startPlayback();
+            setWorkspacePhase(entry.kind === "generation" ? "generation" : "render");
+            if (entry.kind !== "generation") startPlayback();
         });
         reopenReviewButton.addEventListener("click", reopenReviewSelection);
         refreshReviewButton.addEventListener("click", () => {
@@ -3232,6 +3582,19 @@
             loadLocalAutomationRules();
             await loadRemoteAutomationRules();
         });
+        generationTitle.addEventListener("input", saveGenerationDraft);
+        generationProvider.addEventListener("change", saveGenerationDraft);
+        generationModel.addEventListener("input", saveGenerationDraft);
+        generationDuration.addEventListener("change", saveGenerationDraft);
+        generationResolution.addEventListener("change", saveGenerationDraft);
+        generationFps.addEventListener("change", saveGenerationDraft);
+        generationPrompt.addEventListener("input", saveGenerationDraft);
+        generationNotes.addEventListener("input", saveGenerationDraft);
+        createGenerationButton.addEventListener("click", () => submitGenerationJob());
+        refreshGenerationButton.addEventListener("click", async () => {
+            loadLocalGenerationJobs();
+            await loadRemoteGenerationJobs();
+        });
         phaseButtons.forEach(button => {
             button.addEventListener("click", () => setWorkspacePhase(button.dataset.phaseTarget));
         });
@@ -3276,15 +3639,19 @@
         loadLocalRenderJobs();
         loadAutomationDraft();
         loadLocalAutomationRules();
+        loadGenerationDraft();
+        loadLocalGenerationJobs();
         refreshReviewSources();
         updateReviewPanel();
         renderPlaybackPanel();
         renderTemplateLibrary();
         renderAutomationRules(loadAutomationRules());
+        renderGenerationJobs(loadGenerationJobs());
         renderAssetPreview(readAssetDraft());
         loadRemoteHistory();
         loadRemoteRenderJobs();
         loadRemoteAutomationRules();
+        loadRemoteGenerationJobs();
         if (window.TilelliEdge) {
             window.TilelliEdge.event("anime.page.view", { surface: "generator" });
         }

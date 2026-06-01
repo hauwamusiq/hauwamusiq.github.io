@@ -173,6 +173,16 @@ Automation turns the workspace into a rule-driven studio:
 - run a rule immediately from the automation panel
 - archive scenes remotely through `PATCH /v1/anime/scenes/:id`
 
+## Anime Scene Phase 11
+
+Generation is the actual video-generation handoff:
+
+- compose generation jobs with provider, model, duration, resolution, and FPS
+- save jobs locally and sync them to `/v1/anime/generations`
+- update jobs with `PATCH /v1/anime/generations/:id`
+- status values: `queued`, `generating`, `ready`, `failed`
+- the workspace now has a distinct place for video output jobs, even before a renderer is attached
+
 ## Portfolio Submission Flow
 
 `tilaelia.html` now supports richer private submissions:
