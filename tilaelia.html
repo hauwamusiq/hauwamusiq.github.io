@@ -79,6 +79,16 @@
             opacity: 0;
             transform: translateY(18px);
         }
+        html.qa-mode #gate {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+        html.qa-mode body.locked .shell,
+        html.qa-mode .shell {
+            opacity: 1;
+            transform: translateY(0);
+        }
         body.unlocked .shell {
             animation: shellBloom 980ms cubic-bezier(0.16, 1, 0.3, 1) both;
         }
@@ -1177,6 +1187,11 @@
 
     <script src="tilelli-edge-client.js"></script>
     <script>
+        if (new URLSearchParams(window.location.search).get("qa") === "1" || localStorage.getItem("tilaelia-qa-open") === "1") {
+            document.documentElement.classList.add("qa-mode");
+        }
+    </script>
+    <script>
         const baseData = {
             music: [
                 { category: "sounds", title: "Moonlit Leak I", meta: "Leaks & Sounds / nocturne", body: "A half-lit signal from the underground: breath, bass pressure, and a ritual melody still becoming.", kind: "sound-card" },
@@ -1221,6 +1236,7 @@
         const heroLedger = $("hero-ledger");
         const archiveStream = $("archive-stream");
         const submissionLedger = $("submission-ledger");
+        const qaMode = new URLSearchParams(window.location.search).get("qa") === "1" || localStorage.getItem("tilaelia-qa-open") === "1";
 
         function loadLocalOfferings() {
             try {
@@ -2017,6 +2033,17 @@
         requestAnimationFrame(animateWorld);
         renderAll();
         loadPublishedOfferings();
+        if (qaMode) {
+            window.setTimeout(() => {
+                const gate = $("gate");
+                if (gate && !gate.classList.contains("open")) {
+                    gate.classList.add("open");
+                    document.body.classList.remove("locked");
+                    document.body.classList.add("unlocked");
+                    titleSparkState.active = false;
+                }
+            }, 120);
+        }
     </script>
 </body>
 </html>
