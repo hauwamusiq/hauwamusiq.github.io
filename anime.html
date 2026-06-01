@@ -2977,11 +2977,28 @@
                         <button class="button" type="button" data-generation-apply>Edit</button>
                         <button class="button primary" type="button" data-generation-dispatch>Dispatch</button>
                         <button class="button" type="button" data-generation-ready>Mark ready</button>
+                        <button class="button" type="button" data-generation-watch>Watch</button>
                     </div>
                 `;
                 card.querySelector("[data-generation-apply]")?.addEventListener("click", () => populateGenerationDraft(job));
                 card.querySelector("[data-generation-dispatch]")?.addEventListener("click", () => dispatchGenerationJob(job));
                 card.querySelector("[data-generation-ready]")?.addEventListener("click", () => completeLocalGenerationJob(job, { status: "ready" }));
+                card.querySelector("[data-generation-watch]")?.addEventListener("click", () => {
+                    const scene = normalizeScene({
+                        ...(bundle?.scene || latestScene || currentPayload()),
+                        title: job.title || bundle?.scene?.title || latestScene?.title || currentPayload().title || "Generated scene",
+                        prompt: job.generation_prompt || bundle?.scene?.prompt || latestScene?.prompt || currentPayload().prompt || "",
+                        setting: bundle?.scene?.setting || latestScene?.setting || "",
+                        art_style: bundle?.scene?.art_style || latestScene?.art_style || "shonen",
+                        storyboard: bundle?.storyboard || bundle?.scene?.storyboard || latestScene?.storyboard || [],
+                        status: job.status || "ready",
+                        output_url: job.output_url || job.outputUrl || "",
+                        thumbnail_url: job.thumbnail_url || job.thumbnailUrl || "",
+                        edge_id: job.scene_id || job.edge_id || null
+                    });
+                    latestScene = scene;
+                    setWorkspacePhase("render");
+                });
                 generationList.appendChild(card);
             });
         }
