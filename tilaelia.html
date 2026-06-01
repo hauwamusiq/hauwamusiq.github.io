@@ -1401,7 +1401,7 @@
         }
 
         function recentOfferings(limit = 3) {
-            return state.local
+            return [...state.published, ...state.local]
                 .slice()
                 .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
                 .slice(0, limit)
@@ -1421,7 +1421,7 @@
             ].map(item => normalizeOffering({ ...item, section: inferSectionFromKind(item) })).filter(Boolean);
             const recent = recentOfferings(3);
             heroStatOfferings.textContent = String(all.length).padStart(2, "0");
-            heroStatRecent.textContent = String(state.local.length).padStart(2, "0");
+            heroStatRecent.textContent = String(state.published.length + state.local.length).padStart(2, "0");
             heroStatLast.textContent = recent[0] ? formatSubmissionTime(recent[0].createdAt) : "--";
             heroLedger.replaceChildren(...(recent.length ? recent : [{
                 title: "Waiting for offerings",
