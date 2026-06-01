@@ -766,6 +766,18 @@
             border-radius: 8px;
             box-shadow: 0 28px 80px rgba(0,0,0,0.22);
         }
+        .submit-status {
+            border: 1px solid rgba(100,234,220,0.18);
+            background: rgba(100,234,220,0.06);
+            color: var(--ink);
+            padding: 11px 13px;
+            border-radius: 8px;
+            line-height: 1.5;
+            display: none;
+        }
+        .submit-status.show {
+            display: block;
+        }
         .owner-panel .locked-copy {
             display: grid;
             gap: 10px;
@@ -1239,6 +1251,7 @@
                             <input id="import-local-file" type="file" accept="application/json,.json" style="display:none;">
                         </div>
                     </form>
+                    <div class="submit-status" id="submit-status" aria-live="polite"></div>
                     <div class="submission-ledger" id="submission-ledger" aria-label="Recent submissions"></div>
                 </div>
             </section>
@@ -1300,6 +1313,7 @@
         const heroLedger = $("hero-ledger");
         const archiveStream = $("archive-stream");
         const submissionLedger = $("submission-ledger");
+        const submitStatus = $("submit-status");
         const qaMode = new URLSearchParams(window.location.search).get("qa") === "1" || localStorage.getItem("tilaelia-qa-open") === "1";
 
         function loadLocalOfferings() {
@@ -1371,6 +1385,12 @@
             } catch {
                 return false;
             }
+        }
+
+        function announceSubmission(message) {
+            if (!submitStatus) return;
+            submitStatus.textContent = message;
+            submitStatus.classList.add("show");
         }
 
         async function fileToDataUrl(file) {
@@ -1859,9 +1879,13 @@
             if (state.keeper) {
                 $("locked-panel").style.display = "none";
                 $("submission-form").style.display = "block";
+                announceSubmission("Keeper console unlocked. Your next offering will be recorded locally with a timestamp.");
+                window.requestAnimationFrame(() => $("submit-title")?.focus());
+                switchSection("submissions");
             } else {
                 $("owner-key").value = "";
                 $("owner-key").placeholder = "Not the keeper phrase";
+                announceSubmission("That keeper phrase did not open the console.");
             }
         });
 
@@ -1903,6 +1927,7 @@
             const saved = saveLocalOfferings();
             event.target.reset();
             renderAll();
+            announceSubmission(`Saved ${normalized.title}. Recorded ${formatSubmissionTime(normalized.createdAt)}.`);
             if (window.TilelliEdge) {
                 const ownerKey = localStorage.getItem(edgeOwnerKeyStorage) || "";
                 if (ownerKey && normalized.mediaUrl.length < 120000) {
@@ -1926,6 +1951,7 @@
                             state.local = state.local.map(entry => entry.createdAt === normalized.createdAt ? normalized : entry);
                             saveLocalOfferings();
                             await loadPublishedOfferings();
+                            announceSubmission(`Saved ${normalized.title} to the edge archive as well.`);
                         }
                     } catch {
                         // Keep the local offering even if the edge publish path is unavailable.
@@ -1934,8 +1960,9 @@
             }
             if (!saved) {
                 $("submit-body").placeholder = "This browser could not save locally. Export additions before leaving.";
+                announceSubmission("Local save failed in this browser. Export the additions before leaving.");
             }
-            switchSection(section);
+            switchSection("archive");
         });
 
         $("clear-local-btn").addEventListener("click", () => {
