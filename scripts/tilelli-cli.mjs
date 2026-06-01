@@ -26,6 +26,8 @@ const AGENT_ROOT = path.join(DEFAULT_REPO_ROOT, "agents/tilelli");
 const LOCAL_RENDER_DIR = path.join(DEFAULT_REPO_ROOT, ".tilelli/renders");
 const LOCAL_RENDER_WORK_DIR = path.join(DEFAULT_REPO_ROOT, ".tilelli/render-work");
 const GENERATION_CALLBACK_KEY_PATH = path.join(DEFAULT_REPO_ROOT, ".tilelli/generation-callback-key");
+const TILELLI_MEDIA_BUCKET = process.env.TILELLI_MEDIA_BUCKET || "";
+const TILELLI_MEDIA_PUBLIC_BASE_URL = process.env.TILELLI_MEDIA_PUBLIC_BASE_URL || "";
 const TILELLI_API_BASE_URL = process.env.TILELLI_API_BASE_URL || "https://tilelli-api.hauwamusiq.workers.dev";
 
 function logLine(message = "") {
@@ -145,6 +147,8 @@ async function doctor() {
   const cloudflareTokenFile = getEnv("TILELLI_CLOUDFLARE_API_TOKEN_FILE");
   const cloudflareToken = getEnv("TILELLI_CLOUDFLARE_API_TOKEN");
   const ghUser = getEnv("TILELLI_GITHUB_USER");
+  const mediaBucket = getEnv("TILELLI_MEDIA_BUCKET");
+  const mediaPublicBaseUrl = getEnv("TILELLI_MEDIA_PUBLIC_BASE_URL");
   const checks = [
     { name: "repo root", ok: await repoExists(".") },
     { name: "spec manifest", ok: await repoExists("spec/specification-system.manifest.json") },
@@ -156,9 +160,17 @@ async function doctor() {
     { name: "cloudflare api token", ok: Boolean(cloudflareToken) },
     { name: "github user", ok: Boolean(ghUser) },
     { name: "model endpoint", ok: Boolean(modelMode.baseUrl) },
-    { name: "model fleet config", ok: Boolean(fleet.config) }
+    { name: "model fleet config", ok: Boolean(fleet.config) },
+    { name: "media bucket", ok: Boolean(mediaBucket) },
+    { name: "media public base url", ok: Boolean(mediaPublicBaseUrl) }
   ];
-  const requiredChecks = checks.filter(item => item.name !== "model endpoint" && item.name !== "model fleet config");
+  const requiredChecks = checks.filter(
+    item =>
+      item.name !== "model endpoint" &&
+      item.name !== "model fleet config" &&
+      item.name !== "media bucket" &&
+      item.name !== "media public base url"
+  );
   const status = {
     ok: requiredChecks.every(item => item.ok),
     optional: {
@@ -182,6 +194,10 @@ async function doctor() {
     },
     github: {
       user: ghUser || null
+    },
+    media: {
+      bucket: mediaBucket || null,
+      publicBaseUrl: mediaPublicBaseUrl || null
     },
     checks
   };
@@ -614,8 +630,9 @@ async function callbackRenderCompletion(generationId, renderResult, bundle) {
   if (!callbackKey) {
     return { ok: false, reason: "Missing generation callback key." };
   }
-  const outputUrl = `file://${renderResult.outputPath}`;
-  const thumbnailUrl = renderResult.thumbnailPath ? `file://${renderResult.thumbnailPath}` : "";
+  const published = await publishRenderArtifacts(renderResult, bundle);
+  const outputUrl = published.outputUrl || `file://${renderResult.outputPath}`;
+  const thumbnailUrl = published.thumbnailUrl || (renderResult.thumbnailPath ? `file://${renderResult.thumbnailPath}` : "");
   const body = {
     status: "ready",
     provider_job_id: path.basename(renderResult.outputPath, ".mp4"),
@@ -646,8 +663,96 @@ async function callbackRenderCompletion(generationId, renderResult, bundle) {
     status: response.status,
     body: parseJsonSafe(text, { raw: text }),
     outputUrl,
-    thumbnailUrl
+    thumbnailUrl,
+    published
   };
+}
+
+function buildMediaKey(filePath, bundle = {}, jobId = "") {
+  const baseName = path.basename(filePath || "render.mp4");
+  const slug = safeSlug(bundle?.scene?.title || bundle?.render?.title || bundle?.title || jobId || "tilelli-render");
+  const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+  return `anime/renders/${slug}/${stamp}-${baseName}`;
+}
+
+function publicMediaUrl(key) {
+  const base = String(TILELLI_MEDIA_PUBLIC_BASE_URL || "").trim().replace(/\/$/, "");
+  if (!base) return "";
+  return `${base}/${String(key || "").replace(/^\/+/, "")}`;
+}
+
+async function uploadMediaObject(filePath, contentType, key) {
+  if (!TILELLI_MEDIA_BUCKET || !TILELLI_MEDIA_PUBLIC_BASE_URL) {
+    return { ok: false, reason: "Media bucket or public base URL not configured." };
+  }
+  const script = path.join(DEFAULT_REPO_ROOT, "scripts/tilelli-wrangler.sh");
+  const args = [
+    "r2",
+    "object",
+    "put",
+    `${TILELLI_MEDIA_BUCKET}/${key}`,
+    "--file",
+    filePath,
+    "--content-type",
+    contentType,
+    "--remote",
+    "-y"
+  ];
+  try {
+    const { stdout, stderr } = await execFileAsync(script, args, {
+      cwd: DEFAULT_REPO_ROOT,
+      maxBuffer: 1024 * 1024 * 10
+    });
+    return {
+      ok: true,
+      key,
+      publicUrl: publicMediaUrl(key),
+      stdout: stdout.trim(),
+      stderr: stderr.trim()
+    };
+  } catch (error) {
+    return {
+      ok: false,
+      key,
+      error: error.message,
+      stdout: error.stdout ? String(error.stdout).trim() : "",
+      stderr: error.stderr ? String(error.stderr).trim() : ""
+    };
+  }
+}
+
+async function publishRenderArtifacts(renderResult, bundle) {
+  if (!TILELLI_MEDIA_BUCKET || !TILELLI_MEDIA_PUBLIC_BASE_URL) {
+    return { ok: false, reason: "Media publication environment is not configured." };
+  }
+
+  const outputKey = buildMediaKey(renderResult.outputPath, bundle, bundle?.jobId || bundle?.scene?.title || "");
+  const thumbnailKey = renderResult.thumbnailPath ? buildMediaKey(renderResult.thumbnailPath, bundle, bundle?.jobId || bundle?.scene?.title || "") : "";
+  const published = {
+    ok: false,
+    outputKey,
+    thumbnailKey,
+    outputUrl: "",
+    thumbnailUrl: "",
+    uploads: []
+  };
+
+  const outputUpload = await uploadMediaObject(renderResult.outputPath, "video/mp4", outputKey);
+  published.uploads.push({ type: "video", ...outputUpload });
+  if (outputUpload.ok) {
+    published.outputUrl = outputUpload.publicUrl;
+  }
+
+  if (renderResult.thumbnailPath) {
+    const thumbUpload = await uploadMediaObject(renderResult.thumbnailPath, "image/jpeg", thumbnailKey);
+    published.uploads.push({ type: "thumbnail", ...thumbUpload });
+    if (thumbUpload.ok) {
+      published.thumbnailUrl = thumbUpload.publicUrl;
+    }
+  }
+
+  published.ok = Boolean(published.outputUrl);
+  return published;
 }
 
 function normalizeGenerationBundle(job) {

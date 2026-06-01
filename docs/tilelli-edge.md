@@ -39,6 +39,25 @@ Preferred deployment value after bootstrap:
 TILELLI_CLOUDFLARE_API_TOKEN=...
 ```
 
+Optional media publication values for rendered videos:
+
+```sh
+TILELLI_MEDIA_BUCKET=tilelli-media
+TILELLI_MEDIA_PUBLIC_BASE_URL=https://<your-r2-public-base>
+```
+
+The local renderer will fall back to `file://` URLs when these are not configured. If Cloudflare R2 is not enabled for the account yet, enable it in the Cloudflare dashboard first, then create or re-use a bucket and set the public base URL that points at the published object space.
+
+Once R2 is enabled, the publication setup is:
+
+```sh
+scripts/tilelli-wrangler.sh r2 bucket create tilelli-media
+scripts/tilelli-wrangler.sh r2 bucket dev-url enable tilelli-media
+scripts/tilelli-wrangler.sh r2 bucket dev-url get tilelli-media
+```
+
+Then set `TILELLI_MEDIA_BUCKET` to the bucket name and `TILELLI_MEDIA_PUBLIC_BASE_URL` to the returned public URL.
+
 ## Token Minting
 
 Use the global key only to mint narrower tokens:
@@ -212,6 +231,7 @@ Generation is the actual video-generation handoff:
 - optionally configure `TILELLI_GENERATION_RENDERER_URL` so dispatch can target a default renderer without storing the URL on every job
 - status values: `queued`, `generating`, `ready`, `failed`
 - the workspace now has a distinct place for video output jobs, even before a renderer is attached
+- when `TILELLI_MEDIA_BUCKET` and `TILELLI_MEDIA_PUBLIC_BASE_URL` are set, the local renderer uploads MP4 and thumbnail artifacts to R2 and writes browser-accessible URLs back into the generation callback
 
 Renderer adapter scaffold:
 
