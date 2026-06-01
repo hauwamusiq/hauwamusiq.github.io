@@ -122,3 +122,15 @@ The asset layer extends the scene system with:
 - prompt presets
 
 Assets can be stored locally and, when owner credentials are available, synced to `/v1/anime/assets`.
+
+## Anime Scene Phase 6
+
+The publish phase turns the current scene workspace into a portable bundle:
+
+- scene record
+- storyboard draft
+- linked assets
+- export timestamp
+- render state
+
+Use the export buttons in `anime.html` to download or copy a JSON bundle for downstream renderers, preview tools, or external automation.

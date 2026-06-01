@@ -609,6 +609,12 @@
             flex-wrap: wrap;
             gap: 10px;
         }
+        .publish-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
         .shot {
             border: 1px solid var(--line);
             background: rgba(0,0,0,0.22);
@@ -845,6 +851,7 @@
                     <button type="button" data-phase-target="render">Render</button>
                     <button type="button" data-phase-target="queue">Queue</button>
                     <button type="button" data-phase-target="archive">Archive</button>
+                    <button type="button" data-phase-target="publish">Publish</button>
                 </div>
 
                 <div class="panel storyboard-editor phase-panel active" data-phase-panel="storyboard">
@@ -995,6 +1002,27 @@
                         </div>
                     </div>
                 </div>
+
+                <div class="panel history phase-panel" data-phase-panel="publish">
+                    <div class="surface-head">
+                        <strong>Publish bundle</strong>
+                        <span>Phase 6: export and handoff</span>
+                    </div>
+                    <div class="history-list">
+                        <div class="history-item">
+                            <strong>Export a scene bundle</strong>
+                            <span>Package the current scene, storyboard, and linked assets into a portable JSON handoff for the renderer or external tools.</span>
+                            <div class="archive-actions">
+                                <button class="button primary" type="button" id="export-bundle-btn">Export JSON</button>
+                                <button class="button" type="button" id="copy-bundle-btn">Copy bundle</button>
+                            </div>
+                        </div>
+                        <div class="history-item">
+                            <strong>Publish targets</strong>
+                            <span>Later phases can route this bundle into a renderer, a clip generator, or a live preview endpoint without rebuilding the page.</span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </section>
 
@@ -1076,6 +1104,8 @@
         const watchSceneButton = document.getElementById("watch-scene-btn");
         const markReadyButton = document.getElementById("mark-ready-btn");
         const archiveList = document.getElementById("archive-list");
+        const exportBundleButton = document.getElementById("export-bundle-btn");
+        const copyBundleButton = document.getElementById("copy-bundle-btn");
         const LOCAL_KEY = "tilelli-anime-scenes";
         const STORYBOARD_KEY = "tilelli-anime-storyboard";
         const ASSET_KEY = "tilelli-anime-assets";
@@ -1087,7 +1117,7 @@
         let latestScene = null;
 
         function setWorkspacePhase(phase) {
-            const nextPhase = ["storyboard", "assets", "render", "queue", "archive"].includes(phase) ? phase : "storyboard";
+            const nextPhase = ["storyboard", "assets", "render", "queue", "archive", "publish"].includes(phase) ? phase : "storyboard";
             phaseButtons.forEach(button => {
                 button.classList.toggle("active", button.dataset.phaseTarget === nextPhase);
             });
@@ -1182,6 +1212,31 @@
             }));
             refreshPreview();
             setWorkspacePhase("storyboard");
+        }
+
+        function currentBundle() {
+            const payload = normalizeScene(latestScene || currentPayload());
+            const storyboard = readStoryboard();
+            const assets = readStore(ASSET_KEY, []).map(normalizeAsset);
+            return {
+                version: 1,
+                exported_at: new Date().toISOString(),
+                scene: payload,
+                storyboard,
+                assets,
+                render_phase: document.querySelector("[data-phase-panel='render']")?.classList.contains("active") ? "render" : "draft",
+                archive_count: (readStore(LOCAL_KEY, []) || []).filter(item => normalizeScene(item).status === "archived").length
+            };
+        }
+
+        function downloadJson(filename, data) {
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = filename;
+            link.click();
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
         }
 
         function loadWorkspacePhase() {
@@ -1869,6 +1924,20 @@
             loadLocalHistory();
             setWorkspacePhase("render");
             renderArchive();
+        });
+        exportBundleButton.addEventListener("click", () => {
+            const bundle = currentBundle();
+            downloadJson(`anime-scene-bundle-${Date.now()}.json`, bundle);
+            setWorkspacePhase("publish");
+        });
+        copyBundleButton.addEventListener("click", async () => {
+            const bundle = currentBundle();
+            try {
+                await navigator.clipboard.writeText(JSON.stringify(bundle, null, 2));
+                setWorkspacePhase("publish");
+            } catch {
+                downloadJson(`anime-scene-bundle-${Date.now()}.json`, bundle);
+            }
         });
 
         loadWorkspacePhase();
