@@ -547,6 +547,24 @@
             gap: 10px;
             margin-top: 18px;
         }
+        .portal-ledger .featured {
+            border-color: rgba(246,204,114,0.34);
+            background:
+                linear-gradient(135deg, rgba(246,204,114,0.12), transparent 28%),
+                rgba(255,255,255,0.04);
+            box-shadow: 0 18px 45px rgba(0,0,0,0.16);
+        }
+        .portal-ledger .featured .featured-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 10px;
+            color: var(--gold);
+            font-size: 0.68rem;
+            font-weight: 900;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+        }
         .portal-ledger article {
             border: 1px solid rgba(255,255,255,0.08);
             background: rgba(255,255,255,0.03);
@@ -795,6 +813,22 @@
             line-height: 1.7;
             max-width: 720px;
         }
+        .ritual-steps {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 2px;
+        }
+        .ritual-steps span {
+            border: 1px solid rgba(255,255,255,0.08);
+            background: rgba(255,255,255,0.04);
+            padding: 6px 9px;
+            border-radius: 999px;
+            color: var(--muted);
+            font-size: 0.68rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
         .owner-grid {
             display: grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -896,6 +930,12 @@
             border-radius: 10px;
             background: rgba(255,255,255,0.025);
         }
+        .archive-group.spotlight {
+            border-color: rgba(246,204,114,0.28);
+            background:
+                linear-gradient(135deg, rgba(246,204,114,0.06), transparent 24%),
+                rgba(255,255,255,0.028);
+        }
         .archive-group-head {
             display: flex;
             align-items: center;
@@ -925,6 +965,12 @@
             display: grid;
             gap: 10px;
             box-shadow: 0 18px 50px rgba(0,0,0,0.12);
+        }
+        .archive-entry.featured {
+            border-color: rgba(246,204,114,0.34);
+            background:
+                linear-gradient(135deg, rgba(246,204,114,0.08), transparent 22%),
+                var(--panel);
         }
         .archive-entry-head {
             display: flex;
@@ -1355,6 +1401,11 @@
                     <div class="locked-copy" id="locked-panel-copy">
                         <strong>Submission rite</strong>
                         <p>Add poetry, essays, images, sounds, tracks, research, or other offerings here. Every save records a timestamp, and the newest additions are mirrored into the living archive below.</p>
+                        <div class="ritual-steps" aria-label="Submission steps">
+                            <span>Prepare</span>
+                            <span>Offer</span>
+                            <span>Archive</span>
+                        </div>
                     </div>
                     <div id="locked-panel">
                         <div class="field">
@@ -1825,18 +1876,26 @@
             heroStatOfferings.textContent = String(all.length).padStart(2, "0");
             heroStatRecent.textContent = String(state.published.length + state.local.length).padStart(2, "0");
             heroStatLast.textContent = recent[0] ? formatSubmissionTime(recent[0].createdAt) : "--";
-            heroLedger.replaceChildren(...(recent.length ? recent : [{
-                title: "Waiting for offerings",
-                meta: "Submit work to populate this living ledger.",
-                body: "The newest pieces will appear here with their recorded times.",
-                createdAt: ""
-            }]).map(item => {
+            const seededLedger = all.slice(0, 3);
+            const ledgerItems = recent.length ? [recent[0], ...recent.slice(1)] : seededLedger;
+            heroLedger.replaceChildren(...ledgerItems.map((item, index) => {
                 const article = document.createElement("article");
-                article.innerHTML = `
-                    <strong>${escapeHtml(item.title || "Untitled offering")}</strong>
-                    <span>${escapeHtml(item.meta || item.category || "offering")} · ${escapeHtml(item.body || "No description stored.")}</span>
-                    ${item.createdAt ? `<span>Submitted ${escapeHtml(formatSubmissionTime(item.createdAt))}</span>` : ""}
-                `;
+                if (index === 0) {
+                    article.classList.add("featured");
+                    article.innerHTML = `
+                        <span class="featured-label">Featured current offering</span>
+                        <strong>${escapeHtml(item.title || "Untitled offering")}</strong>
+                        <span>${escapeHtml(item.section || "portfolio")} · ${escapeHtml(item.meta || item.category || "offering")}</span>
+                        <span>${escapeHtml(item.body || "No description stored.")}</span>
+                        ${item.createdAt ? `<span>Submitted ${escapeHtml(formatSubmissionTime(item.createdAt))}</span>` : ""}
+                    `;
+                } else {
+                    article.innerHTML = `
+                        <strong>${escapeHtml(item.title || "Untitled offering")}</strong>
+                        <span>${escapeHtml(item.meta || item.category || "offering")} · ${escapeHtml(item.body || "No description stored.")}</span>
+                        ${item.createdAt ? `<span>Submitted ${escapeHtml(formatSubmissionTime(item.createdAt))}</span>` : ""}
+                    `;
+                }
                 return article;
             }));
         }
@@ -1894,6 +1953,7 @@
                     const entries = buckets[key];
                     const group = document.createElement("section");
                     group.className = "archive-group";
+                    if (key === order[0]) group.classList.add("spotlight");
                     const head = document.createElement("div");
                     head.className = "archive-group-head";
                     const label = document.createElement("strong");
@@ -1905,6 +1965,9 @@
                     entries.forEach(item => {
                         const entry = document.createElement("article");
                         entry.className = "archive-entry";
+                        if (key === order[0] && entries.indexOf(item) === 0) {
+                            entry.classList.add("featured");
+                        }
                         const entryHead = document.createElement("div");
                         entryHead.className = "archive-entry-head";
                         const title = document.createElement("strong");
