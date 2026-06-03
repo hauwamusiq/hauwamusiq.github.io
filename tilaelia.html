@@ -2549,6 +2549,51 @@
             };
         }
 
+        function exhibitionSnapshot(exhibition) {
+            const current = normalizeExhibition(exhibition);
+            if (!current) return null;
+            const members = exhibitionItems(current).map(item => ({
+                key: offeringKey(item),
+                title: item.title || "Untitled offering",
+                section: item.section || "portfolio",
+                category: item.category || "other",
+                body: item.body || "",
+                meta: item.meta || "",
+                mediaType: item.mediaType || "",
+                mediaUrl: item.mediaUrl || "",
+                visibility: item.visibility || "draft",
+                tags: Array.isArray(item.tags) ? item.tags.slice(0, 12) : [],
+                createdAt: item.createdAt || "",
+                curatorLabel: curatorLabel(item)
+            }));
+            return {
+                exportedAt: new Date().toISOString(),
+                portal: "tilaelia",
+                kind: "exhibition-snapshot",
+                exhibition: {
+                    id: exhibitionKey(current),
+                    title: current.title,
+                    note: current.note,
+                    createdAt: current.createdAt,
+                    updatedAt: current.updatedAt,
+                    source: current.source,
+                    memberCount: members.length,
+                    memberKeys: current.memberKeys || []
+                },
+                members,
+                spotlight: state.spotlight.slice(0, 2),
+                visitorMode: Boolean(state.visitorMode)
+            };
+        }
+
+        function downloadExhibitionSnapshot(exhibition) {
+            const payload = exhibitionSnapshot(exhibition);
+            if (!payload) return false;
+            const slug = String(payload.exhibition.title || "exhibition").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "exhibition";
+            downloadJsonBundle(`tilaelia-exhibition-${slug}.json`, payload);
+            return true;
+        }
+
         function downloadJsonBundle(name, payload) {
             const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
             const url = URL.createObjectURL(blob);
@@ -4264,6 +4309,12 @@
                     }
                 });
                 actions.appendChild(refresh);
+                const snapshot = document.createElement("button");
+                snapshot.className = "action ghost";
+                snapshot.type = "button";
+                snapshot.textContent = "Export Snapshot";
+                snapshot.addEventListener("click", () => downloadExhibitionSnapshot(exhibition));
+                actions.appendChild(snapshot);
                 card.appendChild(actions);
                 exhibitionShelf.appendChild(card);
             });
@@ -4412,6 +4463,12 @@
                 }
             });
             actions.appendChild(recapture);
+            const snapshot = document.createElement("button");
+            snapshot.className = "action ghost";
+            snapshot.type = "button";
+            snapshot.textContent = "Export Snapshot";
+            snapshot.addEventListener("click", () => downloadExhibitionSnapshot(selected));
+            actions.appendChild(snapshot);
             stage.appendChild(actions);
 
             const spotlight = document.createElement("section");
