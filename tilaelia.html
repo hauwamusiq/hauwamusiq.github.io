@@ -1284,6 +1284,75 @@
             font-size: 0.78rem;
             letter-spacing: 0.04em;
         }
+        .presentation-spotlight {
+            display: grid;
+            gap: 12px;
+            border: 1px solid rgba(255,255,255,0.09);
+            background: rgba(255,255,255,0.025);
+            border-radius: 10px;
+            padding: 16px;
+        }
+        .presentation-spotlight-head {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            align-items: center;
+        }
+        .presentation-spotlight-head strong {
+            font-family: var(--serif);
+            font-size: 1.18rem;
+        }
+        .presentation-spotlight-frame {
+            display: grid;
+            gap: 12px;
+        }
+        .presentation-spotlight-media {
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.08);
+            background: rgba(0,0,0,0.26);
+        }
+        .presentation-spotlight-media img,
+        .presentation-spotlight-media video,
+        .presentation-spotlight-media iframe {
+            display: block;
+            width: 100%;
+            border: 0;
+            aspect-ratio: 16 / 9;
+            background: #000;
+        }
+        .presentation-sequence {
+            display: grid;
+            gap: 10px;
+        }
+        .presentation-sequence-rail {
+            display: grid;
+            gap: 8px;
+        }
+        .presentation-sequence .sequence-card {
+            border: 1px solid var(--line);
+            background: rgba(255,255,255,0.03);
+            border-radius: 8px;
+            padding: 12px 14px;
+            display: grid;
+            gap: 6px;
+        }
+        .presentation-sequence .sequence-card.active {
+            border-color: rgba(246,204,114,0.35);
+            background: linear-gradient(160deg, rgba(246,204,114,0.08), rgba(255,255,255,0.02));
+        }
+        .presentation-sequence .sequence-card strong {
+            font-family: var(--serif);
+            font-size: 1.02rem;
+        }
+        .presentation-sequence .sequence-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px 12px;
+            color: #d9ced8;
+            font-size: 0.76rem;
+            letter-spacing: 0.04em;
+        }
         .maintenance-board {
             display: grid;
             gap: 12px;
@@ -2058,6 +2127,7 @@
             exhibitions: loadExhibitions(),
             selectedCollection: "",
             selectedExhibition: "",
+            presentationIndex: 0,
             presentationMode: "stage",
             maintenanceImportMode: "local"
         };
@@ -2578,7 +2648,9 @@
 
         function selectExhibition(exhibition) {
             state.selectedExhibition = exhibitionKey(exhibition);
+            state.presentationIndex = 0;
             renderExhibitions();
+            renderPresentation();
         }
 
         function recordRevision(item, action, before = null, after = null) {
@@ -4039,8 +4111,20 @@
             }
             const selected = exhibitions.find(entry => exhibitionKey(entry) === state.selectedExhibition) || exhibitions[0];
             const members = exhibitionItems(selected);
-            const lead = members[0];
-            const rest = members.slice(1);
+            if (!members.length) {
+                presentationBoard.innerHTML = `
+                    <div class="archive-empty">
+                        This exhibition has no visible works yet. Return to the exhibition hall and capture an archive view first.
+                    </div>
+                `;
+                return;
+            }
+            const sequence = members.slice(0, 8);
+            if (state.presentationIndex >= sequence.length) {
+                state.presentationIndex = 0;
+            }
+            const activeIndex = Math.max(0, Math.min(state.presentationIndex, sequence.length - 1));
+            const active = sequence[activeIndex];
             presentationBoard.innerHTML = "";
 
             const stage = document.createElement("article");
@@ -4078,50 +4162,106 @@
             stage.appendChild(actions);
             presentationBoard.appendChild(stage);
 
+            const spotlight = document.createElement("section");
+            spotlight.className = "presentation-spotlight";
+            const head = document.createElement("div");
+            head.className = "presentation-spotlight-head";
+            const titleWrap = document.createElement("div");
+            titleWrap.innerHTML = `
+                <strong>${escapeHtml(active.title || "Untitled offering")}</strong>
+                <div class="management-pill">${escapeHtml(active.section || "portfolio")} · ${escapeHtml(active.category || "other")} · ${escapeHtml(curatorLabel(active))}</div>
+            `;
+            const count = document.createElement("small");
+            count.textContent = `${String(activeIndex + 1).padStart(2, "0")} / ${String(sequence.length).padStart(2, "0")}`;
+            head.append(titleWrap, count);
+            spotlight.appendChild(head);
+
+            const frame = document.createElement("div");
+            frame.className = "presentation-spotlight-frame";
+            const body = document.createElement("p");
+            body.textContent = active.body || "No description stored.";
+            frame.appendChild(body);
+            const media = createMediaNode(active);
+            if (media) {
+                media.classList.add("presentation-spotlight-media");
+                frame.appendChild(media);
+            }
+            const tags = renderTagRow(active);
+            if (tags) frame.appendChild(tags);
+
+            const controls = document.createElement("div");
+            controls.className = "management-actions";
+            const prev = document.createElement("button");
+            prev.className = "action ghost";
+            prev.type = "button";
+            prev.textContent = "Previous";
+            prev.disabled = activeIndex <= 0;
+            prev.addEventListener("click", () => {
+                state.presentationIndex = Math.max(0, activeIndex - 1);
+                renderPresentation();
+            });
+            controls.appendChild(prev);
+            const next = document.createElement("button");
+            next.className = "action";
+            next.type = "button";
+            next.textContent = "Next";
+            next.disabled = activeIndex >= sequence.length - 1;
+            next.addEventListener("click", () => {
+                state.presentationIndex = Math.min(sequence.length - 1, activeIndex + 1);
+                renderPresentation();
+            });
+            controls.appendChild(next);
+            const restart = document.createElement("button");
+            restart.className = "action ghost";
+            restart.type = "button";
+            restart.textContent = "Restart";
+            restart.addEventListener("click", () => {
+                state.presentationIndex = 0;
+                renderPresentation();
+            });
+            controls.appendChild(restart);
+            frame.appendChild(controls);
+            spotlight.appendChild(frame);
+            presentationBoard.appendChild(spotlight);
+
             const programWrap = document.createElement("section");
             programWrap.className = "presentation-program";
             programWrap.innerHTML = `
                 <div class="section-head">
                     <h3>Program</h3>
-                    <p>The lead work anchors the room, followed by the remaining pieces in the order they were captured.</p>
+                    <p>The opening sequence leads with the active work, followed by the remaining pieces in capture order.</p>
                 </div>
             `;
             const programList = document.createElement("div");
             programList.className = "program-list";
 
-            if (lead) {
-                const leadCard = document.createElement("article");
-                leadCard.className = "program-card featured";
-                leadCard.innerHTML = `
-                    <strong>${escapeHtml(lead.title || "Untitled offering")}</strong>
-                    <div class="program-meta">
-                        <span>Lead work</span>
-                        <span>${escapeHtml(lead.section || "portfolio")} · ${escapeHtml(lead.category || "other")}</span>
-                        <span>${escapeHtml(curatorLabel(lead))}</span>
-                    </div>
-                    <p>${escapeHtml(lead.body || "No description stored.")}</p>
-                `;
-                const leadTags = renderTagRow(lead);
-                if (leadTags) leadCard.appendChild(leadTags);
-                const leadMedia = createMediaNode(lead);
-                if (leadMedia) leadCard.appendChild(leadMedia);
-                programList.appendChild(leadCard);
-            }
-
-            rest.forEach((item, index) => {
+            sequence.forEach((item, index) => {
                 const card = document.createElement("article");
-                card.className = "program-card";
+                card.className = `program-card${index === activeIndex ? " featured" : ""}`;
                 card.innerHTML = `
                     <strong>${escapeHtml(item.title || "Untitled offering")}</strong>
                     <div class="program-meta">
-                        <span>${String(index + 2).padStart(2, "0")}</span>
+                        <span>${String(index + 1).padStart(2, "0")}</span>
                         <span>${escapeHtml(item.section || "portfolio")} · ${escapeHtml(item.category || "other")}</span>
                         <span>${escapeHtml(item.visibility || "draft")}</span>
                     </div>
                     <p>${escapeHtml(item.body || "No description stored.")}</p>
                 `;
-                const tags = renderTagRow(item);
-                if (tags) card.appendChild(tags);
+                const itemTags = renderTagRow(item);
+                if (itemTags) card.appendChild(itemTags);
+                const jump = document.createElement("button");
+                jump.className = "action ghost";
+                jump.type = "button";
+                jump.textContent = index === activeIndex ? "On Stage" : "Cue";
+                jump.disabled = index === activeIndex;
+                jump.addEventListener("click", () => {
+                    state.presentationIndex = index;
+                    renderPresentation();
+                });
+                const cardActions = document.createElement("div");
+                cardActions.className = "management-actions";
+                cardActions.appendChild(jump);
+                card.appendChild(cardActions);
                 programList.appendChild(card);
             });
 
