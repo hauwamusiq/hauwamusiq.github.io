@@ -1128,6 +1128,10 @@
             display: grid;
             gap: 12px;
         }
+        .versions-board {
+            display: grid;
+            gap: 12px;
+        }
         .management-card {
             border: 1px solid var(--line);
             background: var(--panel);
@@ -1440,6 +1444,7 @@
                 <button data-section="archive">Archive</button>
                 <button data-section="management">Manage</button>
                 <button data-section="review">Review</button>
+                <button data-section="versions">Versions</button>
                 <button data-section="music">Music</button>
                 <button data-section="writing">Writing</button>
                 <button data-section="visuals">Visuals</button>
@@ -1592,6 +1597,17 @@
                 <div class="management-board review-board" id="review-board" aria-label="Review queue"></div>
             </section>
 
+            <section class="section" id="section-versions">
+                <div class="section-head">
+                    <h2>Version ledger</h2>
+                    <p>A snapshot trail for local changes, publication state changes, and recovered revisions.</p>
+                </div>
+                <div class="management-summary">
+                    <small id="versions-summary-note">Showing the most recent snapshots.</small>
+                </div>
+                <div class="management-board versions-board" id="versions-board" aria-label="Version history"></div>
+            </section>
+
             <section class="section" id="section-submissions">
                 <div class="section-head">
                     <h2>Keeper console</h2>
@@ -1733,7 +1749,8 @@
             archiveQuery: "",
             archiveSort: "recent",
             keeper: false,
-            spotlight: []
+            spotlight: [],
+            revisions: loadOfferingRevisions()
         };
 
         const $ = id => document.getElementById(id);
@@ -1755,6 +1772,8 @@
         const managementSummaryNote = $("management-summary-note");
         const reviewBoard = $("review-board");
         const reviewSummaryNote = $("review-summary-note");
+        const versionsBoard = $("versions-board");
+        const versionsSummaryNote = $("versions-summary-note");
         const submissionLedger = $("submission-ledger");
         const submitStatus = $("submit-status");
         const qaMode = new URLSearchParams(window.location.search).get("qa") === "1" || localStorage.getItem("tilaelia-qa-open") === "1";
@@ -1779,9 +1798,28 @@
             }
         }
 
+        function loadOfferingRevisions() {
+            try {
+                const parsed = JSON.parse(localStorage.getItem("tilaelia-offering-revisions") || "[]");
+                return Array.isArray(parsed) ? parsed.filter(Boolean) : [];
+            } catch {
+                localStorage.removeItem("tilaelia-offering-revisions");
+                return [];
+            }
+        }
+
         function saveSpotlightKeys() {
             try {
                 localStorage.setItem("tilaelia-spotlight-keys", JSON.stringify(state.spotlight.slice(0, 2)));
+                return true;
+            } catch {
+                return false;
+            }
+        }
+
+        function saveOfferingRevisions() {
+            try {
+                localStorage.setItem("tilaelia-offering-revisions", JSON.stringify(state.revisions.slice(0, 200)));
                 return true;
             } catch {
                 return false;
@@ -1817,6 +1855,12 @@
             if (item.edgeId) return `edge:${item.edgeId}`;
             if (item.createdAt) return `local:${item.createdAt}:${item.title || ""}`;
             return `title:${item.section || "portfolio"}:${item.title || ""}`;
+        }
+
+        function offeringRevisionKey(item) {
+            if (!item) return "";
+            if (item.edgeId) return `edge:${item.edgeId}`;
+            return offeringKey(item);
         }
 
         function isSpotlight(item) {
@@ -1863,7 +1907,42 @@
             renderArchiveStream();
         }
 
+        function cloneRevisionItem(item) {
+            if (!item) return null;
+            return {
+                section: item.section || "portfolio",
+                category: item.category || "other",
+                title: item.title || "Untitled offering",
+                meta: item.meta || "",
+                body: item.body || "",
+                mediaType: item.mediaType || "",
+                mediaUrl: item.mediaUrl || "",
+                createdAt: item.createdAt || new Date().toISOString(),
+                kind: item.kind || "",
+                edgeId: item.edgeId || null,
+                source: item.source || "local",
+                visibility: item.visibility || "draft"
+            };
+        }
+
+        function recordRevision(item, action, before = null, after = null) {
+            const target = after || item;
+            const key = offeringRevisionKey(target || before || item);
+            if (!key) return null;
+            const entry = {
+                key,
+                action: action || "updated",
+                at: new Date().toISOString(),
+                before: before ? cloneRevisionItem(before) : null,
+                after: after ? cloneRevisionItem(after) : cloneRevisionItem(target || item)
+            };
+            state.revisions.unshift(entry);
+            saveOfferingRevisions();
+            return entry;
+        }
+
         function setLocalMirror(item, updates = {}) {
+            const previous = cloneRevisionItem(item);
             const normalized = normalizeOffering({
                 ...item,
                 ...updates,
@@ -1876,6 +1955,17 @@
                 state.local[index] = normalized;
             } else if (normalized.source !== "seed") {
                 state.local.unshift(normalized);
+            }
+            if (previous) {
+                const changed = offeringSignature(previous) !== offeringSignature(normalized);
+                if (changed) {
+                    const action = updates.visibility && updates.visibility !== previous.visibility
+                        ? `visibility:${updates.visibility}`
+                        : updates.edgeId && updates.edgeId !== previous.edgeId
+                            ? "edge-linked"
+                            : "mirror-updated";
+                    recordRevision(normalized, action, previous, normalized);
+                }
             }
             saveLocalOfferings();
             return normalized;
@@ -1905,7 +1995,6 @@
                             })
                         });
                         if (response?.id) {
-                            normalized.edgeId = response.id;
                             setLocalMirror(normalized, { edgeId: response.id, visibility: "published" });
                         }
                     } catch {
@@ -2648,6 +2737,69 @@
             });
         }
 
+        function renderVersionsBoard() {
+            if (!versionsBoard) return;
+            const revisions = state.revisions.slice(0, 24);
+            if (!revisions.length) {
+                versionsBoard.innerHTML = `
+                    <div class="archive-empty">
+                        No revisions recorded yet. Change an offering’s state or save a local edit to seed the version ledger.
+                    </div>
+                `;
+                if (versionsSummaryNote) {
+                    versionsSummaryNote.textContent = "No revisions have been recorded yet.";
+                }
+                return;
+            }
+            versionsBoard.innerHTML = "";
+            if (versionsSummaryNote) {
+                versionsSummaryNote.textContent = `Showing the ${revisions.length} most recent revision${revisions.length === 1 ? "" : "s"}.`;
+            }
+            revisions.forEach(revision => {
+                const card = document.createElement("article");
+                card.className = "management-card version-card";
+                const current = revision.after || revision.before || {};
+                card.innerHTML = `
+                    <div class="management-head">
+                        <div>
+                            <strong>${escapeHtml(current.title || "Untitled offering")}</strong>
+                            <div class="management-pill">${escapeHtml(current.section || "portfolio")} · ${escapeHtml(current.category || "other")} · ${escapeHtml(revision.action || "updated")}</div>
+                        </div>
+                        <small>${escapeHtml(formatSubmissionTime(revision.at))}</small>
+                    </div>
+                    <div class="management-meta">
+                        <span>${escapeHtml(curatorLabel(current))}</span>
+                        ${current.edgeId ? `<span>Edge #${escapeHtml(String(current.edgeId))}</span>` : ""}
+                    </div>
+                    <p>${escapeHtml(current.body || "No description stored.")}</p>
+                `;
+                const actions = document.createElement("div");
+                actions.className = "management-actions version-actions";
+                if (revision.before) {
+                    const restore = document.createElement("button");
+                    restore.className = "action";
+                    restore.type = "button";
+                    restore.textContent = "Restore";
+                    restore.addEventListener("click", () => {
+                        const restored = setLocalMirror(revision.before, { visibility: revision.before.visibility || "draft" });
+                        if (restored) {
+                            recordRevision(restored, "restored", revision.after || current, restored);
+                            renderAll();
+                        }
+                    });
+                    actions.appendChild(restore);
+                }
+                const inspect = document.createElement("button");
+                inspect.className = "action ghost";
+                inspect.type = "button";
+                inspect.textContent = "Inspect";
+                inspect.addEventListener("click", () => switchSection("archive"));
+                actions.appendChild(inspect);
+                card.appendChild(actions);
+                versionsBoard.appendChild(card);
+            });
+        }
+
         function renderAll() {
             ["music", "writing", "visuals", "research"].forEach(renderSection);
             renderPortfolioOverview();
@@ -2656,10 +2808,11 @@
             renderArchiveStream();
             renderManagementBoard();
             renderReviewQueue();
+            renderVersionsBoard();
         }
 
         function switchSection(name) {
-            const next = ["home", "archive", "management", "review", "music", "writing", "visuals", "research", "submissions"].includes(name) ? name : "home";
+            const next = ["home", "archive", "management", "review", "versions", "music", "writing", "visuals", "research", "submissions"].includes(name) ? name : "home";
             document.querySelectorAll(".section").forEach(section => section.classList.toggle("active", section.id === `section-${next}`));
             document.querySelectorAll(".nav button").forEach(button => button.classList.toggle("active", button.dataset.section === next));
             if (next === "archive") {
@@ -2671,6 +2824,8 @@
                 renderManagementBoard();
             } else if (next === "review") {
                 renderReviewQueue();
+            } else if (next === "versions") {
+                renderVersionsBoard();
             } else if (next === "submissions") {
                 renderSubmissionLedger();
             }
@@ -2988,7 +3143,9 @@
 
         $("clear-local-btn").addEventListener("click", () => {
             localStorage.removeItem("tilaelia-local-offerings");
+            localStorage.removeItem("tilaelia-offering-revisions");
             state.local = [];
+            state.revisions = [];
             renderAll();
         });
 
