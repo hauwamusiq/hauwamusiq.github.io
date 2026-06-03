@@ -487,7 +487,7 @@
         }
         .hero-ornaments {
             display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
+            grid-template-columns: repeat(4, minmax(0, 1fr));
             gap: 10px;
             margin-top: 26px;
         }
@@ -1107,6 +1107,7 @@
             }
             .gallery { grid-template-columns: 1fr; }
             .hero-ornaments {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
                 gap: 8px;
                 margin-top: 18px;
             }
@@ -1302,8 +1303,12 @@
                                 <span>Offerings held across the archive</span>
                             </div>
                             <div class="hero-stat">
-                                <strong id="hero-stat-recent">0</strong>
-                                <span>Recent submissions in the living ledger</span>
+                                <strong id="hero-stat-published">0</strong>
+                                <span>Published offerings in the archive</span>
+                            </div>
+                            <div class="hero-stat">
+                                <strong id="hero-stat-private">0</strong>
+                                <span>Private drafts held in the keeper console</span>
                             </div>
                             <div class="hero-stat">
                                 <strong id="hero-stat-last">--</strong>
@@ -1530,7 +1535,8 @@
         const edgeOwnerKeyStorage = "tilelli-owner-key";
         const submitMediaFile = $("submit-media-file");
         const heroStatOfferings = $("hero-stat-offerings");
-        const heroStatRecent = $("hero-stat-recent");
+        const heroStatPublished = $("hero-stat-published");
+        const heroStatPrivate = $("hero-stat-private");
         const heroStatLast = $("hero-stat-last");
         const heroLedger = $("hero-ledger");
         const archiveShelf = $("archive-shelf");
@@ -1558,6 +1564,7 @@
             const mediaUrl = String(item.mediaUrl || item.media_url || "").trim();
             const category = routeCategory(section, rawCategory, mediaType, mediaUrl);
             const createdAt = item.createdAt || item.created_at || new Date().toISOString();
+            const source = String(item.source || "").trim().toLowerCase() || (String(item.visibility || "").trim().toLowerCase() === "published" ? "published" : "");
             return {
                 section,
                 category,
@@ -1568,7 +1575,9 @@
                 mediaUrl,
                 createdAt,
                 kind: item.kind || item.cardKind || defaultKind(section, category),
-                edgeId: item.edgeId || item.edge_id || item.id || null
+                edgeId: item.edgeId || item.edge_id || item.id || null,
+                source: source || "local",
+                visibility: String(item.visibility || "").trim().toLowerCase() || (source === "published" ? "published" : "draft")
             };
         }
 
@@ -1781,12 +1790,12 @@
 
         function archiveItems() {
             return [
-                ...baseData.music.map(item => ({ section: "music", category: item.category, title: item.title, meta: item.meta, body: item.body, kind: item.kind, createdAt: "", source: "seed" })),
-                ...baseData.writing.map(item => ({ section: "writing", category: item.category, title: item.title, meta: item.meta, body: item.body, kind: item.kind, createdAt: "", source: "seed" })),
-                ...baseData.visuals.map(item => ({ section: "visuals", category: item.category, title: item.title, meta: item.meta, body: item.body, kind: item.kind, createdAt: "", source: "seed" })),
-                ...baseData.research.map(item => ({ section: "research", category: item.category, title: item.title, meta: item.meta, body: item.body, kind: item.kind, createdAt: "", source: "seed" })),
-                ...state.published.map(item => normalizeOffering({ ...item, section: item.section || inferSectionFromKind(item) })),
-                ...state.local.map(item => normalizeOffering({ ...item, section: item.section || inferSectionFromKind(item) }))
+                ...baseData.music.map(item => ({ section: "music", category: item.category, title: item.title, meta: item.meta, body: item.body, kind: item.kind, createdAt: "", source: "seed", visibility: "seed" })),
+                ...baseData.writing.map(item => ({ section: "writing", category: item.category, title: item.title, meta: item.meta, body: item.body, kind: item.kind, createdAt: "", source: "seed", visibility: "seed" })),
+                ...baseData.visuals.map(item => ({ section: "visuals", category: item.category, title: item.title, meta: item.meta, body: item.body, kind: item.kind, createdAt: "", source: "seed", visibility: "seed" })),
+                ...baseData.research.map(item => ({ section: "research", category: item.category, title: item.title, meta: item.meta, body: item.body, kind: item.kind, createdAt: "", source: "seed", visibility: "seed" })),
+                ...state.published.map(item => normalizeOffering({ ...item, section: item.section || inferSectionFromKind(item), source: item.source || "published", visibility: item.visibility || "published" })),
+                ...state.local.map(item => normalizeOffering({ ...item, section: item.section || inferSectionFromKind(item), source: item.source || "local", visibility: item.visibility || "draft" }))
             ]
                 .filter(Boolean)
                 .sort((a, b) => archiveTimeValue(b) - archiveTimeValue(a));
@@ -1863,7 +1872,7 @@
         }
 
         function renderPortfolioOverview() {
-            if (!heroStatOfferings || !heroStatRecent || !heroStatLast || !heroLedger) return;
+            if (!heroStatOfferings || !heroStatPublished || !heroStatPrivate || !heroStatLast || !heroLedger) return;
             const all = [
                 ...baseData.music.map(item => ({ ...item, section: "music" })),
                 ...baseData.writing.map(item => ({ ...item, section: "writing" })),
@@ -1873,8 +1882,11 @@
                 ...state.local
             ].map(item => normalizeOffering({ ...item, section: inferSectionFromKind(item) })).filter(Boolean);
             const recent = recentOfferings(3);
+            const publishedCount = state.published.length;
+            const privateCount = state.local.length;
             heroStatOfferings.textContent = String(all.length).padStart(2, "0");
-            heroStatRecent.textContent = String(state.published.length + state.local.length).padStart(2, "0");
+            heroStatPublished.textContent = String(publishedCount).padStart(2, "0");
+            heroStatPrivate.textContent = String(privateCount).padStart(2, "0");
             heroStatLast.textContent = recent[0] ? formatSubmissionTime(recent[0].createdAt) : "--";
             const seededLedger = all.slice(0, 3);
             const ledgerItems = recent.length ? [recent[0], ...recent.slice(1)] : seededLedger;
@@ -1892,12 +1904,20 @@
                 } else {
                     article.innerHTML = `
                         <strong>${escapeHtml(item.title || "Untitled offering")}</strong>
-                        <span>${escapeHtml(item.meta || item.category || "offering")} · ${escapeHtml(item.body || "No description stored.")}</span>
+                        <span>${escapeHtml(item.meta || item.category || "offering")} · ${escapeHtml(curatorLabel(item))}</span>
                         ${item.createdAt ? `<span>Submitted ${escapeHtml(formatSubmissionTime(item.createdAt))}</span>` : ""}
                     `;
                 }
                 return article;
             }));
+        }
+
+        function curatorLabel(item) {
+            if (!item) return "offering";
+            if (item.source === "seed") return "seed library";
+            if (item.source === "published" || item.visibility === "published") return "published";
+            if (item.visibility === "draft" || item.source === "local") return "private draft";
+            return item.category || "offering";
         }
 
         function renderSubmissionLedger() {
@@ -1917,7 +1937,7 @@
                 const article = document.createElement("article");
                 article.innerHTML = `
                     <strong>${escapeHtml(item.title || "Untitled offering")}</strong>
-                    <span>${escapeHtml(item.section || "portfolio")} · ${escapeHtml(item.category || "other")} · ${escapeHtml(item.meta || "")}</span>
+                    <span>${escapeHtml(item.section || "portfolio")} · ${escapeHtml(item.category || "other")} · ${escapeHtml(curatorLabel(item))}</span>
                     <span>Submitted ${escapeHtml(formatSubmissionTime(item.createdAt))}</span>
                 `;
                 submissionLedger.appendChild(article);
@@ -1979,7 +1999,7 @@
 
                         const pill = document.createElement("div");
                         pill.className = "archive-pill";
-                        pill.textContent = `${item.category || "other"} · ${item.meta || ""}`;
+                        pill.textContent = `${item.category || "other"} · ${item.meta || ""} · ${curatorLabel(item)}`;
                         entry.appendChild(pill);
 
                         const meta = document.createElement("div");
