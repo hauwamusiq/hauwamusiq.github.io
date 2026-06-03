@@ -199,28 +199,13 @@
         }
         @media (max-width: 620px) {
             #gate.entering .gate-copy {
-                animation: gateDiveMobile 1.08s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+                animation: gateDive 1.35s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
             }
             #gate.entering::before {
-                animation: gateLeftOpenMobile 1.08s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+                animation: gateLeftOpen 1.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
             }
             #gate.entering::after {
-                animation: gateRightOpenMobile 1.08s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-            }
-            @keyframes gateDiveMobile {
-                0% { transform: translateY(0) scale(1); opacity: 1; filter: blur(0); }
-                62% { transform: translateY(-1px) scale(1.02); opacity: 0.98; filter: blur(0.15px); }
-                100% { transform: translateY(-6px) scale(1.07); opacity: 0; filter: blur(4px); }
-            }
-            @keyframes gateLeftOpenMobile {
-                0% { transform: translateX(0); opacity: 1; }
-                60% { transform: translateX(-3%); opacity: 1; }
-                100% { transform: translateX(-10%); opacity: 0; }
-            }
-            @keyframes gateRightOpenMobile {
-                0% { transform: translateX(0); opacity: 1; }
-                60% { transform: translateX(3%); opacity: 1; }
-                100% { transform: translateX(10%); opacity: 0; }
+                animation: gateRightOpen 1.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
             }
         }
         #gate-canvas {
@@ -2162,12 +2147,7 @@
             }
             .portal-card { min-height: auto; }
             .title-drifter { animation: titleBreathe 11s ease-in-out infinite; }
-            #gate.entering .gate-copy {
-                animation-name: gateDiveMobile !important;
-            }
-            .word-space {
-                perspective: none;
-            }
+            .word-space { perspective: none; }
             .word-space span {
                 font-size: 0.74rem;
                 letter-spacing: 0.14em;
@@ -2178,6 +2158,11 @@
             .sanctum-aura {
                 opacity: 0.58;
                 filter: blur(1px);
+            }
+            #title-spark-canvas { display: none; }
+            .gate-copy .enter-btn {
+                font-size: 0.88rem;
+                letter-spacing: 0.18em;
             }
         }
         @keyframes gateDiveMobile {
