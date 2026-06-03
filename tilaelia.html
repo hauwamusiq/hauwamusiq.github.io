@@ -2927,12 +2927,13 @@
             const list = Array.isArray(exhibitions) ? exhibitions.filter(Boolean) : [];
             if (!list.length) return null;
             const key = "tilaelia-gallery-rotation-index";
-            const current = Number(localStorage.getItem(key) || String(state.galleryRotationIndex || 0)) || 0;
-            const nextIndex = current % list.length;
+            const now = new Date();
+            const seasonKey = now.getFullYear() * 4 + Math.floor(now.getMonth() / 3);
+            const nextIndex = Math.abs(seasonKey) % list.length;
             const selected = list[nextIndex];
             state.galleryRotationIndex = nextIndex;
             try {
-                localStorage.setItem(key, String((nextIndex + 1) % list.length));
+                localStorage.setItem(key, String(nextIndex));
             } catch {}
             return selected;
         }
@@ -4660,7 +4661,7 @@
             const stage = document.createElement("article");
             stage.className = "public-gallery-stage featured-intro";
             stage.innerHTML = `
-                <div class="presentation-kicker">Public gallery</div>
+                <div class="presentation-kicker">Seasonal rotation</div>
                 <h3>${escapeHtml(selected.title)}</h3>
                 <div class="management-meta">
                     <span>${escapeHtml(formatSubmissionTime(selected.updatedAt || selected.createdAt))}</span>
