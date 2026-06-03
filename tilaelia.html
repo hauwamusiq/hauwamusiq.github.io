@@ -59,6 +59,36 @@
             outline: 1px solid var(--gold);
             outline-offset: 4px;
         }
+        .skip-link {
+            position: absolute;
+            left: 16px;
+            top: 12px;
+            z-index: 120;
+            padding: 10px 14px;
+            border-radius: 999px;
+            border: 1px solid rgba(255,255,255,0.18);
+            background: rgba(6,5,7,0.95);
+            color: var(--ink);
+            transform: translateY(-160%);
+            transition: transform 0.2s ease, opacity 0.2s ease;
+            opacity: 0;
+        }
+        .skip-link:focus,
+        .skip-link:focus-visible {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
 
         #gate {
             position: fixed;
@@ -447,6 +477,9 @@
         body.visitor-mode .nav button[data-section="collections"],
         body.visitor-mode .nav button[data-section="maintenance"],
         body.visitor-mode .nav button[data-section="submissions"] {
+            display: none;
+        }
+        body.visitor-mode .nav {
             display: none;
         }
         body.visitor-mode #section-find,
@@ -1836,6 +1869,7 @@
     </style>
 </head>
 <body class="locked">
+    <a class="skip-link" href="#section-gallery">Skip to public gallery</a>
     <section id="gate" aria-label="Entrance gate">
         <canvas id="gate-canvas" aria-hidden="true"></canvas>
         <div class="word-space" aria-hidden="true">
@@ -2155,6 +2189,7 @@
                     <h2>Public gallery</h2>
                     <p>A visitor-facing gallery that presents the current exhibition without the editing controls. This is the finished wall.</p>
                 </div>
+                <div class="sr-only" id="gallery-announcement" aria-live="polite"></div>
                 <div class="public-gallery-board" id="public-gallery-board" aria-label="Public gallery view"></div>
             </section>
 
@@ -2364,6 +2399,7 @@
         const exhibitionBoard = $("exhibition-board");
         const presentationBoard = $("presentation-board");
         const publicGalleryBoard = $("public-gallery-board");
+        const galleryAnnouncement = $("gallery-announcement");
         const maintenanceBoard = $("maintenance-board");
         const maintenanceSummaryNote = $("maintenance-summary-note");
         const submissionLedger = $("submission-ledger");
@@ -4495,6 +4531,9 @@
                         No public exhibitions are ready yet. Build one in the exhibition hall first.
                     </div>
                 `;
+                if (galleryAnnouncement) {
+                    galleryAnnouncement.textContent = "No public exhibitions are ready yet.";
+                }
                 return;
             }
             const selected = state.visitorMode
@@ -4507,6 +4546,9 @@
                         This exhibition has no visible works yet.
                     </div>
                 `;
+                if (galleryAnnouncement) {
+                    galleryAnnouncement.textContent = `Public gallery is showing ${selected.title}, but it has no visible works yet.`;
+                }
                 return;
             }
             const featured = members[0];
@@ -4599,6 +4641,9 @@
             });
             program.appendChild(items);
             publicGalleryBoard.appendChild(program);
+            if (galleryAnnouncement) {
+                galleryAnnouncement.textContent = `Public gallery is showing ${selected.title}. Featured work: ${featured.title || "Untitled offering"}.`;
+            }
         }
 
         function applyVisitorMode() {
