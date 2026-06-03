@@ -2324,6 +2324,7 @@
             selectedCollection: "",
             selectedExhibition: "",
             selectedGallery: "",
+            galleryRotationIndex: Number(localStorage.getItem("tilaelia-gallery-rotation-index") || "0") || 0,
             presentationIndex: 0,
             presentationMode: "stage",
             visitorMode: new URLSearchParams(window.location.search).get("visitor") === "1" || localStorage.getItem("tilaelia-visitor-mode") === "1",
@@ -2818,6 +2819,20 @@
         function exhibitionItems(exhibition) {
             const keys = new Set((exhibition?.memberKeys || []).map(String));
             return archiveItems().filter(item => keys.has(offeringKey(item)));
+        }
+
+        function galleryRotationExhibition(exhibitions = []) {
+            const list = Array.isArray(exhibitions) ? exhibitions.filter(Boolean) : [];
+            if (!list.length) return null;
+            const key = "tilaelia-gallery-rotation-index";
+            const current = Number(localStorage.getItem(key) || String(state.galleryRotationIndex || 0)) || 0;
+            const nextIndex = current % list.length;
+            const selected = list[nextIndex];
+            state.galleryRotationIndex = nextIndex;
+            try {
+                localStorage.setItem(key, String((nextIndex + 1) % list.length));
+            } catch {}
+            return selected;
         }
 
         function createExhibitionFromView(title, note, existing = null) {
@@ -4482,7 +4497,9 @@
                 `;
                 return;
             }
-            const selected = exhibitions.find(entry => exhibitionKey(entry) === state.selectedGallery) || exhibitions.find(entry => exhibitionKey(entry) === state.selectedExhibition) || exhibitions[0];
+            const selected = state.visitorMode
+                ? galleryRotationExhibition(exhibitions)
+                : exhibitions.find(entry => exhibitionKey(entry) === state.selectedGallery) || exhibitions.find(entry => exhibitionKey(entry) === state.selectedExhibition) || exhibitions[0];
             const members = exhibitionItems(selected);
             if (!members.length) {
                 publicGalleryBoard.innerHTML = `
@@ -4540,10 +4557,12 @@
                     </div>
                     <p>${escapeHtml(exhibition.note || "No curatorial note stored.")}</p>
                 `;
-                card.addEventListener("click", () => {
-                    state.selectedGallery = exhibitionKey(exhibition);
-                    renderPublicGallery();
-                });
+                if (!state.visitorMode) {
+                    card.addEventListener("click", () => {
+                        state.selectedGallery = exhibitionKey(exhibition);
+                        renderPublicGallery();
+                    });
+                }
                 exhibitionList.appendChild(card);
             });
             rail.appendChild(exhibitionList);
@@ -4603,6 +4622,8 @@
                 renderPublicGallery();
                 if (!$("section-gallery")?.classList.contains("active")) {
                     switchSection("gallery");
+                } else {
+                    renderPublicGallery();
                 }
             } else {
                 renderAll();
