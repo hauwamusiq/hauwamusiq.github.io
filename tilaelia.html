@@ -266,10 +266,10 @@
             opacity: 0;
         }
         @keyframes wordDrift {
-            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.92); }
-            18% { opacity: 0.84; transform: translate(-50%, -52%) scale(0.99); }
-            72% { opacity: 0.78; transform: translate(-50%, -48%) scale(1.02); }
-            100% { opacity: 0; transform: translate(-50%, -50%) scale(1.06); }
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.95); }
+            16% { opacity: 0.88; transform: translate(-50%, calc(-50% - 4px)) scale(1); }
+            72% { opacity: 0.82; transform: translate(-50%, calc(-50% + 4px)) scale(1.02); }
+            100% { opacity: 0; transform: translate(-50%, -50%) scale(1.04); }
         }
         .gate-copy {
             position: relative;
@@ -281,8 +281,14 @@
         }
         .title-drifter {
             display: inline-block;
-            transform: translate3d(0, 0, 0);
-            will-change: auto;
+            animation: titleBreathe 9.5s ease-in-out infinite;
+            will-change: transform;
+        }
+        @keyframes titleBreathe {
+            0% { transform: translateY(0) scale(1); }
+            38% { transform: translateY(-1px) scale(1.008); }
+            72% { transform: translateY(1px) scale(1.012); }
+            100% { transform: translateY(0) scale(1); }
         }
         .gate-kicker {
             color: var(--gold);
@@ -2155,7 +2161,7 @@
                 margin: 18px auto 24px;
             }
             .portal-card { min-height: auto; }
-            .title-drifter { transform: none; }
+            .title-drifter { animation: titleBreathe 11s ease-in-out infinite; }
             #gate.entering .gate-copy {
                 animation-name: gateDiveMobile !important;
             }
