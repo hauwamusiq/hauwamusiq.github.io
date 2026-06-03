@@ -814,6 +814,7 @@
                 </div>
                 <div class="statusline" aria-label="Generator status">
                     <span class="chip" id="api-state">Edge API: idle</span>
+                    <span class="chip" id="backend-state">Backend: loading</span>
                     <span class="chip" id="queue-state">Queue: empty</span>
                     <span class="chip">Local first</span>
                     <span class="chip">Owner sync optional</span>
@@ -1302,8 +1303,8 @@
                                 <div class="field">
                                     <label for="generation-provider">Provider</label>
                                     <select id="generation-provider">
-                                        <option value="local">Local renderer</option>
-                                        <option value="cloudflare">Cloudflare worker</option>
+                                        <option value="local-renderer">Local renderer</option>
+                                        <option value="local-stack">Local Tilelli stack</option>
                                         <option value="external">External model</option>
                                     </select>
                                 </div>
@@ -1498,6 +1499,7 @@
         const createGenerationButton = document.getElementById("create-generation-btn");
         const refreshGenerationButton = document.getElementById("refresh-generation-btn");
         const generationList = document.getElementById("generation-list");
+        const backendState = document.getElementById("backend-state");
         const LOCAL_KEY = "tilelli-anime-scenes";
         const STORYBOARD_KEY = "tilelli-anime-storyboard";
         const ASSET_KEY = "tilelli-anime-assets";
@@ -2852,12 +2854,19 @@
             ].join("|");
         }
 
+        function normalizeGenerationProvider(provider) {
+            const value = String(provider || "").trim();
+            if (value === "local") return "local-stack";
+            if (value === "local-renderer" || value === "local-stack" || value === "external") return value;
+            return "local-stack";
+        }
+
         function normalizeGenerationJob(job) {
             return {
                 id: job.id || job.edge_id || job.title || `generation-${Date.now()}`,
                 scene_id: job.scene_id || job.sceneId || null,
                 title: job.title || "Untitled generation job",
-                provider: job.provider || "local",
+                provider: normalizeGenerationProvider(job.provider || "local-stack"),
                 model: job.model || job.model_name || job.modelName || "",
                 generation_prompt: job.generation_prompt || job.generationPrompt || job.prompt || "",
                 notes: job.notes || "",
@@ -2921,7 +2930,7 @@
         function loadGenerationDraft() {
             const draft = readStore(GENERATION_DRAFT_KEY, null);
             generationTitle.value = draft?.title || "";
-            generationProvider.value = draft?.provider || "local";
+            generationProvider.value = normalizeGenerationProvider(draft?.provider || "local-stack");
             generationModel.value = draft?.model || "";
             generationCallback.value = draft?.callback_url || "";
             generationDuration.value = draft?.duration || "10s";
@@ -2934,7 +2943,7 @@
         function populateGenerationDraft(job) {
             const next = normalizeGenerationJob(job);
             generationTitle.value = next.title || "";
-            generationProvider.value = next.provider || "local";
+            generationProvider.value = normalizeGenerationProvider(next.provider || "local-stack");
             generationModel.value = next.model || "";
             generationCallback.value = next.callback_url || "";
             generationDuration.value = next.duration || "10s";
@@ -3019,6 +3028,20 @@
             }
         }
 
+        async function loadAnimeBackendStatus() {
+            if (!window.TilelliEdge || !backendState) return;
+            try {
+                const response = await window.TilelliEdge.animeStatus();
+                const state = response?.backendState || {};
+                const backend = state.resolvedBackend || state.requestedBackend || "unknown";
+                const model = state.modelId || "no model";
+                const status = state.status || "unknown";
+                backendState.textContent = `Backend: ${backend} · ${model} · ${status}`;
+            } catch {
+                backendState.textContent = "Backend: unavailable";
+            }
+        }
+
         async function submitGenerationJob(existingJob = null) {
             const draft = existingJob ? normalizeGenerationJob(existingJob) : readGenerationDraft();
             if (!draft.title) {
@@ -3029,7 +3052,7 @@
             const job = {
                 scene_id: draft.scene_id || bundle?.scene?.edge_id || bundle?.scene?.id || null,
                 title: draft.title,
-                provider: draft.provider || "local",
+                provider: normalizeGenerationProvider(draft.provider || "local-stack"),
                 model: draft.model || "",
                 callback_url: draft.callback_url || "",
                 generation_prompt: draft.generation_prompt || bundle?.scene?.prompt || "",
@@ -3767,6 +3790,7 @@
         loadRemoteRenderJobs();
         loadRemoteAutomationRules();
         loadRemoteGenerationJobs();
+        loadAnimeBackendStatus();
         if (window.TilelliEdge) {
             window.TilelliEdge.event("anime.page.view", { surface: "generator" });
         }

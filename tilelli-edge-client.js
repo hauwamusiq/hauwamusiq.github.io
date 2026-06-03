@@ -9,7 +9,10 @@ Relations: workers/tilelli-api/src/index.js, index.html, tilaelia.html, clock.ht
 */
 
 (() => {
-  const API_BASE = "https://tilelli-api.hauwamusiq.workers.dev";
+  const API_BASE = window.__TILELLI_API_BASE__ || (() => {
+    if (window.location.protocol === "file:") return "http://127.0.0.1:8787";
+    return new URL("/tilelli-api", window.location.origin).toString().replace(/\/$/, "");
+  })();
 
   async function request(path, options = {}) {
     const response = await fetch(`${API_BASE}${path}`, {
@@ -46,6 +49,7 @@ Relations: workers/tilelli-api/src/index.js, index.html, tilaelia.html, clock.ht
     projects: () => request("/v1/projects"),
     portfolioEntries: query => request(`/v1/portfolio/entries${query ? `?${query}` : ""}`),
     animeScenes: query => request(`/v1/anime/scenes${query ? `?${query}` : ""}`),
+    animeStatus: () => request("/v1/anime/status"),
     animeAssets: query => request(`/v1/anime/assets${query ? `?${query}` : ""}`),
     animeRenderJobs: query => request(`/v1/anime/renders${query ? `?${query}` : ""}`),
     animeAutomations: query => request(`/v1/anime/automations${query ? `?${query}` : ""}`),
