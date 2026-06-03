@@ -217,7 +217,8 @@
             background: #020103;
             z-index: 1;
             pointer-events: none;
-            perspective: 1800px;
+            perspective: 1600px;
+            perspective-origin: 50% 50%;
             transform-style: preserve-3d;
         }
         .word-space span {
@@ -239,12 +240,27 @@
             transform-origin: center center;
             backface-visibility: hidden;
         }
+        .word-space span:nth-child(3n + 1) { --travel-x: 24vw; --travel-y: -14vh; }
+        .word-space span:nth-child(3n + 2) { --travel-x: -18vw; --travel-y: 12vh; }
+        .word-space span:nth-child(3n) { --travel-x: 30vw; --travel-y: 8vh; }
         @keyframes wordPass {
-            0% { opacity: 0; transform: translate3d(var(--x, 0), var(--y, 0), -1600px) scale(0.22); filter: blur(16px); }
-            8% { opacity: 0.14; }
-            50% { opacity: 1; transform: translate3d(var(--x, 0), var(--y, 0), 0) scale(1); filter: blur(0); }
-            92% { opacity: 0.14; }
-            100% { opacity: 0; transform: translate3d(var(--x, 0), var(--y, 0), 1600px) scale(1.72); filter: blur(7px); }
+            0% {
+                opacity: 0;
+                transform: translate3d(calc(var(--x, 0) - var(--travel-x, 24vw)), calc(var(--y, 0) - var(--travel-y, 14vh)), -1800px) scale(0.18) rotateX(18deg) rotateY(-12deg);
+                filter: blur(18px);
+            }
+            16% { opacity: 0.34; }
+            50% {
+                opacity: 1;
+                transform: translate3d(var(--x, 0), var(--y, 0), 0) scale(1) rotateX(0deg) rotateY(0deg);
+                filter: blur(0);
+            }
+            84% { opacity: 0.34; }
+            100% {
+                opacity: 0;
+                transform: translate3d(calc(var(--x, 0) + var(--travel-x, 24vw)), calc(var(--y, 0) + var(--travel-y, 14vh)), 1800px) scale(1.66) rotateX(-18deg) rotateY(12deg);
+                filter: blur(8px);
+            }
         }
         .gate-copy {
             position: relative;
@@ -324,6 +340,24 @@
             overflow: hidden;
             background: #000;
         }
+        .stage-image {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: var(--stage-position, 50% 50%);
+            z-index: 0;
+            pointer-events: none;
+            user-select: none;
+            opacity: 0;
+            transform: scale(var(--stage-scale, 1.06));
+            filter: brightness(var(--stage-brightness, 0.82)) saturate(1.08) contrast(1.04);
+            transition: opacity 900ms ease, transform 1200ms ease, filter 1200ms ease, object-position 1200ms ease;
+        }
+        body.unlocked .stage-image {
+            opacity: 1;
+        }
         .living-bg video {
             position: absolute;
             inset: 0;
@@ -334,10 +368,22 @@
             filter: saturate(0.95) contrast(1.02) brightness(0.78);
         }
         .living-bg::before {
-            content: none;
+            content: "";
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(circle at 50% 38%, rgba(255, 198, 121, 0.14), transparent 34%),
+                linear-gradient(180deg, rgba(0,0,0,0.16), rgba(0,0,0,0.6));
+            opacity: 0.72;
+            pointer-events: none;
         }
         .living-bg::after {
-            content: none;
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, rgba(0,0,0,0.56), transparent 22%, transparent 78%, rgba(0,0,0,0.56));
+            opacity: 0.82;
+            pointer-events: none;
         }
         .sanctum-aura {
             position: fixed;
@@ -378,6 +424,7 @@
             animation: livingWordFloat var(--d, 16s) ease-in-out infinite alternate;
         }
         body.unlocked #world-canvas,
+        body.unlocked .living-bg video,
         body.unlocked .sanctum-aura,
         body.unlocked .thread-field,
         body.unlocked .living-words {
@@ -2168,8 +2215,8 @@
             .home-intro-stack { gap: 18px; }
             .home-feature-stage { margin-top: 12px; padding: 14px 12px 12px; }
             .gate-copy {
-                width: min(100% - 10px, 320px);
-                padding: 10px 4px;
+                width: min(100% - 8px, 360px);
+                padding: 8px 2px;
                 margin-inline: auto;
             }
             .gate-kicker {
@@ -2178,29 +2225,28 @@
                 margin-bottom: 4px;
             }
             .gate-copy h1 {
-                font-size: clamp(1.28rem, 9.2vw, 1.95rem);
+                font-size: clamp(2.3rem, 15.2vw, 3.35rem);
                 line-height: 0.8;
-                max-width: 8ch;
+                max-width: 9.2ch;
                 margin-inline: auto;
             }
             .gate-copy p {
-                font-size: 0.62rem;
+                font-size: 0.68rem;
                 line-height: 1.32;
                 margin: 6px auto 8px;
-                width: min(100%, 16rem);
+                width: min(100%, 18rem);
             }
             .portal-card { min-height: auto; }
             .title-drifter { animation: titleBreathe 11s ease-in-out infinite; }
             .word-space {
                 display: block;
-                perspective: 880px;
+                perspective: 560px;
+                perspective-origin: 50% 52%;
             }
             .word-space span {
-                font-size: 0.52rem;
-                letter-spacing: 0.08em;
-            }
-            .word-space span:nth-child(n+9) {
-                display: none;
+                font-size: clamp(0.78rem, 3.3vw, 1.04rem);
+                letter-spacing: 0.14em;
+                animation-duration: calc(var(--duration, 11s) * 0.65);
             }
             .sanctum-aura {
                 opacity: 0.58;
@@ -2208,11 +2254,21 @@
             }
             #title-spark-canvas { display: none; }
             .gate-copy .enter-btn {
-                font-size: 0.58rem;
+                font-size: 0.68rem;
                 letter-spacing: 0.08em;
             }
             #gate.entering .gate-copy {
                 animation: gateDiveMobile 1.05s linear forwards !important;
+            }
+            .stage-image {
+                transform: scale(var(--stage-scale, 1.02));
+                filter: brightness(var(--stage-brightness, 0.76)) saturate(1.02) contrast(1.02);
+            }
+            .living-bg::before {
+                opacity: 0.64;
+            }
+            .living-bg::after {
+                opacity: 0.76;
             }
             .gate-copy h1, .gate-copy p, .gate-copy .enter-btn {
                 max-width: 100%;
@@ -2222,8 +2278,8 @@
             }
         }
         @keyframes gateDiveMobile {
-            0% { transform: translate3d(0, 0, -100px) scale(0.98); opacity: 1; filter: blur(0); }
-            100% { transform: translate3d(0, 0, 760px) scale(1.46); opacity: 0; filter: blur(4px); }
+            0% { transform: translate3d(0, 0, -180px) scale(0.98); opacity: 1; filter: blur(0); }
+            100% { transform: translate3d(0, 0, 920px) scale(1.54); opacity: 0; filter: blur(4px); }
         }
         @keyframes gateDoorFadeMobile {
             0%, 54% { opacity: 1; visibility: visible; }
@@ -2270,8 +2326,8 @@
         </div>
     </section>
 
-    <canvas id="world-canvas" aria-hidden="true"></canvas>
     <div class="living-bg" aria-hidden="true">
+        <img class="stage-image" id="stage-image" src="assets/markup_1247-4k.png" alt="" decoding="async" fetchpriority="high">
         <div class="thread-field">
             <span style="--x:4%;--y:18%;--r:-10deg;--d:13s;"></span>
             <span style="--x:44%;--y:24%;--r:16deg;--d:16s;"></span>
@@ -5412,10 +5468,36 @@
 
         document.addEventListener("keydown", handlePortfolioKeyboard);
 
+        function setStageScene(name) {
+            const sceneMap = {
+                home: { position: "50% 42%", scale: "1.08", brightness: "0.84" },
+                visuals: { position: "55% 39%", scale: "1.12", brightness: "0.82" },
+                writing: { position: "47% 40%", scale: "1.1", brightness: "0.8" },
+                music: { position: "43% 44%", scale: "1.12", brightness: "0.78" },
+                research: { position: "50% 50%", scale: "1.1", brightness: "0.8" },
+                archive: { position: "46% 46%", scale: "1.08", brightness: "0.81" },
+                gallery: { position: "50% 44%", scale: "1.12", brightness: "0.83" },
+                presentation: { position: "52% 41%", scale: "1.14", brightness: "0.83" },
+                exhibitions: { position: "50% 39%", scale: "1.13", brightness: "0.82" },
+                submissions: { position: "50% 48%", scale: "1.08", brightness: "0.79" },
+                management: { position: "49% 45%", scale: "1.08", brightness: "0.8" },
+                review: { position: "47% 47%", scale: "1.08", brightness: "0.8" },
+                versions: { position: "53% 46%", scale: "1.08", brightness: "0.8" },
+                collections: { position: "48% 44%", scale: "1.08", brightness: "0.81" },
+                find: { position: "50% 43%", scale: "1.08", brightness: "0.8" },
+                maintenance: { position: "51% 49%", scale: "1.08", brightness: "0.79" }
+            };
+            const config = sceneMap[name] || sceneMap.home;
+            document.body.style.setProperty("--stage-position", config.position);
+            document.body.style.setProperty("--stage-scale", config.scale);
+            document.body.style.setProperty("--stage-brightness", config.brightness);
+        }
+
         function switchSection(name) {
             const next = ["home", "archive", "find", "management", "review", "versions", "collections", "exhibitions", "presentation", "gallery", "maintenance", "music", "writing", "visuals", "research", "submissions"].includes(name) ? name : "home";
             document.querySelectorAll(".section").forEach(section => section.classList.toggle("active", section.id === `section-${next}`));
             document.querySelectorAll(".nav button").forEach(button => button.classList.toggle("active", button.dataset.section === next));
+            setStageScene(next);
             if (next === "archive") {
                 renderArchiveShelf();
                 renderArchiveStream();
@@ -6010,6 +6092,7 @@
         startHomeFeatureAutoCycle();
         requestAnimationFrame(animateTitleSparks);
         requestAnimationFrame(animateWorld);
+        setStageScene("home");
         applyVisitorMode();
         loadPublishedOfferings();
         if (qaMode) {
