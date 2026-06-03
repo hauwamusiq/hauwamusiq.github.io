@@ -583,6 +583,50 @@
             font-size: 0.78rem;
             line-height: 1.45;
         }
+        .spotlight-ledger {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+            margin-top: 16px;
+        }
+        .spotlight-ledger article {
+            border: 1px solid rgba(246,204,114,0.28);
+            background: rgba(255,255,255,0.05);
+            padding: 14px 15px;
+            border-radius: 8px;
+            min-height: 118px;
+        }
+        .spotlight-ledger .spotlight-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 10px;
+            color: var(--gold);
+            font-size: 0.68rem;
+            font-weight: 900;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+        }
+        .spotlight-ledger .spotlight-label::before {
+            content: "";
+            width: 16px;
+            height: 1px;
+            background: var(--gold);
+        }
+        .spotlight-ledger strong {
+            display: block;
+            font-family: var(--ritual);
+            font-size: 1.18rem;
+            line-height: 1.1;
+            color: var(--ink);
+        }
+        .spotlight-ledger span {
+            display: block;
+            margin-top: 6px;
+            color: var(--muted);
+            font-size: 0.78rem;
+            line-height: 1.45;
+        }
         .section {
             display: none;
             padding: 72px 0 92px;
@@ -1016,6 +1060,17 @@
             font-size: 0.8rem;
             letter-spacing: 0.04em;
         }
+        .archive-entry .archive-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 4px;
+        }
+        .archive-entry .archive-actions .action {
+            min-height: 36px;
+            padding: 0 11px;
+            font-size: 0.68rem;
+        }
         .archive-media {
             border-radius: 10px;
             overflow: hidden;
@@ -1111,6 +1166,11 @@
                 gap: 8px;
                 margin-top: 18px;
             }
+            .spotlight-ledger {
+                grid-template-columns: 1fr;
+                gap: 8px;
+                margin-top: 12px;
+            }
             .hero-stat strong {
                 font-size: 1.45rem;
             }
@@ -1156,6 +1216,9 @@
             .archive-entry {
                 padding: 11px 12px;
                 border-radius: 8px;
+            }
+            .archive-entry .archive-actions {
+                gap: 6px;
             }
             .archive-stream {
                 gap: 12px;
@@ -1315,6 +1378,7 @@
                                 <span>Last recorded submission time</span>
                             </div>
                         </div>
+                        <div class="spotlight-ledger" id="hero-spotlight" aria-label="Spotlighted offerings"></div>
                     </div>
                     <aside class="portal-card">
                         <h3>Enter with reverence</h3>
@@ -1438,6 +1502,14 @@
                                 <input id="submit-category" placeholder="poem, poetry, picture, sounds, tracks, physics, gallery...">
                             </div>
                             <div class="field">
+                                <label for="submit-visibility">Publication State</label>
+                                <select id="submit-visibility">
+                                    <option value="draft" selected>Private draft</option>
+                                    <option value="published">Published</option>
+                                    <option value="archived">Archived</option>
+                                </select>
+                            </div>
+                            <div class="field">
                                 <label for="submit-title">Title</label>
                                 <input id="submit-title" placeholder="Name the offering">
                             </div>
@@ -1526,7 +1598,8 @@
             local: loadLocalOfferings(),
             filters: { music: "all", writing: "all", research: "all" },
             archiveFilter: "all",
-            keeper: false
+            keeper: false,
+            spotlight: []
         };
 
         const $ = id => document.getElementById(id);
@@ -1554,6 +1627,82 @@
                 localStorage.removeItem("tilaelia-local-offerings");
                 return [];
             }
+        }
+
+        function loadSpotlightKeys() {
+            try {
+                const parsed = JSON.parse(localStorage.getItem("tilaelia-spotlight-keys") || "[]");
+                return Array.isArray(parsed) ? parsed.filter(Boolean).map(String).slice(0, 2) : [];
+            } catch {
+                localStorage.removeItem("tilaelia-spotlight-keys");
+                return [];
+            }
+        }
+
+        function saveSpotlightKeys() {
+            try {
+                localStorage.setItem("tilaelia-spotlight-keys", JSON.stringify(state.spotlight.slice(0, 2)));
+                return true;
+            } catch {
+                return false;
+            }
+        }
+
+        function offeringSignature(item) {
+            if (!item) return "";
+            return [
+                item.section || "",
+                item.category || "",
+                item.title || "",
+                item.createdAt || "",
+                item.mediaType || "",
+                item.mediaUrl || "",
+                item.visibility || "",
+                item.body || ""
+            ].join("|");
+        }
+
+        function uniqueOfferings(items) {
+            const seen = new Set();
+            const next = [];
+            for (const item of items) {
+                const key = offeringSignature(item);
+                if (seen.has(key)) continue;
+                seen.add(key);
+                next.push(item);
+            }
+            return next;
+        }
+
+        function offeringKey(item) {
+            if (!item) return "";
+            if (item.edgeId) return `edge:${item.edgeId}`;
+            if (item.createdAt) return `local:${item.createdAt}:${item.title || ""}`;
+            return `title:${item.section || "portfolio"}:${item.title || ""}`;
+        }
+
+        function isSpotlight(item) {
+            const key = offeringKey(item);
+            return Boolean(key && state.spotlight.includes(key));
+        }
+
+        function spotlightItems(limit = 2) {
+            const selected = archiveItems().filter(isSpotlight).slice(0, limit);
+            if (selected.length) return selected;
+            return recentOfferings(limit);
+        }
+
+        function toggleSpotlight(item) {
+            const key = offeringKey(item);
+            if (!key) return;
+            if (state.spotlight.includes(key)) {
+                state.spotlight = state.spotlight.filter(entry => entry !== key);
+            } else {
+                state.spotlight = [key, ...state.spotlight.filter(entry => entry !== key)].slice(0, 2);
+            }
+            saveSpotlightKeys();
+            renderPortfolioOverview();
+            renderArchiveStream();
         }
 
         function normalizeOffering(item) {
@@ -1789,14 +1938,14 @@
         }
 
         function archiveItems() {
-            return [
+            return uniqueOfferings([
                 ...baseData.music.map(item => ({ section: "music", category: item.category, title: item.title, meta: item.meta, body: item.body, kind: item.kind, createdAt: "", source: "seed", visibility: "seed" })),
                 ...baseData.writing.map(item => ({ section: "writing", category: item.category, title: item.title, meta: item.meta, body: item.body, kind: item.kind, createdAt: "", source: "seed", visibility: "seed" })),
                 ...baseData.visuals.map(item => ({ section: "visuals", category: item.category, title: item.title, meta: item.meta, body: item.body, kind: item.kind, createdAt: "", source: "seed", visibility: "seed" })),
                 ...baseData.research.map(item => ({ section: "research", category: item.category, title: item.title, meta: item.meta, body: item.body, kind: item.kind, createdAt: "", source: "seed", visibility: "seed" })),
                 ...state.published.map(item => normalizeOffering({ ...item, section: item.section || inferSectionFromKind(item), source: item.source || "published", visibility: item.visibility || "published" })),
                 ...state.local.map(item => normalizeOffering({ ...item, section: item.section || inferSectionFromKind(item), source: item.source || "local", visibility: item.visibility || "draft" }))
-            ]
+            ])
                 .filter(Boolean)
                 .sort((a, b) => archiveTimeValue(b) - archiveTimeValue(a));
         }
@@ -1863,7 +2012,7 @@
         }
 
         function recentOfferings(limit = 3) {
-            return [...state.published, ...state.local]
+            return uniqueOfferings([...state.published, ...state.local])
                 .slice()
                 .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
                 .slice(0, limit)
@@ -1873,23 +2022,17 @@
 
         function renderPortfolioOverview() {
             if (!heroStatOfferings || !heroStatPublished || !heroStatPrivate || !heroStatLast || !heroLedger) return;
-            const all = [
-                ...baseData.music.map(item => ({ ...item, section: "music" })),
-                ...baseData.writing.map(item => ({ ...item, section: "writing" })),
-                ...baseData.visuals.map(item => ({ ...item, section: "visuals" })),
-                ...baseData.research.map(item => ({ ...item, section: "research" })),
-                ...state.published,
-                ...state.local
-            ].map(item => normalizeOffering({ ...item, section: inferSectionFromKind(item) })).filter(Boolean);
+            const all = archiveItems();
             const recent = recentOfferings(3);
-            const publishedCount = state.published.length;
-            const privateCount = state.local.length;
+            const archive = archiveItems();
+            const publishedCount = archive.filter(item => item.visibility === "published").length;
+            const privateCount = archive.filter(item => item.source !== "seed" && item.visibility !== "published").length;
             heroStatOfferings.textContent = String(all.length).padStart(2, "0");
             heroStatPublished.textContent = String(publishedCount).padStart(2, "0");
             heroStatPrivate.textContent = String(privateCount).padStart(2, "0");
             heroStatLast.textContent = recent[0] ? formatSubmissionTime(recent[0].createdAt) : "--";
-            const seededLedger = all.slice(0, 3);
-            const ledgerItems = recent.length ? [recent[0], ...recent.slice(1)] : seededLedger;
+            const featured = spotlightItems(2);
+            const ledgerItems = recent.length ? recent : all.slice(0, 3);
             heroLedger.replaceChildren(...ledgerItems.map((item, index) => {
                 const article = document.createElement("article");
                 if (index === 0) {
@@ -1910,6 +2053,29 @@
                 }
                 return article;
             }));
+
+            const spotlightHost = document.getElementById("hero-spotlight");
+            if (spotlightHost) {
+                if (!featured.length) {
+                    spotlightHost.innerHTML = `
+                        <article>
+                            <strong>Spotlight empty</strong>
+                            <span>Feature an offering from the archive to pin it here.</span>
+                        </article>
+                    `;
+                } else {
+                    spotlightHost.replaceChildren(...featured.map((item, index) => {
+                        const article = document.createElement("article");
+                        article.innerHTML = `
+                            <span class="spotlight-label">${index === 0 ? "Spotlight one" : "Spotlight two"}</span>
+                            <strong>${escapeHtml(item.title || "Untitled offering")}</strong>
+                            <span>${escapeHtml(item.section || "portfolio")} · ${escapeHtml(item.meta || item.category || "offering")}</span>
+                            <span>${escapeHtml(item.visibility || "draft")} · ${item.createdAt ? escapeHtml(formatSubmissionTime(item.createdAt)) : "undated"}</span>
+                        `;
+                        return article;
+                    }));
+                }
+            }
         }
 
         function curatorLabel(item) {
@@ -2013,6 +2179,24 @@
                             meta.appendChild(edge);
                         }
                         entry.appendChild(meta);
+
+                        const actions = document.createElement("div");
+                        actions.className = "archive-actions";
+                        const feature = document.createElement("button");
+                        feature.className = "action";
+                        feature.type = "button";
+                        feature.textContent = isSpotlight(item) ? "Unfeature" : "Feature";
+                        feature.addEventListener("click", () => toggleSpotlight(item));
+                        actions.appendChild(feature);
+                        if (item.visibility === "draft" || item.visibility === "published" || item.visibility === "archived") {
+                            const stateChip = document.createElement("button");
+                            stateChip.className = "action ghost";
+                            stateChip.type = "button";
+                            stateChip.textContent = item.visibility;
+                            stateChip.title = "Publication state is set when the offering is submitted.";
+                            actions.appendChild(stateChip);
+                        }
+                        entry.appendChild(actions);
 
                         const body = document.createElement("p");
                         body.textContent = item.body || "No description stored.";
@@ -2277,6 +2461,7 @@
             event.preventDefault();
             if (!state.keeper) return;
             let section = $("submit-section").value;
+            const visibility = String($("submit-visibility").value || "draft").trim().toLowerCase();
             const mediaType = $("submit-media-type").value;
             const mediaUrl = $("submit-media-url").value.trim();
             const typedCategory = $("submit-category").value.trim().toLowerCase();
@@ -2303,7 +2488,8 @@
                 mediaType: mediaKind,
                 mediaUrl: mediaPayload || mediaUrl,
                 createdAt: new Date().toISOString(),
-                kind: defaultKind(section, category)
+                kind: defaultKind(section, category),
+                visibility
             };
             const normalized = normalizeOffering(item);
             if (!normalized) return;
@@ -2311,10 +2497,10 @@
             const saved = saveLocalOfferings();
             event.target.reset();
             renderAll();
-            announceSubmission(`Saved ${normalized.title}. Recorded ${formatSubmissionTime(normalized.createdAt)}.`);
+            announceSubmission(`Saved ${normalized.title} as ${normalized.visibility}. Recorded ${formatSubmissionTime(normalized.createdAt)}.`);
             if (window.TilelliEdge) {
                 const ownerKey = localStorage.getItem(edgeOwnerKeyStorage) || "";
-                if (ownerKey && normalized.mediaUrl.length < 120000) {
+                if (ownerKey && normalized.mediaUrl.length < 120000 && normalized.visibility === "published") {
                     try {
                         const response = await window.TilelliEdge.request("/v1/portfolio/entries", {
                             method: "POST",
@@ -2346,7 +2532,7 @@
                 $("submit-body").placeholder = "This browser could not save locally. Export additions before leaving.";
                 announceSubmission("Local save failed in this browser. Export the additions before leaving.");
             }
-            switchSection("archive");
+            switchSection(normalized.visibility === "published" ? "archive" : "submissions");
         });
 
         $("clear-local-btn").addEventListener("click", () => {
@@ -2502,6 +2688,7 @@
             resizeWorldCanvas();
         });
 
+        state.spotlight = loadSpotlightKeys();
         resizeTitleSparkCanvas();
         resizeWorldCanvas();
         requestAnimationFrame(animateTitleSparks);
