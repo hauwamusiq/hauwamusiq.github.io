@@ -1082,6 +1082,18 @@
             padding: 0 11px;
             font-size: 0.68rem;
         }
+        .find-summary {
+            margin-bottom: 14px;
+        }
+        .find-summary small {
+            color: var(--muted);
+            font-size: 0.78rem;
+            letter-spacing: 0.04em;
+        }
+        .find-board {
+            display: grid;
+            gap: 12px;
+        }
         .archive-media {
             border-radius: 10px;
             overflow: hidden;
@@ -1557,6 +1569,7 @@
             <nav class="nav" aria-label="Portfolio sections">
                 <button class="active" data-section="home">Home</button>
                 <button data-section="archive">Archive</button>
+                <button data-section="find">Find</button>
                 <button data-section="management">Manage</button>
                 <button data-section="review">Review</button>
                 <button data-section="versions">Versions</button>
@@ -1691,6 +1704,32 @@
                     <small id="archive-summary-note">Showing the full living archive.</small>
                 </div>
                 <div class="archive-stream" id="archive-stream" aria-label="Curated archive"></div>
+            </section>
+
+            <section class="section" id="section-find">
+                <div class="section-head">
+                    <h2>Vault search</h2>
+                    <p>Search offerings, revisions, and collections together, so the whole portfolio can be traced by title, tag, note, or action.</p>
+                </div>
+                <div class="find-summary">
+                    <div class="archive-tools">
+                        <div class="field">
+                            <label for="vault-search">Search the vault</label>
+                            <input id="vault-search" placeholder="Search titles, tags, notes, bodies, and actions">
+                        </div>
+                        <div class="field">
+                            <label for="vault-search-scope">Scope</label>
+                            <select id="vault-search-scope">
+                                <option value="all">All records</option>
+                                <option value="offerings">Offerings</option>
+                                <option value="revisions">Revisions</option>
+                                <option value="collections">Collections</option>
+                            </select>
+                        </div>
+                    </div>
+                    <small id="vault-search-summary">Showing the full searchable vault.</small>
+                </div>
+                <div class="find-board" id="find-board" aria-label="Vault search results"></div>
             </section>
 
             <section class="section" id="section-management">
@@ -1907,6 +1946,8 @@
             archiveFilter: "all",
             archiveQuery: "",
             archiveSort: "recent",
+            findQuery: "",
+            findScope: "all",
             keeper: false,
             spotlight: [],
             bulkSelection: [],
@@ -1931,6 +1972,10 @@
         const archiveShelf = $("archive-shelf");
         const archiveSummaryNote = $("archive-summary-note");
         const archiveBulkToolbar = $("archive-bulk-toolbar");
+        const vaultSearch = $("vault-search");
+        const vaultSearchScope = $("vault-search-scope");
+        const vaultSearchSummary = $("vault-search-summary");
+        const findBoard = $("find-board");
         const archiveStream = $("archive-stream");
         const managementBoard = $("management-board");
         const managementSummaryNote = $("management-summary-note");
@@ -2717,6 +2762,197 @@
             return sorted;
         }
 
+        function vaultSearchRecords() {
+            const query = String(state.findQuery || "").trim().toLowerCase();
+            const scope = state.findScope || "all";
+            const collections = state.collections.map(normalizeCollection).filter(Boolean).map(collection => ({
+                kind: "collection",
+                key: `collection:${collectionKey(collection)}`,
+                title: collection.title,
+                meta: collection.note || "Curated collection",
+                body: collection.note || "Saved collection",
+                section: "collections",
+                category: "collection",
+                createdAt: collection.updatedAt || collection.createdAt,
+                visibility: collection.source || "local",
+                tags: parseTags(collection.note),
+                source: collection.source || "local",
+                collection
+            }));
+            const revisions = state.revisions.map(normalizeRevision).filter(Boolean).map(revision => {
+                const current = revision.after || revision.before || {};
+                return {
+                    kind: "revision",
+                    key: `revision:${revision.key}:${revision.at}`,
+                    title: current.title || "Untitled offering",
+                    meta: revision.action || "updated",
+                    body: [current.body, revision.before?.body, revision.after?.body].filter(Boolean).join(" / "),
+                    section: current.section || "portfolio",
+                    category: current.category || "other",
+                    createdAt: revision.at,
+                    visibility: current.visibility || "draft",
+                    tags: current.tags || [],
+                    source: current.source || "local",
+                    revision
+                };
+            });
+            const offerings = archiveItems().map(item => ({
+                ...item,
+                kind: "offering",
+                key: `offering:${bulkKey(item)}`,
+                tags: Array.isArray(item.tags) ? item.tags : []
+            }));
+            const pool = {
+                all: offerings.concat(revisions, collections),
+                offerings,
+                revisions,
+                collections
+            };
+            const visible = pool[scope] || pool.all;
+            return visible.filter(item => {
+                if (!query) return true;
+                return [
+                    item.title,
+                    item.meta,
+                    item.body,
+                    item.section,
+                    item.category,
+                    item.visibility,
+                    item.source,
+                    item.kind,
+                    Array.isArray(item.tags) ? item.tags.join(" ") : ""
+                ].some(value => String(value || "").toLowerCase().includes(query));
+            }).sort((a, b) => {
+                const aTime = archiveTimeValue(a) || new Date(a.createdAt || 0).getTime() || 0;
+                const bTime = archiveTimeValue(b) || new Date(b.createdAt || 0).getTime() || 0;
+                return bTime - aTime;
+            });
+        }
+
+        function vaultSearchScopeLabel(scope) {
+            return {
+                all: "all records",
+                offerings: "offerings only",
+                revisions: "revisions only",
+                collections: "collections only"
+            }[scope] || "all records";
+        }
+
+        function renderFind() {
+            if (!findBoard) return;
+            const results = vaultSearchRecords();
+            if (vaultSearchSummary) {
+                const query = String(state.findQuery || "").trim();
+                const scopeLabel = vaultSearchScopeLabel(state.findScope || "all");
+                vaultSearchSummary.textContent = [
+                    `Showing ${results.length} searchable ${results.length === 1 ? "record" : "records"} from ${scopeLabel}.`,
+                    query ? `Search: “${query}”.` : ""
+                ].filter(Boolean).join(" ");
+            }
+            if (!results.length) {
+                findBoard.innerHTML = `
+                    <div class="archive-empty">
+                        No vault records match the current search. Broaden the scope or clear the query to search across offerings, revisions, and collections.
+                    </div>
+                `;
+                return;
+            }
+            findBoard.innerHTML = "";
+            results.slice(0, 48).forEach(item => {
+                const card = document.createElement("article");
+                card.className = "management-card";
+                const kindLabel = item.kind === "revision"
+                    ? "Revision"
+                    : item.kind === "collection"
+                        ? "Collection"
+                        : "Offering";
+                const locationLabel = item.kind === "collection"
+                    ? "Collections"
+                    : item.kind === "revision"
+                        ? "Versions"
+                        : item.visibility === "review"
+                            ? "Review"
+                            : "Archive";
+                card.innerHTML = `
+                    <div class="management-head">
+                        <div>
+                            <strong>${escapeHtml(item.title || "Untitled record")}</strong>
+                            <div class="management-pill">${escapeHtml(kindLabel)} · ${escapeHtml(item.section || "portfolio")} · ${escapeHtml(item.category || item.meta || "other")}</div>
+                        </div>
+                        <small>${escapeHtml(item.visibility || "draft")}</small>
+                    </div>
+                    <div class="management-meta">
+                        <span>${escapeHtml(locationLabel)}</span>
+                        <span>${escapeHtml(item.createdAt ? formatSubmissionTime(item.createdAt) : "undated")}</span>
+                        ${item.source ? `<span>${escapeHtml(item.source)}</span>` : ""}
+                    </div>
+                    <p>${escapeHtml(item.body || item.meta || "No description stored.")}</p>
+                `;
+                const tags = renderTagRow(item);
+                if (tags) card.appendChild(tags);
+                const actions = document.createElement("div");
+                actions.className = "management-actions";
+
+                const open = document.createElement("button");
+                open.className = "action";
+                open.type = "button";
+                open.textContent = item.kind === "revision" ? "Open Versions" : item.kind === "collection" ? "Open Collections" : "Open Archive";
+                open.addEventListener("click", () => {
+                    if (item.kind === "revision") {
+                        switchSection("versions");
+                    } else if (item.kind === "collection") {
+                        if (item.collection) {
+                            selectCollection(item.collection);
+                        }
+                        switchSection("collections");
+                    } else {
+                        if (item.visibility === "review") {
+                            switchSection("review");
+                        } else if (item.visibility === "published" || item.visibility === "archived" || item.visibility === "draft") {
+                            switchSection("archive");
+                        } else {
+                            switchSection("management");
+                        }
+                    }
+                });
+                actions.appendChild(open);
+
+                if (item.kind === "revision" && item.revision?.before) {
+                    const restore = document.createElement("button");
+                    restore.className = "action ghost";
+                    restore.type = "button";
+                    restore.textContent = "Restore";
+                    restore.addEventListener("click", () => {
+                        const restored = setLocalMirror(item.revision.before, { visibility: item.revision.before.visibility || "draft" });
+                        if (restored) {
+                            recordRevision(restored, "restored", item.revision.after || item.revision.before, restored);
+                            renderAll();
+                            switchSection("versions");
+                        }
+                    });
+                    actions.appendChild(restore);
+                }
+
+                if (item.kind === "collection" && item.collection) {
+                    const recapture = document.createElement("button");
+                    recapture.className = "action ghost";
+                    recapture.type = "button";
+                    recapture.textContent = "Recapture";
+                    recapture.addEventListener("click", () => {
+                        const next = createCollectionFromView(item.collection.title, item.collection.note, item.collection);
+                        if (next) {
+                            renderCollections();
+                            switchSection("collections");
+                        }
+                    });
+                    actions.appendChild(recapture);
+                }
+
+                card.appendChild(actions);
+                findBoard.appendChild(card);
+            });
+        }
+
         function archiveGroupKey(item) {
             if (item?.source === "seed" || !item?.createdAt) return "Seed Library";
             const date = new Date(item.createdAt || 0);
@@ -3464,6 +3700,7 @@
             ["music", "writing", "visuals", "research"].forEach(renderSection);
             renderPortfolioOverview();
             renderArchiveShelf();
+            renderFind();
             renderSubmissionLedger();
             renderArchiveStream();
             renderManagementBoard();
@@ -3474,12 +3711,14 @@
         }
 
         function switchSection(name) {
-            const next = ["home", "archive", "management", "review", "versions", "collections", "maintenance", "music", "writing", "visuals", "research", "submissions"].includes(name) ? name : "home";
+            const next = ["home", "archive", "find", "management", "review", "versions", "collections", "maintenance", "music", "writing", "visuals", "research", "submissions"].includes(name) ? name : "home";
             document.querySelectorAll(".section").forEach(section => section.classList.toggle("active", section.id === `section-${next}`));
             document.querySelectorAll(".nav button").forEach(button => button.classList.toggle("active", button.dataset.section === next));
             if (next === "archive") {
                 renderArchiveShelf();
                 renderArchiveStream();
+            } else if (next === "find") {
+                renderFind();
             } else if (next === "home") {
                 renderPortfolioOverview();
             } else if (next === "management") {
@@ -3527,6 +3766,16 @@
             state.archiveSort = String(event.target.value || "recent");
             renderArchiveShelf();
             renderArchiveStream();
+        });
+
+        vaultSearch?.addEventListener("input", event => {
+            state.findQuery = String(event.target.value || "");
+            renderFind();
+        });
+
+        vaultSearchScope?.addEventListener("change", event => {
+            state.findScope = String(event.target.value || "all");
+            renderFind();
         });
 
         $("enter-btn").addEventListener("click", () => {
