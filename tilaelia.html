@@ -34,12 +34,17 @@
             min-height: 100vh;
             color: var(--ink);
             font-family: var(--sans);
-            background:
-                linear-gradient(180deg, #060507 0%, #0d0710 40%, #08070a 100%);
+            background: #000;
             isolation: isolate;
             overflow-x: hidden;
         }
         body.locked { overflow: hidden; }
+        body.unlocked {
+            background: #000;
+        }
+        body.unlocked::before {
+            display: none;
+        }
         body::before {
             content: "";
             position: fixed;
@@ -239,16 +244,13 @@
             inset: 0;
             overflow: hidden;
             perspective: 900px;
-            background:
-                radial-gradient(circle at 50% 48%, rgba(255,109,158,0.14), transparent 22rem),
-                radial-gradient(circle at 45% 60%, rgba(100,234,220,0.08), transparent 28rem),
-                #020103;
+            background: #020103;
         }
         .word-space span {
             position: absolute;
             left: 50%;
             top: 50%;
-            color: rgba(255,248,237,0.68);
+            color: rgba(255,248,237,0.82);
             font-family: var(--ritual);
             font-size: clamp(0.8rem, 1.8vw, 1.2rem);
             text-transform: uppercase;
@@ -262,8 +264,8 @@
         }
         @keyframes wordDrift {
             0% { transform: translate3d(var(--x), var(--y), -760px) scale(0.22); opacity: 0; }
-            12% { opacity: 0.72; }
-            76% { opacity: 0.62; }
+            12% { opacity: 0.88; }
+            76% { opacity: 0.76; }
             100% { transform: translate3d(calc(var(--x) * 1.45), calc(var(--y) * 1.45), 280px) scale(1.45); opacity: 0; }
         }
         .gate-copy {
@@ -277,17 +279,17 @@
         .title-drifter {
             display: inline-block;
             transform-style: preserve-3d;
-            animation: titleSpaceDrift 7.5s ease-in-out infinite;
+            animation: titleSpaceDrift 11s ease-in-out infinite;
             will-change: transform;
         }
         @keyframes titleSpaceDrift {
-            0% { transform: translate3d(-12px, 4px, -24px) rotateX(2deg) rotateY(-5deg) scale(0.98); }
-            28% { transform: translate3d(14px, -10px, 18px) rotateX(-2deg) rotateY(4deg) scale(1.015); }
-            58% { transform: translate3d(8px, 10px, 34px) rotateX(3deg) rotateY(2deg) scale(1.035); }
-            100% { transform: translate3d(-12px, 4px, -24px) rotateX(2deg) rotateY(-5deg) scale(0.98); }
+            0% { transform: translate3d(-3px, 2px, -8px) rotateX(0.8deg) rotateY(-1.8deg) scale(0.995); }
+            34% { transform: translate3d(4px, -3px, 10px) rotateX(-0.6deg) rotateY(1.2deg) scale(1.01); }
+            68% { transform: translate3d(2px, 3px, 14px) rotateX(0.8deg) rotateY(0.8deg) scale(1.018); }
+            100% { transform: translate3d(-3px, 2px, -8px) rotateX(0.8deg) rotateY(-1.8deg) scale(0.995); }
         }
         .gate-kicker {
-            color: var(--rose);
+            color: var(--gold);
             text-transform: uppercase;
             letter-spacing: 0.34em;
             font-size: 0.72rem;
@@ -302,7 +304,7 @@
             margin: 0;
             text-transform: uppercase;
             position: relative;
-            text-shadow: 0 0 22px rgba(255, 248, 237, 0.4), 0 0 52px rgba(255, 109, 158, 0.48), 0 0 82px rgba(246,204,114,0.18);
+            text-shadow: 0 0 22px rgba(255, 248, 237, 0.34), 0 0 52px rgba(255, 109, 158, 0.34), 0 0 82px rgba(246,204,114,0.14);
         }
         .gate-copy p {
             width: min(620px, 100%);
@@ -312,18 +314,19 @@
             font-size: 1rem;
         }
         .enter-btn {
-            min-height: 48px;
-            border: 1px solid rgba(246, 204, 114, 0.55);
-            background: rgba(246, 204, 114, 0.08);
-            padding: 0 24px;
-            color: var(--ink);
+            display: inline-block;
+            border: 0;
+            background: transparent;
+            padding: 0;
+            color: var(--gold);
             text-transform: uppercase;
-            letter-spacing: 0.18em;
-            font-size: 0.78rem;
+            letter-spacing: 0.22em;
+            font-size: 0.92rem;
             font-weight: 900;
-            transition: transform 180ms ease, background 180ms ease, border-color 180ms ease;
+            text-shadow: 0 0 18px rgba(246,204,114,0.55), 0 0 32px rgba(255,109,158,0.22);
+            transition: transform 180ms ease, text-shadow 180ms ease, color 180ms ease;
         }
-        .enter-btn:hover { transform: translateY(-2px); background: rgba(246, 204, 114, 0.16); border-color: var(--gold); }
+        .enter-btn:hover { transform: translateY(-2px); color: #fff6d8; text-shadow: 0 0 20px rgba(246,204,114,0.85), 0 0 42px rgba(255,109,158,0.3); }
 
         #world-canvas {
             position: fixed;
@@ -342,11 +345,7 @@
             inset: 0;
             z-index: 0;
             overflow: hidden;
-            background:
-                radial-gradient(circle at 20% 18%, rgba(246,204,114,0.10), transparent 24rem),
-                radial-gradient(circle at 82% 28%, rgba(255,109,158,0.08), transparent 26rem),
-                radial-gradient(circle at 52% 58%, rgba(100,234,220,0.06), transparent 28rem),
-                linear-gradient(180deg, #110f16 0%, #0c0b10 44%, #07070a 100%);
+            background: #000;
         }
         .living-bg video {
             position: absolute;
@@ -358,35 +357,20 @@
             filter: saturate(0.95) contrast(1.02) brightness(0.78);
         }
         .living-bg::before {
-            content: "";
-            position: absolute;
-            inset: 0;
-            background:
-                linear-gradient(90deg, rgba(7,6,10,0.84), rgba(7,6,10,0.14) 48%, rgba(7,6,10,0.88)),
-                linear-gradient(180deg, rgba(7,6,10,0.22), rgba(7,6,10,0.82));
+            content: none;
         }
         .living-bg::after {
-            content: "";
-            position: absolute;
-            inset: 0;
-            background:
-                radial-gradient(circle at 50% 50%, rgba(255,255,255,0.03), transparent 36rem),
-                radial-gradient(circle at 50% 20%, rgba(255,109,158,0.05), transparent 18rem);
-            opacity: 0.9;
+            content: none;
         }
         .sanctum-aura {
             position: fixed;
             inset: 0;
             z-index: 2;
             pointer-events: none;
-            background:
-                radial-gradient(circle at 22% 18%, rgba(255,109,158,0.10), transparent 20rem),
-                radial-gradient(circle at 78% 22%, rgba(246,204,114,0.08), transparent 22rem),
-                radial-gradient(circle at 52% 56%, rgba(100,234,220,0.05), transparent 28rem),
-                radial-gradient(circle at 48% 48%, rgba(255,255,255,0.015), transparent 42rem);
+            background: #000;
             mix-blend-mode: normal;
-            opacity: 0.62;
-            filter: blur(1px);
+            opacity: 1;
+            filter: none;
         }
         .thread-field, .living-words {
             position: absolute;
@@ -554,10 +538,14 @@
         .hero {
             min-height: calc(100vh - 80px);
             display: grid;
-            align-items: center;
+            align-items: start;
             padding: 36px 0 60px;
             position: relative;
             isolation: isolate;
+        }
+        .home-intro-stack {
+            display: grid;
+            gap: 26px;
         }
         .hero::before {
             content: "";
@@ -757,7 +745,7 @@
             line-height: 1.45;
         }
         .home-feature-stage {
-            margin-top: 22px;
+            margin-top: 0;
             border: 1px solid var(--line);
             background:
                 linear-gradient(135deg, rgba(246,204,114,0.08), transparent 34%),
@@ -2173,7 +2161,7 @@
             .portal-card { min-height: auto; }
             .title-drifter {
                 animation-name: titleSpaceDriftMobile;
-                animation-duration: 8.5s;
+                animation-duration: 9.5s;
             }
             #gate.entering .gate-copy {
                 animation-name: gateDiveMobile !important;
@@ -2197,10 +2185,10 @@
             }
         }
         @keyframes titleSpaceDriftMobile {
-            0% { transform: translate3d(-5px, 3px, -10px) rotateX(1deg) rotateY(-2deg) scale(0.99); }
-            35% { transform: translate3d(6px, -6px, 12px) rotateX(-1deg) rotateY(2deg) scale(1.01); }
-            68% { transform: translate3d(3px, 5px, 16px) rotateX(1deg) rotateY(1deg) scale(1.018); }
-            100% { transform: translate3d(-5px, 3px, -10px) rotateX(1deg) rotateY(-2deg) scale(0.99); }
+            0% { transform: translate3d(-2px, 2px, -6px) rotateX(0.5deg) rotateY(-1deg) scale(0.995); }
+            35% { transform: translate3d(3px, -3px, 8px) rotateX(-0.5deg) rotateY(1deg) scale(1.008); }
+            68% { transform: translate3d(2px, 3px, 12px) rotateX(0.5deg) rotateY(0.7deg) scale(1.015); }
+            100% { transform: translate3d(-2px, 2px, -6px) rotateX(0.5deg) rotateY(-1deg) scale(0.995); }
         }
         @keyframes gateDiveMobile {
             0% { transform: translate3d(0, 0, 0) scale(1); opacity: 1; filter: blur(0); }
@@ -2241,10 +2229,10 @@
         <div class="gate-copy">
             <div class="gate-kicker">The threshold opens</div>
             <div class="title-drifter" id="title-drifter">
-                <h1>Tilelli's Thread</h1>
+                <h1>Ariadni's Thread</h1>
             </div>
-            <p>A black gate into a sacred archive of sound, image, thought, research, and the living act of creation.</p>
-            <button class="enter-btn" id="enter-btn">Enter</button>
+            <p>The black gate into the sacred archive of sound, image, thought, research, and the living act of creation.</p>
+            <button class="enter-btn" id="enter-btn">Enter the Labyrinth</button>
         </div>
     </section>
 
@@ -2286,61 +2274,63 @@
 
         <main>
             <section class="hero section active" id="section-home">
-                <div class="hero-grid">
-                    <div>
-                        <div class="eyebrow">Sanctum online</div>
-                        <h2>Ariadni's sacred creation field</h2>
-                        <p>This is not a portfolio as a shelf. It is a living altar for music, visual myth, philosophy, research, and the strange disciplined joy of making worlds out of breath and will.</p>
-                        <div class="hero-ornaments" aria-label="Portfolio overview">
-                            <div class="hero-stat">
-                                <strong id="hero-stat-offerings">0</strong>
-                                <span>Offerings held across the archive</span>
-                            </div>
-                            <div class="hero-stat">
-                                <strong id="hero-stat-published">0</strong>
-                                <span>Published offerings in the archive</span>
-                            </div>
-                            <div class="hero-stat">
-                                <strong id="hero-stat-private">0</strong>
-                                <span>Private drafts held in the keeper console</span>
-                            </div>
-                            <div class="hero-stat">
-                                <strong id="hero-stat-last">--</strong>
-                                <span>Last recorded submission time</span>
-                            </div>
-                        </div>
-                        <div class="spotlight-ledger" id="hero-spotlight" aria-label="Spotlighted offerings"></div>
-                    </div>
-                    <aside class="portal-card">
-                        <h3>Enter with reverence</h3>
-                        <ul>
-                            <li>Music is split between leaks and sounds, and completed tracks.</li>
-                            <li>Writing opens into essays, poems, short stories, and other fragments.</li>
-                            <li>Visuals are held as a digital underground gallery.</li>
-                            <li>Research gathers philosophy, physics, mathematics, and history.</li>
-                        </ul>
-                        <div class="portal-ledger" id="hero-ledger" aria-label="Recent offerings">
-                            <article>
-                                <strong>Waiting for offerings</strong>
-                                <span>Submit work in the keeper console to populate this living ledger.</span>
-                            </article>
-                        </div>
-                    </aside>
-                </div>
-                <div class="home-feature-stage" aria-label="Inner sanctum feature section">
-                    <div class="home-feature-head">
+                <div class="home-intro-stack">
+                    <div class="hero-grid">
                         <div>
-                            <div class="eyebrow">Inner sanctum</div>
-                            <h3>Welcome into the living chamber</h3>
-                            <p>Recent submissions are presented here as a slow slideshow, so the home page opens like a room with one work in focus and the rest waiting their turn.</p>
+                            <div class="eyebrow">Sanctum online</div>
+                            <h2>Enter myth...</h2>
+                            <p>This is not a portfolio as a shelf. It is a living altar for music, visual myth, philosophy, research, and the strange disciplined joy of making worlds out of breath and will.</p>
+                            <div class="hero-ornaments" aria-label="Portfolio overview">
+                                <div class="hero-stat">
+                                    <strong id="hero-stat-offerings">0</strong>
+                                    <span>Offerings held across the archive</span>
+                                </div>
+                                <div class="hero-stat">
+                                    <strong id="hero-stat-published">0</strong>
+                                    <span>Published offerings in the archive</span>
+                                </div>
+                                <div class="hero-stat">
+                                    <strong id="hero-stat-private">0</strong>
+                                    <span>Private drafts held in the keeper console</span>
+                                </div>
+                                <div class="hero-stat">
+                                    <strong id="hero-stat-last">--</strong>
+                                    <span>Last recorded submission time</span>
+                                </div>
+                            </div>
+                            <div class="spotlight-ledger" id="hero-spotlight" aria-label="Spotlighted offerings"></div>
                         </div>
-                        <div class="home-feature-rail">
-                            <button class="action ghost" id="home-feature-prev" type="button">Previous</button>
-                            <div class="home-feature-count" id="home-feature-count">01 / 01</div>
-                            <button class="action" id="home-feature-next" type="button">Next</button>
-                        </div>
+                        <aside class="portal-card">
+                            <h3>Enter with reverence</h3>
+                            <ul>
+                                <li>Music is split between leaks and sounds, and completed tracks.</li>
+                                <li>Writing opens into essays, poems, short stories, and other fragments.</li>
+                                <li>Visuals are held as a digital underground gallery.</li>
+                                <li>Research gathers philosophy, physics, mathematics, and history.</li>
+                            </ul>
+                            <div class="portal-ledger" id="hero-ledger" aria-label="Recent offerings">
+                                <article>
+                                    <strong>Waiting for offerings</strong>
+                                    <span>Submit work in the keeper console to populate this living ledger.</span>
+                                </article>
+                            </div>
+                        </aside>
                     </div>
-                    <div class="home-feature-board" id="home-feature-board"></div>
+                    <div class="home-feature-stage" aria-label="Inner sanctum feature section">
+                        <div class="home-feature-head">
+                            <div>
+                                <div class="eyebrow">Inner sanctum</div>
+                                <h3>Welcome into the living chamber</h3>
+                                <p>Recent submissions are presented here as a slow slideshow, so the home page opens like a room with one work in focus and the rest waiting their turn.</p>
+                            </div>
+                            <div class="home-feature-rail">
+                                <button class="action ghost" id="home-feature-prev" type="button">Previous</button>
+                                <div class="home-feature-count" id="home-feature-count">01 / 01</div>
+                                <button class="action" id="home-feature-next" type="button">Next</button>
+                            </div>
+                        </div>
+                        <div class="home-feature-board" id="home-feature-board"></div>
+                    </div>
                 </div>
             </section>
 
