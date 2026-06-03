@@ -227,8 +227,6 @@
             position: absolute;
             inset: 0;
             overflow: hidden;
-            perspective: 1100px;
-            perspective-origin: 50% 50%;
             background: #020103;
             z-index: 1;
             pointer-events: none;
@@ -244,17 +242,17 @@
             letter-spacing: 0.2em;
             white-space: nowrap;
             text-shadow: 0 0 18px rgba(255,109,158,0.42), 0 0 42px rgba(246,204,114,0.12);
-            animation: wordAether var(--duration, 13s) ease-in-out infinite;
+            animation: wordOrbit var(--duration, 13s) linear infinite;
             animation-delay: var(--delay, 0s);
-            transform: translate3d(var(--x, 0), var(--y, 0), -1100px) scale(0.12);
+            transform: translate3d(var(--x, 0), var(--y, 0), 0) scale(0.8);
             opacity: 0;
         }
-        @keyframes wordAether {
-            0% { opacity: 0; transform: translate3d(var(--x, 0), var(--y, 0), -2200px) scale(0.06) rotateX(28deg); filter: blur(10px); }
-            16% { opacity: 0.56; transform: translate3d(calc(var(--x, 0) * 0.88), calc(var(--y, 0) * 0.88), -1100px) scale(0.26) rotateX(16deg); filter: blur(7px); }
-            42% { opacity: 0.86; transform: translate3d(calc(var(--x, 0) * 0.94), calc(var(--y, 0) * 0.94), -420px) scale(0.62) rotateX(8deg); filter: blur(2.5px); }
-            68% { opacity: 0.92; transform: translate3d(calc(var(--x, 0) * 1), calc(var(--y, 0) * 1), 60px) scale(1) rotateX(0deg); filter: blur(0); }
-            100% { opacity: 0; transform: translate3d(calc(var(--x, 0) * 1.08), calc(var(--y, 0) * 1.08), 420px) scale(1.12) rotateX(-4deg); filter: blur(1px); }
+        @keyframes wordOrbit {
+            0% { opacity: 0; transform: translate3d(var(--x, 0), var(--y, 0), 0) scale(0.48); filter: blur(7px); }
+            14% { opacity: 0.9; transform: translate3d(calc(var(--x, 0) * 0.9), calc(var(--y, 0) * 0.9), 0) scale(0.88); filter: blur(1.6px); }
+            55% { opacity: 0.92; transform: translate3d(calc(var(--x, 0) * 1), calc(var(--y, 0) * 1), 0) scale(1); filter: blur(0); }
+            86% { opacity: 0.82; transform: translate3d(calc(var(--x, 0) * 1.08), calc(var(--y, 0) * 1.08), 0) scale(1.06); filter: blur(0); }
+            100% { opacity: 0; transform: translate3d(calc(var(--x, 0) * 1.16), calc(var(--y, 0) * 1.16), 0) scale(1.12); filter: blur(1px); }
         }
         .gate-copy {
             position: relative;
