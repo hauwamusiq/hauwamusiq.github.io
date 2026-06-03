@@ -153,6 +153,15 @@
             perspective: 1600px;
             transform-style: preserve-3d;
         }
+        .stage-camera {
+            position: relative;
+            z-index: 0;
+            transform-style: preserve-3d;
+            transform-origin: 50% 16%;
+            transform: translate3d(var(--camera-x, 0vw), var(--camera-y, 0vh), 0) scale(var(--camera-scale, 1));
+            transition: transform 1160ms cubic-bezier(0.16, 1, 0.3, 1), opacity 760ms ease;
+            will-change: transform, opacity;
+        }
         .shell {
             opacity: 1;
             transform: none;
@@ -2057,6 +2066,11 @@
                 padding: max(12px, env(safe-area-inset-top)) 0 max(12px, env(safe-area-inset-bottom));
             }
             .shell { width: min(100% - 12px, 1280px); }
+            .stage-camera {
+                transform-origin: 50% 14%;
+                transform: translate3d(calc(var(--camera-x, 0vw) * 0.32), calc(var(--camera-y, 0vh) * 0.32), 0) scale(calc(var(--camera-scale, 1) * 0.986));
+                transition-duration: 920ms;
+            }
             .topbar { align-items: flex-start; flex-direction: column; }
             .nav {
                 justify-content: flex-start;
@@ -2332,6 +2346,7 @@
 
     <div class="living-bg" aria-hidden="true">
         <img class="stage-image" id="stage-image" src="assets/markup_1247-4k.png" alt="" decoding="async" fetchpriority="high">
+        <canvas id="world-canvas"></canvas>
         <div class="thread-field">
             <span style="--x:4%;--y:18%;--r:-10deg;--d:13s;"></span>
             <span style="--x:44%;--y:24%;--r:16deg;--d:16s;"></span>
@@ -2367,6 +2382,7 @@
         </header>
 
         <main>
+            <div class="stage-camera">
             <section class="hero section active" id="section-home">
                 <div class="home-intro-stack">
                     <div class="hero-grid">
@@ -2731,6 +2747,7 @@
                     <div class="submission-ledger" id="submission-ledger" aria-label="Recent submissions"></div>
                 </div>
             </section>
+            </div>
         </main>
 
         <footer>
@@ -5474,27 +5491,30 @@
 
         function setStageScene(name) {
             const sceneMap = {
-                home: { position: "50% 42%", scale: "1.08", brightness: "0.84" },
-                visuals: { position: "55% 39%", scale: "1.12", brightness: "0.82" },
-                writing: { position: "47% 40%", scale: "1.1", brightness: "0.8" },
-                music: { position: "43% 44%", scale: "1.12", brightness: "0.78" },
-                research: { position: "50% 50%", scale: "1.1", brightness: "0.8" },
-                archive: { position: "46% 46%", scale: "1.08", brightness: "0.81" },
-                gallery: { position: "50% 44%", scale: "1.12", brightness: "0.83" },
-                presentation: { position: "52% 41%", scale: "1.14", brightness: "0.83" },
-                exhibitions: { position: "50% 39%", scale: "1.13", brightness: "0.82" },
-                submissions: { position: "50% 48%", scale: "1.08", brightness: "0.79" },
-                management: { position: "49% 45%", scale: "1.08", brightness: "0.8" },
-                review: { position: "47% 47%", scale: "1.08", brightness: "0.8" },
-                versions: { position: "53% 46%", scale: "1.08", brightness: "0.8" },
-                collections: { position: "48% 44%", scale: "1.08", brightness: "0.81" },
-                find: { position: "50% 43%", scale: "1.08", brightness: "0.8" },
-                maintenance: { position: "51% 49%", scale: "1.08", brightness: "0.79" }
+                home: { position: "50% 42%", scale: "1.08", brightness: "0.84", cameraX: "0vw", cameraY: "0vh", cameraScale: "1" },
+                visuals: { position: "55% 39%", scale: "1.12", brightness: "0.82", cameraX: "-1.8vw", cameraY: "-0.8vh", cameraScale: "1.05" },
+                writing: { position: "47% 40%", scale: "1.1", brightness: "0.8", cameraX: "1.1vw", cameraY: "-0.5vh", cameraScale: "1.03" },
+                music: { position: "43% 44%", scale: "1.12", brightness: "0.78", cameraX: "-1vw", cameraY: "0.7vh", cameraScale: "1.04" },
+                research: { position: "50% 50%", scale: "1.1", brightness: "0.8", cameraX: "0.8vw", cameraY: "1vh", cameraScale: "1.02" },
+                archive: { position: "46% 46%", scale: "1.08", brightness: "0.81", cameraX: "-0.7vw", cameraY: "-0.4vh", cameraScale: "1.02" },
+                gallery: { position: "50% 44%", scale: "1.12", brightness: "0.83", cameraX: "0.6vw", cameraY: "-0.5vh", cameraScale: "1.05" },
+                presentation: { position: "52% 41%", scale: "1.14", brightness: "0.83", cameraX: "1.2vw", cameraY: "-1.2vh", cameraScale: "1.07" },
+                exhibitions: { position: "50% 39%", scale: "1.13", brightness: "0.82", cameraX: "-0.9vw", cameraY: "-1.4vh", cameraScale: "1.04" },
+                submissions: { position: "50% 48%", scale: "1.08", brightness: "0.79", cameraX: "0vw", cameraY: "0.8vh", cameraScale: "1.02" },
+                management: { position: "49% 45%", scale: "1.08", brightness: "0.8", cameraX: "-0.5vw", cameraY: "0.7vh", cameraScale: "1.01" },
+                review: { position: "47% 47%", scale: "1.08", brightness: "0.8", cameraX: "0.4vw", cameraY: "0.9vh", cameraScale: "1.01" },
+                versions: { position: "53% 46%", scale: "1.08", brightness: "0.8", cameraX: "0.9vw", cameraY: "0.6vh", cameraScale: "1.02" },
+                collections: { position: "48% 44%", scale: "1.08", brightness: "0.81", cameraX: "-0.6vw", cameraY: "0.4vh", cameraScale: "1.02" },
+                find: { position: "50% 43%", scale: "1.08", brightness: "0.8", cameraX: "0.2vw", cameraY: "-0.2vh", cameraScale: "1.01" },
+                maintenance: { position: "51% 49%", scale: "1.08", brightness: "0.79", cameraX: "0.5vw", cameraY: "0.9vh", cameraScale: "1.01" }
             };
             const config = sceneMap[name] || sceneMap.home;
             document.body.style.setProperty("--stage-position", config.position);
             document.body.style.setProperty("--stage-scale", config.scale);
             document.body.style.setProperty("--stage-brightness", config.brightness);
+            document.body.style.setProperty("--camera-x", config.cameraX);
+            document.body.style.setProperty("--camera-y", config.cameraY);
+            document.body.style.setProperty("--camera-scale", config.cameraScale);
         }
 
         function switchSection(name) {
