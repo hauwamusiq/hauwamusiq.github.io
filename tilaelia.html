@@ -1016,6 +1016,11 @@
             gap: 10px;
             box-shadow: 0 18px 50px rgba(0,0,0,0.12);
         }
+        .archive-entry.bulk-selected,
+        .management-card.bulk-selected {
+            border-color: rgba(246,204,114,0.42);
+            box-shadow: 0 0 0 1px rgba(246,204,114,0.16), 0 18px 50px rgba(246,204,114,0.08);
+        }
         .archive-entry.featured {
             border-color: rgba(246,204,114,0.34);
             background:
@@ -1111,6 +1116,19 @@
             color: var(--muted);
             font-size: 0.78rem;
             letter-spacing: 0.04em;
+        }
+        .bulk-toolbar {
+            margin-bottom: 14px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+        }
+        .bulk-toolbar .bulk-count {
+            color: var(--muted);
+            font-size: 0.76rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
         }
         .review-summary {
             margin-bottom: 14px;
@@ -1262,6 +1280,9 @@
             display: flex;
             flex-wrap: wrap;
             gap: 8px;
+        }
+        .management-card .management-actions .action.select {
+            border-style: dashed;
         }
         .management-card .action {
             min-height: 36px;
@@ -1665,6 +1686,7 @@
                             </select>
                         </div>
                     </div>
+                    <div class="bulk-toolbar" id="archive-bulk-toolbar" aria-label="Bulk archive actions"></div>
                     <div class="archive-shelf" id="archive-shelf" aria-label="Archive filters"></div>
                     <small id="archive-summary-note">Showing the full living archive.</small>
                 </div>
@@ -1677,6 +1699,7 @@
                     <p>A working surface for managing publication state, featured order, and local mirrors without leaving the page.</p>
                 </div>
                 <div class="management-summary">
+                    <div class="bulk-toolbar" id="management-bulk-toolbar" aria-label="Bulk management actions"></div>
                     <small id="management-summary-note">Showing the current management queue.</small>
                 </div>
                 <div class="management-board" id="management-board" aria-label="Curator ledger"></div>
@@ -1886,6 +1909,7 @@
             archiveSort: "recent",
             keeper: false,
             spotlight: [],
+            bulkSelection: [],
             revisions: loadOfferingRevisions(),
             collections: loadCollections(),
             selectedCollection: "",
@@ -1906,9 +1930,11 @@
         const archiveSort = $("archive-sort");
         const archiveShelf = $("archive-shelf");
         const archiveSummaryNote = $("archive-summary-note");
+        const archiveBulkToolbar = $("archive-bulk-toolbar");
         const archiveStream = $("archive-stream");
         const managementBoard = $("management-board");
         const managementSummaryNote = $("management-summary-note");
+        const managementBulkToolbar = $("management-bulk-toolbar");
         const reviewBoard = $("review-board");
         const reviewSummaryNote = $("review-summary-note");
         const versionsBoard = $("versions-board");
@@ -2154,6 +2180,77 @@
             saveSpotlightKeys();
             renderPortfolioOverview();
             renderArchiveStream();
+        }
+
+        function bulkKey(item) {
+            return offeringKey(item) || offeringSignature(item);
+        }
+
+        function isBulkSelected(item) {
+            const key = bulkKey(item);
+            return Boolean(key && state.bulkSelection.includes(key));
+        }
+
+        function toggleBulkSelection(item) {
+            const key = bulkKey(item);
+            if (!key) return;
+            if (state.bulkSelection.includes(key)) {
+                state.bulkSelection = state.bulkSelection.filter(entry => entry !== key);
+            } else {
+                state.bulkSelection = [key, ...state.bulkSelection].slice(0, 100);
+            }
+            renderAll();
+        }
+
+        function clearBulkSelection() {
+            state.bulkSelection = [];
+            renderAll();
+        }
+
+        function selectedBulkItems() {
+            if (!state.bulkSelection.length) return [];
+            const keys = new Set(state.bulkSelection);
+            return archiveItems().filter(item => keys.has(bulkKey(item)));
+        }
+
+        async function applyBulkVisibility(visibility) {
+            const nextVisibility = String(visibility || "").trim().toLowerCase();
+            if (!["draft", "review", "published", "archived"].includes(nextVisibility)) return;
+            const items = selectedBulkItems();
+            if (!items.length) return;
+            for (const item of items) {
+                // eslint-disable-next-line no-await-in-loop
+                await updateOfferingVisibility(item, nextVisibility);
+            }
+            state.bulkSelection = [];
+            renderAll();
+        }
+
+        function renderBulkToolbar(target, context) {
+            if (!target) return;
+            const items = selectedBulkItems();
+            target.innerHTML = "";
+            const count = document.createElement("span");
+            count.className = "bulk-count";
+            count.textContent = items.length
+                ? `${context} bulk: ${items.length} selected`
+                : `${context} bulk: nothing selected`;
+            target.appendChild(count);
+            if (!items.length) return;
+            ["draft", "review", "published", "archived"].forEach(visibility => {
+                const button = document.createElement("button");
+                button.className = "action";
+                button.type = "button";
+                button.textContent = visibility;
+                button.addEventListener("click", () => applyBulkVisibility(visibility));
+                target.appendChild(button);
+            });
+            const clear = document.createElement("button");
+            clear.className = "action ghost";
+            clear.type = "button";
+            clear.textContent = "Clear";
+            clear.addEventListener("click", clearBulkSelection);
+            target.appendChild(clear);
         }
 
         function cloneRevisionItem(item) {
@@ -2804,6 +2901,7 @@
 
         function renderArchiveStream() {
             if (!archiveStream) return;
+            renderBulkToolbar(archiveBulkToolbar, "Archive");
             try {
                 const items = archiveVisibleItems().slice(0, 18);
                 if (!items.length) {
@@ -2840,7 +2938,7 @@
                     group.appendChild(head);
                     entries.forEach(item => {
                         const entry = document.createElement("article");
-                        entry.className = "archive-entry";
+                        entry.className = `archive-entry${isBulkSelected(item) ? " bulk-selected" : ""}`;
                         if (key === order[0] && entries.indexOf(item) === 0) {
                             entry.classList.add("featured");
                         }
@@ -2872,6 +2970,12 @@
 
                         const actions = document.createElement("div");
                         actions.className = "archive-actions";
+                        const select = document.createElement("button");
+                        select.className = "action select";
+                        select.type = "button";
+                        select.textContent = isBulkSelected(item) ? "Selected" : "Select";
+                        select.addEventListener("click", () => toggleBulkSelection(item));
+                        actions.appendChild(select);
                         const feature = document.createElement("button");
                         feature.className = "action";
                         feature.type = "button";
@@ -2931,6 +3035,7 @@
 
         function renderManagementBoard() {
             if (!managementBoard) return;
+            renderBulkToolbar(managementBulkToolbar, "Management");
             const items = archiveVisibleItems().filter(item => item.source !== "seed");
             if (!items.length) {
                 managementBoard.innerHTML = `
@@ -2949,7 +3054,7 @@
             }
             items.forEach(item => {
                 const card = document.createElement("article");
-                card.className = "management-card";
+                card.className = `management-card${isBulkSelected(item) ? " bulk-selected" : ""}`;
                 const spotlight = isSpotlight(item) ? "Pinned" : "Not pinned";
                 card.innerHTML = `
                     <div class="management-head">
@@ -2970,6 +3075,12 @@
                 if (tags) card.appendChild(tags);
                 const actions = document.createElement("div");
                 actions.className = "management-actions";
+                const select = document.createElement("button");
+                select.className = "action select";
+                select.type = "button";
+                select.textContent = isBulkSelected(item) ? "Selected" : "Select";
+                select.addEventListener("click", () => toggleBulkSelection(item));
+                actions.appendChild(select);
                 ["draft", "review", "published", "archived"].forEach(visibility => {
                     const button = document.createElement("button");
                     button.className = "action";
@@ -3703,6 +3814,7 @@
             localStorage.removeItem("tilaelia-local-offerings");
             localStorage.removeItem("tilaelia-offering-revisions");
             state.local = [];
+            state.bulkSelection = [];
             state.revisions = [];
             renderAll();
         });
