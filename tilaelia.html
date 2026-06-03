@@ -939,6 +939,12 @@
             gap: 14px;
             margin-bottom: 18px;
         }
+        .archive-tools {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 240px;
+            gap: 12px;
+            align-items: end;
+        }
         .archive-shelf {
             display: flex;
             flex-wrap: wrap;
@@ -1217,6 +1223,10 @@
                 padding: 11px 12px;
                 border-radius: 8px;
             }
+            .archive-tools {
+                grid-template-columns: 1fr;
+                gap: 8px;
+            }
             .archive-entry .archive-actions {
                 gap: 6px;
             }
@@ -1455,6 +1465,20 @@
                     <p>A single river of offerings across all chambers, ordered by arrival so the portfolio can be read as a living chronology.</p>
                 </div>
                 <div class="archive-summary">
+                    <div class="archive-tools">
+                        <div class="field">
+                            <label for="archive-search">Search archive</label>
+                            <input id="archive-search" placeholder="Search titles, categories, notes, and bodies">
+                        </div>
+                        <div class="field">
+                            <label for="archive-sort">Sort order</label>
+                            <select id="archive-sort">
+                                <option value="recent">Most recent</option>
+                                <option value="oldest">Oldest first</option>
+                                <option value="featured">Spotlight first</option>
+                            </select>
+                        </div>
+                    </div>
                     <div class="archive-shelf" id="archive-shelf" aria-label="Archive filters"></div>
                     <small id="archive-summary-note">Showing the full living archive.</small>
                 </div>
@@ -1598,6 +1622,8 @@
             local: loadLocalOfferings(),
             filters: { music: "all", writing: "all", research: "all" },
             archiveFilter: "all",
+            archiveQuery: "",
+            archiveSort: "recent",
             keeper: false,
             spotlight: []
         };
@@ -1612,6 +1638,8 @@
         const heroStatPrivate = $("hero-stat-private");
         const heroStatLast = $("hero-stat-last");
         const heroLedger = $("hero-ledger");
+        const archiveSearch = $("archive-search");
+        const archiveSort = $("archive-sort");
         const archiveShelf = $("archive-shelf");
         const archiveSummaryNote = $("archive-summary-note");
         const archiveStream = $("archive-stream");
@@ -1958,7 +1986,32 @@
 
         function archiveVisibleItems() {
             const filter = state.archiveFilter || "all";
-            return archiveItems().filter(item => filter === "all" || item.section === filter);
+            const query = String(state.archiveQuery || "").trim().toLowerCase();
+            const scoped = archiveItems().filter(item => filter === "all" || item.section === filter);
+            const filtered = query
+                ? scoped.filter(item => [
+                    item.title,
+                    item.meta,
+                    item.category,
+                    item.body,
+                    item.section,
+                    curatorLabel(item)
+                ].some(value => String(value || "").toLowerCase().includes(query)))
+                : scoped;
+            const sorted = filtered.slice();
+            if (state.archiveSort === "oldest") {
+                sorted.sort((a, b) => archiveTimeValue(a) - archiveTimeValue(b));
+            } else if (state.archiveSort === "featured") {
+                sorted.sort((a, b) => {
+                    const aPinned = isSpotlight(a) ? 1 : 0;
+                    const bPinned = isSpotlight(b) ? 1 : 0;
+                    if (aPinned !== bPinned) return bPinned - aPinned;
+                    return archiveTimeValue(b) - archiveTimeValue(a);
+                });
+            } else {
+                sorted.sort((a, b) => archiveTimeValue(b) - archiveTimeValue(a));
+            }
+            return sorted;
         }
 
         function archiveGroupKey(item) {
@@ -1997,9 +2050,16 @@
             }));
             if (archiveSummaryNote) {
                 const active = archiveFilterLabel(state.archiveFilter || "all");
-                archiveSummaryNote.textContent = state.archiveFilter === "all"
-                    ? "Showing the full living archive."
-                    : `Showing only ${active.toLowerCase()} offerings.`;
+                const sortLabel = state.archiveSort === "oldest"
+                    ? "oldest first"
+                    : state.archiveSort === "featured"
+                        ? "spotlight first"
+                        : "most recent first";
+                archiveSummaryNote.textContent = [
+                    state.archiveFilter === "all" ? "Showing the full living archive." : `Showing only ${active.toLowerCase()} offerings.`,
+                    state.archiveQuery ? `Search: “${state.archiveQuery}”.` : "",
+                    `Sort: ${sortLabel}.`
+                ].filter(Boolean).join(" ");
             }
         }
 
@@ -2113,9 +2173,7 @@
         function renderArchiveStream() {
             if (!archiveStream) return;
             try {
-                const filter = state.archiveFilter || "all";
-                const source = filter === "all" ? archiveItems() : archiveItems().filter(item => item.section === filter);
-                const items = source.slice(0, 18);
+                const items = archiveVisibleItems().slice(0, 18);
                 if (!items.length) {
                     archiveStream.innerHTML = `
                         <div class="archive-empty">
@@ -2258,6 +2316,18 @@
             const button = event.target.closest("button[data-filter]");
             if (!button) return;
             state.archiveFilter = button.dataset.filter || "all";
+            renderArchiveShelf();
+            renderArchiveStream();
+        });
+
+        archiveSearch?.addEventListener("input", event => {
+            state.archiveQuery = String(event.target.value || "");
+            renderArchiveShelf();
+            renderArchiveStream();
+        });
+
+        archiveSort?.addEventListener("change", event => {
+            state.archiveSort = String(event.target.value || "recent");
             renderArchiveShelf();
             renderArchiveStream();
         });
@@ -2689,6 +2759,8 @@
         });
 
         state.spotlight = loadSpotlightKeys();
+        if (archiveSearch) archiveSearch.value = state.archiveQuery;
+        if (archiveSort) archiveSort.value = state.archiveSort;
         resizeTitleSparkCanvas();
         resizeWorldCanvas();
         requestAnimationFrame(animateTitleSparks);
