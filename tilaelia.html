@@ -1104,6 +1104,77 @@
             color: var(--muted);
             line-height: 1.65;
         }
+        .management-summary {
+            margin-bottom: 14px;
+        }
+        .management-summary small {
+            color: var(--muted);
+            font-size: 0.78rem;
+            letter-spacing: 0.04em;
+        }
+        .management-board {
+            display: grid;
+            gap: 12px;
+        }
+        .management-card {
+            border: 1px solid var(--line);
+            background: var(--panel);
+            backdrop-filter: blur(18px);
+            border-radius: 10px;
+            padding: 16px;
+            display: grid;
+            gap: 10px;
+            box-shadow: 0 18px 50px rgba(0,0,0,0.12);
+        }
+        .management-card .management-head {
+            display: flex;
+            align-items: start;
+            justify-content: space-between;
+            gap: 12px;
+        }
+        .management-card .management-head strong {
+            font-family: var(--serif);
+            font-size: 1.15rem;
+            line-height: 1.15;
+        }
+        .management-card .management-head small {
+            color: var(--muted);
+            font-size: 0.75rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+        .management-card .management-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            width: fit-content;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 999px;
+            padding: 5px 9px;
+            color: var(--muted);
+            font-size: 0.68rem;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+        }
+        .management-card .management-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px 12px;
+            color: #d9ced8;
+            font-size: 0.8rem;
+            letter-spacing: 0.04em;
+        }
+        .management-card .management-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .management-card .action {
+            min-height: 36px;
+            padding: 0 11px;
+            font-size: 0.68rem;
+        }
         .action {
             border: 1px solid rgba(246,204,114,0.42);
             background: rgba(246,204,114,0.09);
@@ -1355,6 +1426,7 @@
             <nav class="nav" aria-label="Portfolio sections">
                 <button class="active" data-section="home">Home</button>
                 <button data-section="archive">Archive</button>
+                <button data-section="management">Manage</button>
                 <button data-section="music">Music</button>
                 <button data-section="writing">Writing</button>
                 <button data-section="visuals">Visuals</button>
@@ -1483,6 +1555,17 @@
                     <small id="archive-summary-note">Showing the full living archive.</small>
                 </div>
                 <div class="archive-stream" id="archive-stream" aria-label="Curated archive"></div>
+            </section>
+
+            <section class="section" id="section-management">
+                <div class="section-head">
+                    <h2>Curator ledger</h2>
+                    <p>A working surface for managing publication state, featured order, and local mirrors without leaving the page.</p>
+                </div>
+                <div class="management-summary">
+                    <small id="management-summary-note">Showing the current management queue.</small>
+                </div>
+                <div class="management-board" id="management-board" aria-label="Curator ledger"></div>
             </section>
 
             <section class="section" id="section-submissions">
@@ -1643,6 +1726,8 @@
         const archiveShelf = $("archive-shelf");
         const archiveSummaryNote = $("archive-summary-note");
         const archiveStream = $("archive-stream");
+        const managementBoard = $("management-board");
+        const managementSummaryNote = $("management-summary-note");
         const submissionLedger = $("submission-ledger");
         const submitStatus = $("submit-status");
         const qaMode = new URLSearchParams(window.location.search).get("qa") === "1" || localStorage.getItem("tilaelia-qa-open") === "1";
@@ -1691,15 +1776,13 @@
         }
 
         function uniqueOfferings(items) {
-            const seen = new Set();
-            const next = [];
+            const map = new Map();
             for (const item of items) {
-                const key = offeringSignature(item);
-                if (seen.has(key)) continue;
-                seen.add(key);
-                next.push(item);
+                const key = offeringKey(item) || offeringSignature(item);
+                if (!key) continue;
+                map.set(key, item);
             }
-            return next;
+            return [...map.values()];
         }
 
         function offeringKey(item) {
@@ -1751,6 +1834,59 @@
             saveSpotlightKeys();
             renderPortfolioOverview();
             renderArchiveStream();
+        }
+
+        function setLocalMirror(item, updates = {}) {
+            const normalized = normalizeOffering({
+                ...item,
+                ...updates,
+                source: item?.source === "published" ? "local" : (item?.source || "local")
+            });
+            if (!normalized) return null;
+            const key = offeringKey(normalized);
+            const index = state.local.findIndex(entry => offeringKey(entry) === key);
+            if (index >= 0) {
+                state.local[index] = normalized;
+            } else if (normalized.source !== "seed") {
+                state.local.unshift(normalized);
+            }
+            saveLocalOfferings();
+            return normalized;
+        }
+
+        async function updateOfferingVisibility(item, visibility) {
+            const nextVisibility = String(visibility || "").trim().toLowerCase();
+            if (!["draft", "published", "archived"].includes(nextVisibility)) return;
+            const normalized = setLocalMirror(item, { visibility: nextVisibility });
+            if (!normalized) return;
+            if (nextVisibility === "published" && item?.source !== "published" && window.TilelliEdge) {
+                const ownerKey = localStorage.getItem(edgeOwnerKeyStorage) || "";
+                if (ownerKey && normalized.mediaUrl.length < 120000) {
+                    try {
+                        const response = await window.TilelliEdge.request("/v1/portfolio/entries", {
+                            method: "POST",
+                            headers: { "X-Tilelli-Owner-Key": ownerKey },
+                            body: JSON.stringify({
+                                section: normalized.section,
+                                category: normalized.category,
+                                title: normalized.title,
+                                meta: normalized.meta,
+                                body: normalized.body,
+                                mediaType: normalized.mediaType,
+                                mediaUrl: normalized.mediaUrl,
+                                visibility: "published"
+                            })
+                        });
+                        if (response?.id) {
+                            normalized.edgeId = response.id;
+                            setLocalMirror(normalized, { edgeId: response.id, visibility: "published" });
+                        }
+                    } catch {
+                        // Keep the local mirror even if publish fails.
+                    }
+                }
+            }
+            renderAll();
         }
 
         function normalizeOffering(item) {
@@ -2340,16 +2476,92 @@
             }
         }
 
+        function renderManagementBoard() {
+            if (!managementBoard) return;
+            const items = archiveVisibleItems().filter(item => item.source !== "seed");
+            if (!items.length) {
+                managementBoard.innerHTML = `
+                    <div class="archive-empty">
+                        No user-managed offerings yet. Add a submission or load a published item to begin managing state.
+                    </div>
+                `;
+                if (managementSummaryNote) {
+                    managementSummaryNote.textContent = "No user-managed offerings in the current queue.";
+                }
+                return;
+            }
+            managementBoard.innerHTML = "";
+            if (managementSummaryNote) {
+                managementSummaryNote.textContent = `Managing ${items.length} offering${items.length === 1 ? "" : "s"} in the current queue.`;
+            }
+            items.forEach(item => {
+                const card = document.createElement("article");
+                card.className = "management-card";
+                const spotlight = isSpotlight(item) ? "Pinned" : "Not pinned";
+                card.innerHTML = `
+                    <div class="management-head">
+                        <div>
+                            <strong>${escapeHtml(item.title || "Untitled offering")}</strong>
+                            <div class="management-pill">${escapeHtml(item.section || "portfolio")} · ${escapeHtml(item.category || "other")} · ${escapeHtml(curatorLabel(item))}</div>
+                        </div>
+                        <small>${escapeHtml(item.visibility || "draft")}</small>
+                    </div>
+                    <div class="management-meta">
+                        <span>${escapeHtml(formatSubmissionTime(item.createdAt))}</span>
+                        <span>${escapeHtml(spotlight)}</span>
+                        ${item.edgeId ? `<span>Edge #${escapeHtml(String(item.edgeId))}</span>` : ""}
+                    </div>
+                    <p>${escapeHtml(item.body || "No description stored.")}</p>
+                `;
+                const actions = document.createElement("div");
+                actions.className = "management-actions";
+                ["draft", "published", "archived"].forEach(visibility => {
+                    const button = document.createElement("button");
+                    button.className = "action";
+                    button.type = "button";
+                    button.textContent = visibility;
+                    button.disabled = item.visibility === visibility;
+                    button.addEventListener("click", () => updateOfferingVisibility(item, visibility));
+                    actions.appendChild(button);
+                });
+                const feature = document.createElement("button");
+                feature.className = "action ghost";
+                feature.type = "button";
+                feature.textContent = isSpotlight(item) ? "Unfeature" : "Feature";
+                feature.addEventListener("click", () => toggleSpotlight(item));
+                actions.appendChild(feature);
+                if (isSpotlight(item)) {
+                    const earlier = document.createElement("button");
+                    earlier.className = "action ghost";
+                    earlier.type = "button";
+                    earlier.textContent = "Earlier";
+                    earlier.disabled = spotlightRank(item) <= 0;
+                    earlier.addEventListener("click", () => moveSpotlight(item, -1));
+                    actions.appendChild(earlier);
+                    const later = document.createElement("button");
+                    later.className = "action ghost";
+                    later.type = "button";
+                    later.textContent = "Later";
+                    later.disabled = spotlightRank(item) >= state.spotlight.length - 1;
+                    later.addEventListener("click", () => moveSpotlight(item, 1));
+                    actions.appendChild(later);
+                }
+                card.appendChild(actions);
+                managementBoard.appendChild(card);
+            });
+        }
+
         function renderAll() {
             ["music", "writing", "visuals", "research"].forEach(renderSection);
             renderPortfolioOverview();
             renderArchiveShelf();
             renderSubmissionLedger();
             renderArchiveStream();
+            renderManagementBoard();
         }
 
         function switchSection(name) {
-            const next = ["home", "archive", "music", "writing", "visuals", "research", "submissions"].includes(name) ? name : "home";
+            const next = ["home", "archive", "management", "music", "writing", "visuals", "research", "submissions"].includes(name) ? name : "home";
             document.querySelectorAll(".section").forEach(section => section.classList.toggle("active", section.id === `section-${next}`));
             document.querySelectorAll(".nav button").forEach(button => button.classList.toggle("active", button.dataset.section === next));
             if (next === "archive") {
@@ -2357,6 +2569,8 @@
                 renderArchiveStream();
             } else if (next === "home") {
                 renderPortfolioOverview();
+            } else if (next === "management") {
+                renderManagementBoard();
             } else if (next === "submissions") {
                 renderSubmissionLedger();
             }
