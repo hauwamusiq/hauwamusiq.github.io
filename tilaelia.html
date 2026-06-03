@@ -1714,6 +1714,11 @@
             return Boolean(key && state.spotlight.includes(key));
         }
 
+        function spotlightRank(item) {
+            const key = offeringKey(item);
+            return key ? state.spotlight.indexOf(key) : -1;
+        }
+
         function spotlightItems(limit = 2) {
             const selected = archiveItems().filter(isSpotlight).slice(0, limit);
             if (selected.length) return selected;
@@ -1728,6 +1733,21 @@
             } else {
                 state.spotlight = [key, ...state.spotlight.filter(entry => entry !== key)].slice(0, 2);
             }
+            saveSpotlightKeys();
+            renderPortfolioOverview();
+            renderArchiveStream();
+        }
+
+        function moveSpotlight(item, direction) {
+            const key = offeringKey(item);
+            if (!key) return;
+            const currentIndex = state.spotlight.indexOf(key);
+            if (currentIndex < 0) return;
+            const nextIndex = currentIndex + direction;
+            if (nextIndex < 0 || nextIndex >= state.spotlight.length) return;
+            const next = state.spotlight.slice();
+            [next[currentIndex], next[nextIndex]] = [next[nextIndex], next[currentIndex]];
+            state.spotlight = next.slice(0, 2);
             saveSpotlightKeys();
             renderPortfolioOverview();
             renderArchiveStream();
@@ -2006,6 +2026,9 @@
                     const aPinned = isSpotlight(a) ? 1 : 0;
                     const bPinned = isSpotlight(b) ? 1 : 0;
                     if (aPinned !== bPinned) return bPinned - aPinned;
+                    const aRank = spotlightRank(a);
+                    const bRank = spotlightRank(b);
+                    if (aRank !== bRank) return aRank - bRank;
                     return archiveTimeValue(b) - archiveTimeValue(a);
                 });
             } else {
@@ -2132,6 +2155,29 @@
                             <span>${escapeHtml(item.section || "portfolio")} · ${escapeHtml(item.meta || item.category || "offering")}</span>
                             <span>${escapeHtml(item.visibility || "draft")} · ${item.createdAt ? escapeHtml(formatSubmissionTime(item.createdAt)) : "undated"}</span>
                         `;
+                        const controls = document.createElement("div");
+                        controls.className = "archive-actions";
+                        const remove = document.createElement("button");
+                        remove.className = "action";
+                        remove.type = "button";
+                        remove.textContent = "Unfeature";
+                        remove.addEventListener("click", () => toggleSpotlight(item));
+                        controls.appendChild(remove);
+                        const earlier = document.createElement("button");
+                        earlier.className = "action ghost";
+                        earlier.type = "button";
+                        earlier.textContent = "Earlier";
+                        earlier.disabled = index <= 0;
+                        earlier.addEventListener("click", () => moveSpotlight(item, -1));
+                        controls.appendChild(earlier);
+                        const later = document.createElement("button");
+                        later.className = "action ghost";
+                        later.type = "button";
+                        later.textContent = "Later";
+                        later.disabled = index >= featured.length - 1;
+                        later.addEventListener("click", () => moveSpotlight(item, 1));
+                        controls.appendChild(later);
+                        article.appendChild(controls);
                         return article;
                     }));
                 }
@@ -2246,6 +2292,22 @@
                         feature.textContent = isSpotlight(item) ? "Unfeature" : "Feature";
                         feature.addEventListener("click", () => toggleSpotlight(item));
                         actions.appendChild(feature);
+                        if (isSpotlight(item)) {
+                            const earlier = document.createElement("button");
+                            earlier.className = "action ghost";
+                            earlier.type = "button";
+                            earlier.textContent = "Move earlier";
+                            earlier.disabled = spotlightRank(item) <= 0;
+                            earlier.addEventListener("click", () => moveSpotlight(item, -1));
+                            actions.appendChild(earlier);
+                            const later = document.createElement("button");
+                            later.className = "action ghost";
+                            later.type = "button";
+                            later.textContent = "Move later";
+                            later.disabled = spotlightRank(item) >= state.spotlight.length - 1;
+                            later.addEventListener("click", () => moveSpotlight(item, 1));
+                            actions.appendChild(later);
+                        }
                         if (item.visibility === "draft" || item.visibility === "published" || item.visibility === "archived") {
                             const stateChip = document.createElement("button");
                             stateChip.className = "action ghost";
