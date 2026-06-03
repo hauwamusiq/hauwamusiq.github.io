@@ -1132,6 +1132,62 @@
             display: grid;
             gap: 12px;
         }
+        .collection-tools {
+            margin-bottom: 14px;
+            display: grid;
+            gap: 12px;
+        }
+        .collection-tools .owner-grid {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+        .collection-shelf {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+        .collection-card {
+            border: 1px solid var(--line);
+            background: var(--panel);
+            backdrop-filter: blur(18px);
+            border-radius: 10px;
+            padding: 16px;
+            display: grid;
+            gap: 10px;
+            box-shadow: 0 18px 50px rgba(0,0,0,0.12);
+        }
+        .collection-card.active {
+            border-color: rgba(246,204,114,0.42);
+            box-shadow: 0 20px 60px rgba(246,204,114,0.12);
+        }
+        .collection-card .collection-head {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            align-items: start;
+        }
+        .collection-card .collection-head strong {
+            font-family: var(--serif);
+            font-size: 1.12rem;
+            line-height: 1.15;
+        }
+        .collection-card .collection-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px 12px;
+            color: #d9ced8;
+            font-size: 0.8rem;
+            letter-spacing: 0.04em;
+        }
+        .collection-card .collection-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .collection-board {
+            display: grid;
+            gap: 12px;
+        }
         .management-card {
             border: 1px solid var(--line);
             background: var(--panel);
@@ -1190,6 +1246,14 @@
             min-height: 36px;
             padding: 0 11px;
             font-size: 0.68rem;
+        }
+        .collection-empty {
+            border: 1px dashed var(--line);
+            background: rgba(255,255,255,0.03);
+            padding: 18px;
+            border-radius: 8px;
+            color: var(--muted);
+            line-height: 1.65;
         }
         .action {
             border: 1px solid rgba(246,204,114,0.42);
@@ -1286,6 +1350,9 @@
             .archive-group {
                 padding: 14px;
             }
+            .collection-shelf {
+                grid-template-columns: 1fr;
+            }
             .owner-panel .locked-copy strong {
                 font-size: 1.18rem;
             }
@@ -1313,6 +1380,9 @@
             .archive-tools {
                 grid-template-columns: 1fr;
                 gap: 8px;
+            }
+            .collection-tools .owner-grid {
+                grid-template-columns: 1fr;
             }
             .archive-entry .archive-actions {
                 gap: 6px;
@@ -1445,6 +1515,7 @@
                 <button data-section="management">Manage</button>
                 <button data-section="review">Review</button>
                 <button data-section="versions">Versions</button>
+                <button data-section="collections">Collections</button>
                 <button data-section="music">Music</button>
                 <button data-section="writing">Writing</button>
                 <button data-section="visuals">Visuals</button>
@@ -1608,6 +1679,31 @@
                 <div class="management-board versions-board" id="versions-board" aria-label="Version history"></div>
             </section>
 
+            <section class="section" id="section-collections">
+                <div class="section-head">
+                    <h2>Collection wall</h2>
+                    <p>Capture the current archive view as a named collection, then revisit or refresh it as the portfolio evolves.</p>
+                </div>
+                <div class="collection-tools">
+                    <div class="owner-grid">
+                        <div class="field">
+                            <label for="collection-title">Collection title</label>
+                            <input id="collection-title" placeholder="Year One, Winter Offerings, Physics Notes">
+                        </div>
+                        <div class="field">
+                            <label for="collection-note">Curator note</label>
+                            <input id="collection-note" placeholder="Why this group belongs together">
+                        </div>
+                        <div class="field">
+                            <label>&nbsp;</label>
+                            <button class="action" type="button" id="capture-collection-btn">Capture Current Archive View</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="collection-shelf" id="collection-shelf" aria-label="Saved collections"></div>
+                <div class="collection-board" id="collection-board" aria-label="Collection details"></div>
+            </section>
+
             <section class="section" id="section-submissions">
                 <div class="section-head">
                     <h2>Keeper console</h2>
@@ -1750,7 +1846,9 @@
             archiveSort: "recent",
             keeper: false,
             spotlight: [],
-            revisions: loadOfferingRevisions()
+            revisions: loadOfferingRevisions(),
+            collections: loadCollections(),
+            selectedCollection: ""
         };
 
         const $ = id => document.getElementById(id);
@@ -1774,8 +1872,13 @@
         const reviewSummaryNote = $("review-summary-note");
         const versionsBoard = $("versions-board");
         const versionsSummaryNote = $("versions-summary-note");
+        const collectionShelf = $("collection-shelf");
+        const collectionBoard = $("collection-board");
         const submissionLedger = $("submission-ledger");
         const submitStatus = $("submit-status");
+        const collectionTitle = $("collection-title");
+        const collectionNote = $("collection-note");
+        const captureCollectionBtn = $("capture-collection-btn");
         const qaMode = new URLSearchParams(window.location.search).get("qa") === "1" || localStorage.getItem("tilaelia-qa-open") === "1";
 
         function loadLocalOfferings() {
@@ -1808,6 +1911,16 @@
             }
         }
 
+        function loadCollections() {
+            try {
+                const parsed = JSON.parse(localStorage.getItem("tilaelia-collections") || "[]");
+                return Array.isArray(parsed) ? parsed.filter(Boolean) : [];
+            } catch {
+                localStorage.removeItem("tilaelia-collections");
+                return [];
+            }
+        }
+
         function saveSpotlightKeys() {
             try {
                 localStorage.setItem("tilaelia-spotlight-keys", JSON.stringify(state.spotlight.slice(0, 2)));
@@ -1820,6 +1933,15 @@
         function saveOfferingRevisions() {
             try {
                 localStorage.setItem("tilaelia-offering-revisions", JSON.stringify(state.revisions.slice(0, 200)));
+                return true;
+            } catch {
+                return false;
+            }
+        }
+
+        function saveCollections() {
+            try {
+                localStorage.setItem("tilaelia-collections", JSON.stringify(state.collections.slice(0, 50)));
                 return true;
             } catch {
                 return false;
@@ -1861,6 +1983,11 @@
             if (!item) return "";
             if (item.edgeId) return `edge:${item.edgeId}`;
             return offeringKey(item);
+        }
+
+        function collectionKey(collection) {
+            if (!collection) return "";
+            return String(collection.id || collection.createdAt || collection.title || "").trim();
         }
 
         function isSpotlight(item) {
@@ -1923,6 +2050,60 @@
                 source: item.source || "local",
                 visibility: item.visibility || "draft"
             };
+        }
+
+        function normalizeCollection(collection) {
+            if (!collection) return null;
+            const title = String(collection.title || "").trim();
+            if (!title) return null;
+            const createdAt = collection.createdAt || new Date().toISOString();
+            const memberKeys = Array.isArray(collection.memberKeys) ? collection.memberKeys.filter(Boolean).map(String) : [];
+            const memberCount = Number.isFinite(Number(collection.memberCount)) ? Number(collection.memberCount) : memberKeys.length;
+            return {
+                id: String(collection.id || `${title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${createdAt}`).trim(),
+                title,
+                note: String(collection.note || "").trim(),
+                createdAt,
+                updatedAt: collection.updatedAt || createdAt,
+                memberKeys,
+                memberCount,
+                source: String(collection.source || "local").trim().toLowerCase() || "local"
+            };
+        }
+
+        function collectionItems(collection) {
+            const keys = new Set((collection?.memberKeys || []).map(String));
+            return archiveItems().filter(item => keys.has(offeringKey(item)));
+        }
+
+        function createCollectionFromView(title, note, existing = null) {
+            const visible = archiveVisibleItems();
+            if (!visible.length) return null;
+            const now = new Date().toISOString();
+            const createdAt = existing?.createdAt || now;
+            const base = normalizeCollection({
+                title,
+                note,
+                createdAt,
+                updatedAt: now,
+                memberKeys: visible.map(item => offeringKey(item)).filter(Boolean),
+                memberCount: visible.length
+            });
+            if (!base) return null;
+            const index = state.collections.findIndex(entry => collectionKey(entry) === collectionKey(base));
+            if (index >= 0) {
+                state.collections[index] = base;
+            } else {
+                state.collections.unshift(base);
+            }
+            state.selectedCollection = collectionKey(base);
+            saveCollections();
+            return base;
+        }
+
+        function selectCollection(collection) {
+            state.selectedCollection = collectionKey(collection);
+            renderCollections();
         }
 
         function recordRevision(item, action, before = null, after = null) {
@@ -2800,6 +2981,147 @@
             });
         }
 
+        function renderCollections() {
+            if (!collectionShelf || !collectionBoard) return;
+            const collections = state.collections.map(normalizeCollection).filter(Boolean);
+            if (!collections.length) {
+                collectionShelf.innerHTML = `
+                    <div class="collection-empty">
+                        No collections have been saved yet. Capture the current archive view to begin a collection wall.
+                    </div>
+                `;
+                collectionBoard.innerHTML = `
+                    <div class="collection-empty">
+                        Saved collections will appear here as editable exhibition groups.
+                    </div>
+                `;
+                return;
+            }
+            if (!state.selectedCollection || !collections.some(entry => collectionKey(entry) === state.selectedCollection)) {
+                state.selectedCollection = collectionKey(collections[0]);
+            }
+            collectionShelf.innerHTML = "";
+            collections.forEach(collection => {
+                const card = document.createElement("article");
+                card.className = `collection-card${collectionKey(collection) === state.selectedCollection ? " active" : ""}`;
+                const active = collectionKey(collection) === state.selectedCollection;
+                const members = collectionItems(collection);
+                card.innerHTML = `
+                    <div class="collection-head">
+                        <div>
+                            <strong>${escapeHtml(collection.title)}</strong>
+                            <div class="management-pill">${escapeHtml(formatSubmissionTime(collection.updatedAt || collection.createdAt))}</div>
+                        </div>
+                        <small>${String(members.length).padStart(2, "0")} items</small>
+                    </div>
+                    <p>${escapeHtml(collection.note || "No curator note stored.")}</p>
+                    <div class="collection-meta">
+                        <span>${escapeHtml(collection.source || "local")}</span>
+                        <span>${escapeHtml(collection.memberCount || members.length)} captured</span>
+                    </div>
+                `;
+                const actions = document.createElement("div");
+                actions.className = "collection-actions";
+                const open = document.createElement("button");
+                open.className = "action";
+                open.type = "button";
+                open.textContent = active ? "Showing" : "Show";
+                open.disabled = active;
+                open.addEventListener("click", () => selectCollection(collection));
+                actions.appendChild(open);
+                const refresh = document.createElement("button");
+                refresh.className = "action ghost";
+                refresh.type = "button";
+                refresh.textContent = "Refresh";
+                refresh.addEventListener("click", () => {
+                    const next = createCollectionFromView(collection.title, collection.note, collection);
+                    if (!next) return;
+                    const index = state.collections.findIndex(entry => collectionKey(entry) === collectionKey(collection));
+                    if (index >= 0) {
+                        state.collections[index] = next;
+                        state.selectedCollection = collectionKey(next);
+                        saveCollections();
+                        renderCollections();
+                    }
+                });
+                actions.appendChild(refresh);
+                card.appendChild(actions);
+                collectionShelf.appendChild(card);
+            });
+
+            const selected = collections.find(entry => collectionKey(entry) === state.selectedCollection) || collections[0];
+            const members = collectionItems(selected);
+            collectionBoard.innerHTML = "";
+            const detail = document.createElement("article");
+            detail.className = "management-card";
+            detail.innerHTML = `
+                <div class="management-head">
+                    <div>
+                        <strong>${escapeHtml(selected.title)}</strong>
+                        <div class="management-pill">${escapeHtml(selected.note || "Curated collection")}</div>
+                    </div>
+                    <small>${String(members.length).padStart(2, "0")} captured</small>
+                </div>
+                <div class="management-meta">
+                    <span>Updated ${escapeHtml(formatSubmissionTime(selected.updatedAt || selected.createdAt))}</span>
+                    <span>${escapeHtml(selected.source || "local")}</span>
+                </div>
+                <p>${escapeHtml(selected.note || "No curator note stored.")}</p>
+            `;
+            const actions = document.createElement("div");
+            actions.className = "management-actions";
+            const recapture = document.createElement("button");
+            recapture.className = "action";
+            recapture.type = "button";
+            recapture.textContent = "Recapture Current View";
+            recapture.addEventListener("click", () => {
+                const next = createCollectionFromView(selected.title, selected.note, selected);
+                if (next) renderCollections();
+            });
+            actions.appendChild(recapture);
+            detail.appendChild(actions);
+            collectionBoard.appendChild(detail);
+
+            if (!members.length) {
+                const empty = document.createElement("div");
+                empty.className = "collection-empty";
+                empty.textContent = "This collection has no members.";
+                collectionBoard.appendChild(empty);
+                return;
+            }
+            const memberGrid = document.createElement("div");
+            memberGrid.className = "management-board";
+            members.forEach(item => {
+                const article = document.createElement("article");
+                article.className = "management-card";
+                article.innerHTML = `
+                    <div class="management-head">
+                        <div>
+                            <strong>${escapeHtml(item.title || "Untitled offering")}</strong>
+                            <div class="management-pill">${escapeHtml(item.section || "portfolio")} · ${escapeHtml(item.category || "other")} · ${escapeHtml(curatorLabel(item))}</div>
+                        </div>
+                        <small>${escapeHtml(item.visibility || "draft")}</small>
+                    </div>
+                    <div class="management-meta">
+                        <span>${escapeHtml(formatSubmissionTime(item.createdAt))}</span>
+                        ${item.edgeId ? `<span>Edge #${escapeHtml(String(item.edgeId))}</span>` : ""}
+                    </div>
+                    <p>${escapeHtml(item.body || "No description stored.")}</p>
+                `;
+                const actions = document.createElement("div");
+                actions.className = "management-actions";
+                const open = document.createElement("button");
+                open.className = "action ghost";
+                open.type = "button";
+                open.textContent = "Open in Archive";
+                open.addEventListener("click", () => switchSection("archive"));
+                actions.appendChild(open);
+                article.appendChild(actions);
+                memberGrid.appendChild(article);
+            });
+            collectionBoard.appendChild(memberGrid);
+        }
+
         function renderAll() {
             ["music", "writing", "visuals", "research"].forEach(renderSection);
             renderPortfolioOverview();
@@ -2809,10 +3131,11 @@
             renderManagementBoard();
             renderReviewQueue();
             renderVersionsBoard();
+            renderCollections();
         }
 
         function switchSection(name) {
-            const next = ["home", "archive", "management", "review", "versions", "music", "writing", "visuals", "research", "submissions"].includes(name) ? name : "home";
+            const next = ["home", "archive", "management", "review", "versions", "collections", "music", "writing", "visuals", "research", "submissions"].includes(name) ? name : "home";
             document.querySelectorAll(".section").forEach(section => section.classList.toggle("active", section.id === `section-${next}`));
             document.querySelectorAll(".nav button").forEach(button => button.classList.toggle("active", button.dataset.section === next));
             if (next === "archive") {
@@ -2826,6 +3149,8 @@
                 renderReviewQueue();
             } else if (next === "versions") {
                 renderVersionsBoard();
+            } else if (next === "collections") {
+                renderCollections();
             } else if (next === "submissions") {
                 renderSubmissionLedger();
             }
@@ -3159,6 +3484,19 @@
             a.click();
             a.remove();
             URL.revokeObjectURL(url);
+        });
+
+        captureCollectionBtn?.addEventListener("click", () => {
+            const title = String(collectionTitle?.value || "").trim();
+            const note = String(collectionNote?.value || "").trim();
+            const collection = createCollectionFromView(title, note);
+            if (!collection) {
+                announceSubmission("Capture a visible archive view first, then name the collection.");
+                return;
+            }
+            renderCollections();
+            switchSection("collections");
+            announceSubmission(`Captured collection “${collection.title}” with ${collection.memberCount} items.`);
         });
 
         $("import-local-btn").addEventListener("click", () => $("import-local-file").click());
