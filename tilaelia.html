@@ -361,11 +361,11 @@
             user-select: none;
             opacity: 0;
             transform: scale(var(--stage-scale, 1.06));
-            filter: brightness(var(--stage-brightness, 0.82)) saturate(1.08) contrast(1.04);
+            filter: brightness(var(--stage-brightness, 1.02)) saturate(1.14) contrast(1.06);
             transition: opacity 900ms ease, transform 1200ms ease, filter 1200ms ease, object-position 1200ms ease;
         }
         body.unlocked .stage-image {
-            opacity: 1;
+            opacity: 0.96;
         }
         .living-bg video {
             position: absolute;
@@ -381,17 +381,17 @@
             position: absolute;
             inset: 0;
             background:
-                radial-gradient(circle at 50% 38%, rgba(255, 198, 121, 0.14), transparent 34%),
-                linear-gradient(180deg, rgba(0,0,0,0.16), rgba(0,0,0,0.6));
-            opacity: 0.72;
+                radial-gradient(circle at 50% 38%, rgba(255, 198, 121, 0.08), transparent 34%),
+                linear-gradient(180deg, rgba(0,0,0,0.08), rgba(0,0,0,0.3));
+            opacity: 0.34;
             pointer-events: none;
         }
         .living-bg::after {
             content: "";
             position: absolute;
             inset: 0;
-            background: linear-gradient(90deg, rgba(0,0,0,0.56), transparent 22%, transparent 78%, rgba(0,0,0,0.56));
-            opacity: 0.82;
+            background: linear-gradient(90deg, rgba(0,0,0,0.34), transparent 22%, transparent 78%, rgba(0,0,0,0.34));
+            opacity: 0.42;
             pointer-events: none;
         }
         .sanctum-aura {
@@ -5491,22 +5491,22 @@
 
         function setStageScene(name) {
             const sceneMap = {
-                home: { position: "50% 42%", scale: "1.08", brightness: "0.84", cameraX: "0vw", cameraY: "0vh", cameraScale: "1" },
-                visuals: { position: "55% 39%", scale: "1.12", brightness: "0.82", cameraX: "-1.8vw", cameraY: "-0.8vh", cameraScale: "1.05" },
-                writing: { position: "47% 40%", scale: "1.1", brightness: "0.8", cameraX: "1.1vw", cameraY: "-0.5vh", cameraScale: "1.03" },
-                music: { position: "43% 44%", scale: "1.12", brightness: "0.78", cameraX: "-1vw", cameraY: "0.7vh", cameraScale: "1.04" },
-                research: { position: "50% 50%", scale: "1.1", brightness: "0.8", cameraX: "0.8vw", cameraY: "1vh", cameraScale: "1.02" },
-                archive: { position: "46% 46%", scale: "1.08", brightness: "0.81", cameraX: "-0.7vw", cameraY: "-0.4vh", cameraScale: "1.02" },
-                gallery: { position: "50% 44%", scale: "1.12", brightness: "0.83", cameraX: "0.6vw", cameraY: "-0.5vh", cameraScale: "1.05" },
-                presentation: { position: "52% 41%", scale: "1.14", brightness: "0.83", cameraX: "1.2vw", cameraY: "-1.2vh", cameraScale: "1.07" },
-                exhibitions: { position: "50% 39%", scale: "1.13", brightness: "0.82", cameraX: "-0.9vw", cameraY: "-1.4vh", cameraScale: "1.04" },
-                submissions: { position: "50% 48%", scale: "1.08", brightness: "0.79", cameraX: "0vw", cameraY: "0.8vh", cameraScale: "1.02" },
-                management: { position: "49% 45%", scale: "1.08", brightness: "0.8", cameraX: "-0.5vw", cameraY: "0.7vh", cameraScale: "1.01" },
-                review: { position: "47% 47%", scale: "1.08", brightness: "0.8", cameraX: "0.4vw", cameraY: "0.9vh", cameraScale: "1.01" },
-                versions: { position: "53% 46%", scale: "1.08", brightness: "0.8", cameraX: "0.9vw", cameraY: "0.6vh", cameraScale: "1.02" },
-                collections: { position: "48% 44%", scale: "1.08", brightness: "0.81", cameraX: "-0.6vw", cameraY: "0.4vh", cameraScale: "1.02" },
-                find: { position: "50% 43%", scale: "1.08", brightness: "0.8", cameraX: "0.2vw", cameraY: "-0.2vh", cameraScale: "1.01" },
-                maintenance: { position: "51% 49%", scale: "1.08", brightness: "0.79", cameraX: "0.5vw", cameraY: "0.9vh", cameraScale: "1.01" }
+                home: { position: "50% 42%", scale: "1.03", brightness: "1.12", cameraX: "0vw", cameraY: "0vh", cameraScale: "1" },
+                visuals: { position: "30% 46%", scale: "1.2", brightness: "1.08", cameraX: "-6vw", cameraY: "-1.2vh", cameraScale: "1.12" },
+                writing: { position: "50% 34%", scale: "1.14", brightness: "1.04", cameraX: "0vw", cameraY: "-2.2vh", cameraScale: "1.06" },
+                music: { position: "73% 52%", scale: "1.2", brightness: "1.04", cameraX: "6.5vw", cameraY: "0.8vh", cameraScale: "1.12" },
+                research: { position: "52% 66%", scale: "1.16", brightness: "1.04", cameraX: "0.8vw", cameraY: "3.2vh", cameraScale: "1.06" },
+                archive: { position: "50% 50%", scale: "1.08", brightness: "1.05", cameraX: "0vw", cameraY: "0vh", cameraScale: "1.02" },
+                gallery: { position: "41% 42%", scale: "1.18", brightness: "1.08", cameraX: "-3.8vw", cameraY: "-0.8vh", cameraScale: "1.08" },
+                presentation: { position: "59% 40%", scale: "1.18", brightness: "1.08", cameraX: "3.8vw", cameraY: "-1.8vh", cameraScale: "1.08" },
+                exhibitions: { position: "50% 30%", scale: "1.16", brightness: "1.06", cameraX: "0vw", cameraY: "-3.5vh", cameraScale: "1.06" },
+                submissions: { position: "50% 58%", scale: "1.12", brightness: "1.0", cameraX: "0vw", cameraY: "2.4vh", cameraScale: "1.04" },
+                management: { position: "63% 45%", scale: "1.1", brightness: "1.02", cameraX: "4vw", cameraY: "-0.2vh", cameraScale: "1.02" },
+                review: { position: "37% 46%", scale: "1.1", brightness: "1.02", cameraX: "-4vw", cameraY: "0vh", cameraScale: "1.02" },
+                versions: { position: "54% 54%", scale: "1.1", brightness: "1.02", cameraX: "1vw", cameraY: "1vh", cameraScale: "1.03" },
+                collections: { position: "48% 39%", scale: "1.12", brightness: "1.04", cameraX: "-1vw", cameraY: "-1.8vh", cameraScale: "1.03" },
+                find: { position: "50% 47%", scale: "1.08", brightness: "1.02", cameraX: "0vw", cameraY: "-0.4vh", cameraScale: "1.01" },
+                maintenance: { position: "50% 62%", scale: "1.08", brightness: "1.0", cameraX: "0vw", cameraY: "3vh", cameraScale: "1.01" }
             };
             const config = sceneMap[name] || sceneMap.home;
             document.body.style.setProperty("--stage-position", config.position);
