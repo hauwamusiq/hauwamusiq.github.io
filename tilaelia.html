@@ -1188,6 +1188,10 @@
             display: grid;
             gap: 12px;
         }
+        .maintenance-board {
+            display: grid;
+            gap: 12px;
+        }
         .management-card {
             border: 1px solid var(--line);
             background: var(--panel);
@@ -1384,6 +1388,9 @@
             .collection-tools .owner-grid {
                 grid-template-columns: 1fr;
             }
+            .maintenance-board {
+                gap: 10px;
+            }
             .archive-entry .archive-actions {
                 gap: 6px;
             }
@@ -1516,6 +1523,7 @@
                 <button data-section="review">Review</button>
                 <button data-section="versions">Versions</button>
                 <button data-section="collections">Collections</button>
+                <button data-section="maintenance">Maintenance</button>
                 <button data-section="music">Music</button>
                 <button data-section="writing">Writing</button>
                 <button data-section="visuals">Visuals</button>
@@ -1704,6 +1712,17 @@
                 <div class="collection-board" id="collection-board" aria-label="Collection details"></div>
             </section>
 
+            <section class="section" id="section-maintenance">
+                <div class="section-head">
+                    <h2>Maintenance vault</h2>
+                    <p>Backup the full local portfolio state, restore it later, or rebuild local indexes when the archive needs tidying.</p>
+                </div>
+                <div class="management-summary">
+                    <small id="maintenance-summary-note">Showing maintenance actions for the current local vault.</small>
+                </div>
+                <div class="management-board" id="maintenance-board" aria-label="Maintenance actions"></div>
+            </section>
+
             <section class="section" id="section-submissions">
                 <div class="section-head">
                     <h2>Keeper console</h2>
@@ -1848,7 +1867,8 @@
             spotlight: [],
             revisions: loadOfferingRevisions(),
             collections: loadCollections(),
-            selectedCollection: ""
+            selectedCollection: "",
+            maintenanceImportMode: "local"
         };
 
         const $ = id => document.getElementById(id);
@@ -1874,11 +1894,14 @@
         const versionsSummaryNote = $("versions-summary-note");
         const collectionShelf = $("collection-shelf");
         const collectionBoard = $("collection-board");
+        const maintenanceBoard = $("maintenance-board");
+        const maintenanceSummaryNote = $("maintenance-summary-note");
         const submissionLedger = $("submission-ledger");
         const submitStatus = $("submit-status");
         const collectionTitle = $("collection-title");
         const collectionNote = $("collection-note");
         const captureCollectionBtn = $("capture-collection-btn");
+        const importLocalFile = $("import-local-file");
         const qaMode = new URLSearchParams(window.location.search).get("qa") === "1" || localStorage.getItem("tilaelia-qa-open") === "1";
 
         function loadLocalOfferings() {
@@ -1921,6 +1944,17 @@
             }
         }
 
+        function normalizeRevision(entry) {
+            if (!entry) return null;
+            return {
+                key: String(entry.key || "").trim(),
+                action: String(entry.action || "updated").trim() || "updated",
+                at: String(entry.at || new Date().toISOString()).trim(),
+                before: entry.before ? cloneRevisionItem(entry.before) : null,
+                after: entry.after ? cloneRevisionItem(entry.after) : null
+            };
+        }
+
         function saveSpotlightKeys() {
             try {
                 localStorage.setItem("tilaelia-spotlight-keys", JSON.stringify(state.spotlight.slice(0, 2)));
@@ -1946,6 +1980,60 @@
             } catch {
                 return false;
             }
+        }
+
+        function saveMaintenanceState() {
+            state.local = uniqueOfferings(state.local.map(normalizeOffering).filter(Boolean));
+            state.published = uniqueOfferings(state.published.map(normalizeOffering).filter(Boolean));
+            state.collections = state.collections.map(normalizeCollection).filter(Boolean);
+            state.revisions = state.revisions.map(normalizeRevision).filter(Boolean);
+            saveLocalOfferings();
+            saveCollections();
+            saveOfferingRevisions();
+            renderAll();
+        }
+
+        function maintenanceBundle() {
+            return {
+                exportedAt: new Date().toISOString(),
+                portal: "tilaelia",
+                local: state.local,
+                published: state.published,
+                revisions: state.revisions,
+                collections: state.collections,
+                spotlight: state.spotlight
+            };
+        }
+
+        function downloadJsonBundle(name, payload) {
+            const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = name;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+        }
+
+        async function importMaintenanceBundle(file) {
+            const parsed = JSON.parse(await file.text());
+            const local = Array.isArray(parsed.local) ? parsed.local : Array.isArray(parsed.offerings) ? parsed.offerings : [];
+            const published = Array.isArray(parsed.published) ? parsed.published : [];
+            const revisions = Array.isArray(parsed.revisions) ? parsed.revisions : [];
+            const collections = Array.isArray(parsed.collections) ? parsed.collections : [];
+            const spotlight = Array.isArray(parsed.spotlight) ? parsed.spotlight.filter(Boolean).map(String).slice(0, 2) : [];
+            state.local = uniqueOfferings(state.local.concat(local.map(normalizeOffering).filter(Boolean)));
+            state.published = uniqueOfferings(state.published.concat(published.map(normalizeOffering).filter(Boolean)));
+            state.revisions = revisions.map(normalizeRevision).filter(Boolean).concat(state.revisions).slice(0, 200);
+            state.collections = collections.map(normalizeCollection).filter(Boolean).concat(state.collections).slice(0, 50);
+            if (spotlight.length) state.spotlight = spotlight;
+            saveLocalOfferings();
+            saveCollections();
+            saveOfferingRevisions();
+            saveSpotlightKeys();
+            renderAll();
         }
 
         function offeringSignature(item) {
@@ -3122,6 +3210,74 @@
             collectionBoard.appendChild(memberGrid);
         }
 
+        function renderMaintenanceBoard() {
+            if (!maintenanceBoard) return;
+            const localCount = state.local.length;
+            const publishedCount = state.published.length;
+            const revisionCount = state.revisions.length;
+            const collectionCount = state.collections.length;
+            if (maintenanceSummaryNote) {
+                maintenanceSummaryNote.textContent = [
+                    `${String(localCount).padStart(2, "0")} local offerings.`,
+                    `${String(publishedCount).padStart(2, "0")} published offerings.`,
+                    `${String(revisionCount).padStart(2, "0")} revisions.`,
+                    `${String(collectionCount).padStart(2, "0")} collections.`
+                ].join(" ");
+            }
+            maintenanceBoard.innerHTML = "";
+            const actions = [
+                {
+                    label: "Export Full Vault",
+                    ghost: false,
+                    handler: () => downloadJsonBundle("tilaelia-full-vault.json", maintenanceBundle())
+                },
+                {
+                    label: "Import Full Vault",
+                    ghost: true,
+                    handler: () => {
+                        state.maintenanceImportMode = "full";
+                        $("import-local-file")?.click();
+                    }
+                },
+                {
+                    label: "Reindex Local Vault",
+                    ghost: true,
+                    handler: () => {
+                        saveMaintenanceState();
+                        announceSubmission("Local vault normalized and reindexed.");
+                    }
+                }
+            ];
+            actions.forEach(item => {
+                const card = document.createElement("article");
+                card.className = "management-card";
+                card.innerHTML = `
+                    <div class="management-head">
+                        <div>
+                            <strong>${escapeHtml(item.label)}</strong>
+                            <div class="management-pill">Local maintenance</div>
+                        </div>
+                        <small>vault</small>
+                    </div>
+                    <p>${escapeHtml(item.label === "Export Full Vault"
+                        ? "Download the full local state bundle, including offerings, revisions, collections, and spotlight order."
+                        : item.label === "Import Full Vault"
+                            ? "Restore a full local bundle with offerings, revisions, collections, and spotlight state."
+                            : "Normalize local records, compact the archive, and rebuild local indexes without changing the visible content.")}</p>
+                `;
+                const controls = document.createElement("div");
+                controls.className = "management-actions";
+                const button = document.createElement("button");
+                button.className = `action${item.ghost ? " ghost" : ""}`;
+                button.type = "button";
+                button.textContent = item.label;
+                button.addEventListener("click", item.handler);
+                controls.appendChild(button);
+                card.appendChild(controls);
+                maintenanceBoard.appendChild(card);
+            });
+        }
+
         function renderAll() {
             ["music", "writing", "visuals", "research"].forEach(renderSection);
             renderPortfolioOverview();
@@ -3132,10 +3288,11 @@
             renderReviewQueue();
             renderVersionsBoard();
             renderCollections();
+            renderMaintenanceBoard();
         }
 
         function switchSection(name) {
-            const next = ["home", "archive", "management", "review", "versions", "collections", "music", "writing", "visuals", "research", "submissions"].includes(name) ? name : "home";
+            const next = ["home", "archive", "management", "review", "versions", "collections", "maintenance", "music", "writing", "visuals", "research", "submissions"].includes(name) ? name : "home";
             document.querySelectorAll(".section").forEach(section => section.classList.toggle("active", section.id === `section-${next}`));
             document.querySelectorAll(".nav button").forEach(button => button.classList.toggle("active", button.dataset.section === next));
             if (next === "archive") {
@@ -3151,6 +3308,8 @@
                 renderVersionsBoard();
             } else if (next === "collections") {
                 renderCollections();
+            } else if (next === "maintenance") {
+                renderMaintenanceBoard();
             } else if (next === "submissions") {
                 renderSubmissionLedger();
             }
@@ -3499,20 +3658,27 @@
             announceSubmission(`Captured collection “${collection.title}” with ${collection.memberCount} items.`);
         });
 
-        $("import-local-btn").addEventListener("click", () => $("import-local-file").click());
-        $("import-local-file").addEventListener("change", async event => {
+        $("import-local-btn").addEventListener("click", () => importLocalFile?.click());
+        importLocalFile?.addEventListener("change", async event => {
             const file = event.target.files[0];
             if (!file) return;
             try {
-                const parsed = JSON.parse(await file.text());
-                const incoming = Array.isArray(parsed) ? parsed : parsed.offerings;
-                const normalized = Array.isArray(incoming) ? incoming.map(normalizeOffering).filter(Boolean) : [];
-                state.local = state.local.concat(normalized);
-                saveLocalOfferings();
-                renderAll();
+                if (state.maintenanceImportMode === "full") {
+                    await importMaintenanceBundle(file);
+                    announceSubmission("Full vault restored.");
+                } else {
+                    const parsed = JSON.parse(await file.text());
+                    const incoming = Array.isArray(parsed) ? parsed : parsed.offerings;
+                    const normalized = Array.isArray(incoming) ? incoming.map(normalizeOffering).filter(Boolean) : [];
+                    state.local = state.local.concat(normalized);
+                    saveLocalOfferings();
+                    renderAll();
+                }
             } catch {
                 $("submit-body").placeholder = "That JSON file could not be imported.";
+                announceSubmission("That JSON file could not be imported.");
             }
+            state.maintenanceImportMode = "local";
             event.target.value = "";
         });
 
