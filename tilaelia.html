@@ -176,9 +176,9 @@
             animation: gateDive 1.35s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
         }
         @keyframes gateDive {
-            0% { transform: translateY(0) scale(1); opacity: 1; filter: blur(0); }
-            56% { transform: translateY(-2px) scale(1.03); opacity: 0.98; filter: blur(0.2px); }
-            100% { transform: translateY(-10px) scale(1.08); opacity: 0; filter: blur(4px); }
+            0% { transform: translate3d(0, 0, -220px) scale(0.92); opacity: 1; filter: blur(0); }
+            42% { transform: translate3d(0, 0, -60px) scale(0.98); opacity: 1; filter: blur(0.1px); }
+            100% { transform: translate3d(0, 0, 1400px) scale(1.7); opacity: 0; filter: blur(5px); }
         }
         @keyframes gateDoorFade {
             0%, 58% { opacity: 1; visibility: visible; }
@@ -195,14 +195,15 @@
             100% { transform: translateX(13%) skewY(3deg); opacity: 0; }
         }
         @media (max-width: 620px) {
+            #gate.entering { animation: gateDoorFadeMobile 1.25s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
             #gate.entering .gate-copy {
-                animation: gateDive 1.35s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+                animation: gateDiveMobile 1.25s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
             }
             #gate.entering::before {
-                animation: gateLeftOpen 1.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+                animation: gateLeftOpenMobile 1.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
             }
             #gate.entering::after {
-                animation: gateRightOpen 1.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+                animation: gateRightOpenMobile 1.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
             }
         }
         #gate-canvas {
@@ -534,7 +535,7 @@
         }
         .home-intro-stack {
             display: grid;
-            gap: 26px;
+            gap: 46px;
         }
         .hero::before {
             content: "";
@@ -564,9 +565,9 @@
         }
         .hero-grid {
             display: grid;
-            grid-template-columns: minmax(0, 1fr) minmax(360px, 0.72fr);
-            gap: 34px;
-            align-items: center;
+            grid-template-columns: minmax(0, 1fr);
+            gap: 0;
+            align-items: start;
         }
         .eyebrow {
             color: var(--cyan);
@@ -734,15 +735,16 @@
             line-height: 1.45;
         }
         .home-feature-stage {
-            margin-top: 0;
+            margin-top: 40px;
             border: 1px solid var(--line);
+            border-top: 1px solid rgba(255,255,255,0.08);
             background:
                 linear-gradient(135deg, rgba(246,204,114,0.08), transparent 34%),
                 linear-gradient(225deg, rgba(255,109,158,0.08), transparent 40%),
                 rgba(255,255,255,0.03);
             backdrop-filter: blur(18px);
             border-radius: 8px;
-            padding: 18px;
+            padding: 26px 18px 18px;
             display: grid;
             gap: 18px;
             transform-style: preserve-3d;
@@ -2129,30 +2131,34 @@
             }
             .hero::before, .hero::after { opacity: 0.54; }
             .archive-group { padding: 13px; }
+            .home-intro-stack { gap: 26px; }
+            .home-feature-stage { margin-top: 22px; padding: 20px 14px 14px; }
             .gate-copy {
-                width: min(100% - 24px, 560px);
-                padding: 28px 10px;
+                width: min(100% - 18px, 560px);
+                padding: 20px 8px;
+                margin-inline: auto;
             }
             .gate-kicker {
-                font-size: 0.62rem;
-                letter-spacing: 0.24em;
-                margin-bottom: 14px;
+                font-size: 0.56rem;
+                letter-spacing: 0.2em;
+                margin-bottom: 10px;
             }
             .gate-copy h1 {
-                font-size: clamp(2.15rem, 15vw, 3.75rem);
-                line-height: 0.94;
+                font-size: clamp(2rem, 14vw, 3.35rem);
+                line-height: 0.9;
             }
             .gate-copy p {
-                font-size: 0.92rem;
-                line-height: 1.65;
-                margin: 18px auto 24px;
+                font-size: 0.86rem;
+                line-height: 1.5;
+                margin: 14px auto 20px;
+                width: min(100%, 28rem);
             }
             .portal-card { min-height: auto; }
             .title-drifter { animation: titleBreathe 11s ease-in-out infinite; }
             .word-space { perspective: none; }
             .word-space span {
-                font-size: 0.74rem;
-                letter-spacing: 0.14em;
+                font-size: 0.66rem;
+                letter-spacing: 0.12em;
             }
             .word-space span:nth-child(n+7) {
                 display: none;
@@ -2163,14 +2169,32 @@
             }
             #title-spark-canvas { display: none; }
             .gate-copy .enter-btn {
-                font-size: 0.88rem;
-                letter-spacing: 0.18em;
+                font-size: 0.8rem;
+                letter-spacing: 0.16em;
+            }
+            #gate.entering .gate-copy {
+                animation: gateDiveMobile 1.25s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+            }
+            .gate-copy h1, .gate-copy p, .gate-copy .enter-btn {
+                max-width: 100%;
             }
         }
         @keyframes gateDiveMobile {
-            0% { transform: translate3d(0, 0, 0) scale(1); opacity: 1; filter: blur(0); }
-            62% { transform: translate3d(0, -2px, 0) scale(1.16); opacity: 0.96; filter: blur(0.2px); }
-            100% { transform: translate3d(0, -6px, 0) scale(1.62); opacity: 0; filter: blur(8px); }
+            0% { transform: translate3d(0, 0, -120px) scale(0.96); opacity: 1; filter: blur(0); }
+            40% { transform: translate3d(0, 0, -30px) scale(1.02); opacity: 1; filter: blur(0.1px); }
+            100% { transform: translate3d(0, 0, 680px) scale(1.42); opacity: 0; filter: blur(4px); }
+        }
+        @keyframes gateDoorFadeMobile {
+            0%, 54% { opacity: 1; visibility: visible; }
+            100% { opacity: 0; visibility: visible; }
+        }
+        @keyframes gateLeftOpenMobile {
+            0% { transform: translateX(0); opacity: 1; }
+            100% { transform: translateX(-10%); opacity: 0; }
+        }
+        @keyframes gateRightOpenMobile {
+            0% { transform: translateX(0); opacity: 1; }
+            100% { transform: translateX(10%); opacity: 0; }
         }
         @media (prefers-reduced-motion: reduce) {
             #world-canvas, #gate-canvas, #title-spark-canvas { display: none; }
@@ -2227,7 +2251,7 @@
             <a href="index.html" class="brand" aria-label="Return to command center">
                 <span class="sigil">T</span>
                 <span>
-                    <strong>Tilaelia Sanctum</strong>
+                    <strong>Ariadni's Thread</strong>
                     <span>Sacred creation archive</span>
                 </span>
             </a>
@@ -2269,21 +2293,6 @@
                             </div>
                             <div class="spotlight-ledger" id="hero-spotlight" aria-label="Spotlighted offerings"></div>
                         </div>
-                        <aside class="portal-card">
-                            <h3>Enter with reverence</h3>
-                            <ul>
-                                <li>Music is split between leaks and sounds, and completed tracks.</li>
-                                <li>Writing opens into essays, poems, short stories, and other fragments.</li>
-                                <li>Visuals are held as a digital underground gallery.</li>
-                                <li>Research gathers philosophy, physics, mathematics, and history.</li>
-                            </ul>
-                            <div class="portal-ledger" id="hero-ledger" aria-label="Recent offerings">
-                                <article>
-                                    <strong>Waiting for offerings</strong>
-                                    <span>Submit work in the keeper console to populate this living ledger.</span>
-                                </article>
-                            </div>
-                        </aside>
                     </div>
                     <div class="home-feature-stage" aria-label="Inner sanctum feature section">
                         <div class="home-feature-head">
@@ -2694,7 +2703,6 @@
         const heroStatPublished = $("hero-stat-published");
         const heroStatPrivate = $("hero-stat-private");
         const heroStatLast = $("hero-stat-last");
-        const heroLedger = $("hero-ledger");
         const homeFeatureBoard = $("home-feature-board");
         const homeFeatureCount = $("home-feature-count");
         const homeFeaturePrev = $("home-feature-prev");
@@ -4065,7 +4073,7 @@
         }
 
         function renderPortfolioOverview() {
-            if (!heroStatOfferings || !heroStatPublished || !heroStatPrivate || !heroStatLast || !heroLedger) return;
+            if (!heroStatOfferings || !heroStatPublished || !heroStatPrivate || !heroStatLast) return;
             const all = archiveItems();
             const recent = recentOfferings(3);
             const archive = archiveItems();
@@ -4076,28 +4084,6 @@
             heroStatPrivate.textContent = String(privateCount).padStart(2, "0");
             heroStatLast.textContent = recent[0] ? formatSubmissionTime(recent[0].createdAt) : "--";
             const featured = spotlightItems(2);
-            const ledgerItems = recent.length ? recent : all.slice(0, 3);
-            heroLedger.replaceChildren(...ledgerItems.map((item, index) => {
-                const article = document.createElement("article");
-                if (index === 0) {
-                    article.classList.add("featured");
-                    article.innerHTML = `
-                        <span class="featured-label">Featured current offering</span>
-                        <strong>${escapeHtml(item.title || "Untitled offering")}</strong>
-                        <span>${escapeHtml(item.section || "portfolio")} · ${escapeHtml(item.meta || item.category || "offering")}</span>
-                        <span>${escapeHtml(item.body || "No description stored.")}</span>
-                        ${item.createdAt ? `<span>Submitted ${escapeHtml(formatSubmissionTime(item.createdAt))}</span>` : ""}
-                    `;
-                } else {
-                    article.innerHTML = `
-                        <strong>${escapeHtml(item.title || "Untitled offering")}</strong>
-                        <span>${escapeHtml(item.meta || item.category || "offering")} · ${escapeHtml(curatorLabel(item))}</span>
-                        ${item.createdAt ? `<span>Submitted ${escapeHtml(formatSubmissionTime(item.createdAt))}</span>` : ""}
-                    `;
-                }
-                return article;
-            }));
-
             const spotlightHost = document.getElementById("hero-spotlight");
             if (spotlightHost) {
                 if (!featured.length) {
