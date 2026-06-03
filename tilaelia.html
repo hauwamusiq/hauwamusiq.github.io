@@ -237,19 +237,22 @@
             height: 100%;
             z-index: 1;
             pointer-events: none;
-            opacity: 0.9;
+            opacity: 0;
+            display: none;
         }
         .word-space {
             position: absolute;
             inset: 0;
             overflow: hidden;
-            perspective: 900px;
+            perspective: none;
             background: #020103;
+            z-index: 0;
+            pointer-events: none;
         }
         .word-space span {
             position: absolute;
-            left: 50%;
-            top: 50%;
+            left: calc(50% + var(--x, 0px));
+            top: calc(50% + var(--y, 0px));
             color: rgba(255,248,237,0.82);
             font-family: var(--ritual);
             font-size: clamp(0.8rem, 1.8vw, 1.2rem);
@@ -257,16 +260,16 @@
             letter-spacing: 0.2em;
             white-space: nowrap;
             text-shadow: 0 0 18px rgba(255,109,158,0.42);
-            animation: wordDrift var(--duration, 13s) linear infinite;
+            animation: wordDrift var(--duration, 13s) ease-in-out infinite;
             animation-delay: var(--delay, 0s);
-            transform: translate3d(var(--x, 0), var(--y, 0), -760px) scale(0.22);
+            transform: translate(-50%, -50%) scale(0.96);
             opacity: 0;
         }
         @keyframes wordDrift {
-            0% { transform: translate3d(var(--x), var(--y), -760px) scale(0.22); opacity: 0; }
-            12% { opacity: 0.88; }
-            76% { opacity: 0.76; }
-            100% { transform: translate3d(calc(var(--x) * 1.45), calc(var(--y) * 1.45), 280px) scale(1.45); opacity: 0; }
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.92); }
+            18% { opacity: 0.84; transform: translate(-50%, -52%) scale(0.99); }
+            72% { opacity: 0.78; transform: translate(-50%, -48%) scale(1.02); }
+            100% { opacity: 0; transform: translate(-50%, -50%) scale(1.06); }
         }
         .gate-copy {
             position: relative;
@@ -278,15 +281,8 @@
         }
         .title-drifter {
             display: inline-block;
-            transform-style: preserve-3d;
-            animation: titleSpaceDrift 11s ease-in-out infinite;
-            will-change: transform;
-        }
-        @keyframes titleSpaceDrift {
-            0% { transform: translate3d(-3px, 2px, -8px) rotateX(0.8deg) rotateY(-1.8deg) scale(0.995); }
-            34% { transform: translate3d(4px, -3px, 10px) rotateX(-0.6deg) rotateY(1.2deg) scale(1.01); }
-            68% { transform: translate3d(2px, 3px, 14px) rotateX(0.8deg) rotateY(0.8deg) scale(1.018); }
-            100% { transform: translate3d(-3px, 2px, -8px) rotateX(0.8deg) rotateY(-1.8deg) scale(0.995); }
+            transform: translate3d(0, 0, 0);
+            will-change: auto;
         }
         .gate-kicker {
             color: var(--gold);
@@ -2159,15 +2155,12 @@
                 margin: 18px auto 24px;
             }
             .portal-card { min-height: auto; }
-            .title-drifter {
-                animation-name: titleSpaceDriftMobile;
-                animation-duration: 9.5s;
-            }
+            .title-drifter { transform: none; }
             #gate.entering .gate-copy {
                 animation-name: gateDiveMobile !important;
             }
             .word-space {
-                perspective: 620px;
+                perspective: none;
             }
             .word-space span {
                 font-size: 0.74rem;
@@ -2176,19 +2169,10 @@
             .word-space span:nth-child(n+7) {
                 display: none;
             }
-            #title-spark-canvas {
-                opacity: 0.72;
-            }
             .sanctum-aura {
                 opacity: 0.58;
                 filter: blur(1px);
             }
-        }
-        @keyframes titleSpaceDriftMobile {
-            0% { transform: translate3d(-2px, 2px, -6px) rotateX(0.5deg) rotateY(-1deg) scale(0.995); }
-            35% { transform: translate3d(3px, -3px, 8px) rotateX(-0.5deg) rotateY(1deg) scale(1.008); }
-            68% { transform: translate3d(2px, 3px, 12px) rotateX(0.5deg) rotateY(0.7deg) scale(1.015); }
-            100% { transform: translate3d(-2px, 2px, -6px) rotateX(0.5deg) rotateY(-1deg) scale(0.995); }
         }
         @keyframes gateDiveMobile {
             0% { transform: translate3d(0, 0, 0) scale(1); opacity: 1; filter: blur(0); }
@@ -2204,7 +2188,7 @@
             body.unlocked .shell {
                 animation: none !important;
             }
-            #world-canvas, #gate-canvas { display: none; }
+            #world-canvas, #gate-canvas, #title-spark-canvas { display: none; }
             .living-bg video { display: none; }
         }
     </style>
