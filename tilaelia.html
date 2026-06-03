@@ -2184,7 +2184,7 @@
                 <div class="presentation-board" id="presentation-board" aria-label="Presentation view"></div>
             </section>
 
-            <section class="section" id="section-gallery">
+            <section class="section" id="section-gallery" tabindex="-1">
                 <div class="section-head">
                     <h2>Public gallery</h2>
                     <p>A visitor-facing gallery that presents the current exhibition without the editing controls. This is the finished wall.</p>
@@ -4727,6 +4727,7 @@
                 } else {
                     renderPublicGallery();
                 }
+                window.requestAnimationFrame(() => $("section-gallery")?.focus?.());
             } else {
                 renderAll();
             }
