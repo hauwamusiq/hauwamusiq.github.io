@@ -422,6 +422,42 @@
             color: var(--ink);
             background: rgba(255,255,255,0.05);
         }
+        .visitor-toggle {
+            border: 1px solid rgba(255,255,255,0.12);
+            background: rgba(255,255,255,0.03);
+            color: var(--muted);
+            border-radius: 999px;
+            padding: 0 14px;
+            min-height: 34px;
+            font-size: 0.72rem;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+            white-space: nowrap;
+            cursor: pointer;
+        }
+        .visitor-toggle:hover {
+            color: var(--text);
+            border-color: rgba(246,204,114,0.32);
+            background: rgba(246,204,114,0.08);
+        }
+        body.visitor-mode .nav button[data-section="find"],
+        body.visitor-mode .nav button[data-section="management"],
+        body.visitor-mode .nav button[data-section="review"],
+        body.visitor-mode .nav button[data-section="versions"],
+        body.visitor-mode .nav button[data-section="collections"],
+        body.visitor-mode .nav button[data-section="maintenance"],
+        body.visitor-mode .nav button[data-section="submissions"] {
+            display: none;
+        }
+        body.visitor-mode #section-find,
+        body.visitor-mode #section-management,
+        body.visitor-mode #section-review,
+        body.visitor-mode #section-versions,
+        body.visitor-mode #section-collections,
+        body.visitor-mode #section-maintenance,
+        body.visitor-mode #section-submissions {
+            display: none !important;
+        }
         .hero {
             min-height: calc(100vh - 80px);
             display: grid;
@@ -1830,6 +1866,7 @@
                 <button data-section="research">Research</button>
                 <button data-section="submissions">Submit</button>
             </nav>
+            <button class="visitor-toggle" id="visitor-toggle" type="button">Visitor View</button>
         </header>
 
         <main>
@@ -2250,6 +2287,7 @@
             selectedGallery: "",
             presentationIndex: 0,
             presentationMode: "stage",
+            visitorMode: new URLSearchParams(window.location.search).get("visitor") === "1" || localStorage.getItem("tilaelia-visitor-mode") === "1",
             maintenanceImportMode: "local"
         };
 
@@ -2296,6 +2334,7 @@
         const exhibitionTitle = $("exhibition-title");
         const exhibitionNote = $("exhibition-note");
         const captureExhibitionBtn = $("capture-exhibition-btn");
+        const visitorToggle = $("visitor-toggle");
         const importLocalFile = $("import-local-file");
         const submitTags = $("submit-tags");
         const qaMode = new URLSearchParams(window.location.search).get("qa") === "1" || localStorage.getItem("tilaelia-qa-open") === "1";
@@ -4508,10 +4547,37 @@
                 if (itemTags) card.appendChild(itemTags);
                 const media = createMediaNode(item);
                 if (media) card.appendChild(media);
-                items.appendChild(card);
+            items.appendChild(card);
             });
             program.appendChild(items);
             publicGalleryBoard.appendChild(program);
+        }
+
+        function applyVisitorMode() {
+            document.body.classList.toggle("visitor-mode", state.visitorMode);
+            if (visitorToggle) {
+                visitorToggle.textContent = state.visitorMode ? "Editor View" : "Visitor View";
+                visitorToggle.setAttribute("aria-pressed", state.visitorMode ? "true" : "false");
+            }
+            try {
+                localStorage.setItem("tilaelia-visitor-mode", state.visitorMode ? "1" : "0");
+            } catch {}
+            if (state.visitorMode) {
+                state.findQuery = "";
+                state.findScope = "all";
+                ["music", "writing", "visuals", "research"].forEach(renderSection);
+                renderPortfolioOverview();
+                renderArchiveShelf();
+                renderArchiveStream();
+                renderExhibitions();
+                renderPresentation();
+                renderPublicGallery();
+                if (!$("section-gallery")?.classList.contains("active")) {
+                    switchSection("gallery");
+                }
+            } else {
+                renderAll();
+            }
         }
 
         function renderMaintenanceBoard() {
@@ -4635,6 +4701,10 @@
         }
 
         document.querySelectorAll(".nav button").forEach(button => button.addEventListener("click", () => switchSection(button.dataset.section)));
+        visitorToggle?.addEventListener("click", () => {
+            state.visitorMode = !state.visitorMode;
+            applyVisitorMode();
+        });
         document.querySelectorAll(".segmented").forEach(group => {
             const key = group.dataset.filterGroup;
             group.querySelectorAll("button").forEach(button => {
@@ -5154,7 +5224,7 @@
         resizeWorldCanvas();
         requestAnimationFrame(animateTitleSparks);
         requestAnimationFrame(animateWorld);
-        renderAll();
+        applyVisitorMode();
         loadPublishedOfferings();
         if (qaMode) {
             window.setTimeout(() => {
