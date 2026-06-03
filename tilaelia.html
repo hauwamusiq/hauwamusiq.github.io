@@ -1574,6 +1574,7 @@
                 <button data-section="review">Review</button>
                 <button data-section="versions">Versions</button>
                 <button data-section="collections">Collections</button>
+                <button data-section="exhibitions">Exhibitions</button>
                 <button data-section="maintenance">Maintenance</button>
                 <button data-section="music">Music</button>
                 <button data-section="writing">Writing</button>
@@ -1724,6 +1725,7 @@
                                 <option value="offerings">Offerings</option>
                                 <option value="revisions">Revisions</option>
                                 <option value="collections">Collections</option>
+                                <option value="exhibitions">Exhibitions</option>
                             </select>
                         </div>
                     </div>
@@ -1789,6 +1791,31 @@
                 </div>
                 <div class="collection-shelf" id="collection-shelf" aria-label="Saved collections"></div>
                 <div class="collection-board" id="collection-board" aria-label="Collection details"></div>
+            </section>
+
+            <section class="section" id="section-exhibitions">
+                <div class="section-head">
+                    <h2>Exhibition hall</h2>
+                    <p>Shape the public face of the portfolio as a composed showpiece. Exhibitions preserve the intended order and framing of work for a visitor-facing wall.</p>
+                </div>
+                <div class="collection-tools">
+                    <div class="owner-grid">
+                        <div class="field">
+                            <label for="exhibition-title">Exhibition title</label>
+                            <input id="exhibition-title" placeholder="Open Sanctum, Year One, Winter Light">
+                        </div>
+                        <div class="field">
+                            <label for="exhibition-note">Curatorial note</label>
+                            <input id="exhibition-note" placeholder="What the visitor should feel or notice first">
+                        </div>
+                        <div class="field">
+                            <label>&nbsp;</label>
+                            <button class="action" type="button" id="capture-exhibition-btn">Capture Current Archive View</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="collection-shelf" id="exhibition-shelf" aria-label="Saved exhibitions"></div>
+                <div class="collection-board" id="exhibition-board" aria-label="Exhibition details"></div>
             </section>
 
             <section class="section" id="section-maintenance">
@@ -1953,7 +1980,9 @@
             bulkSelection: [],
             revisions: loadOfferingRevisions(),
             collections: loadCollections(),
+            exhibitions: loadExhibitions(),
             selectedCollection: "",
+            selectedExhibition: "",
             maintenanceImportMode: "local"
         };
 
@@ -1986,6 +2015,8 @@
         const versionsSummaryNote = $("versions-summary-note");
         const collectionShelf = $("collection-shelf");
         const collectionBoard = $("collection-board");
+        const exhibitionShelf = $("exhibition-shelf");
+        const exhibitionBoard = $("exhibition-board");
         const maintenanceBoard = $("maintenance-board");
         const maintenanceSummaryNote = $("maintenance-summary-note");
         const submissionLedger = $("submission-ledger");
@@ -1993,6 +2024,9 @@
         const collectionTitle = $("collection-title");
         const collectionNote = $("collection-note");
         const captureCollectionBtn = $("capture-collection-btn");
+        const exhibitionTitle = $("exhibition-title");
+        const exhibitionNote = $("exhibition-note");
+        const captureExhibitionBtn = $("capture-exhibition-btn");
         const importLocalFile = $("import-local-file");
         const submitTags = $("submit-tags");
         const qaMode = new URLSearchParams(window.location.search).get("qa") === "1" || localStorage.getItem("tilaelia-qa-open") === "1";
@@ -2033,6 +2067,16 @@
                 return Array.isArray(parsed) ? parsed.filter(Boolean) : [];
             } catch {
                 localStorage.removeItem("tilaelia-collections");
+                return [];
+            }
+        }
+
+        function loadExhibitions() {
+            try {
+                const parsed = JSON.parse(localStorage.getItem("tilaelia-exhibitions") || "[]");
+                return Array.isArray(parsed) ? parsed.filter(Boolean) : [];
+            } catch {
+                localStorage.removeItem("tilaelia-exhibitions");
                 return [];
             }
         }
@@ -2086,13 +2130,24 @@
             }
         }
 
+        function saveExhibitions() {
+            try {
+                localStorage.setItem("tilaelia-exhibitions", JSON.stringify(state.exhibitions.slice(0, 50)));
+                return true;
+            } catch {
+                return false;
+            }
+        }
+
         function saveMaintenanceState() {
             state.local = uniqueOfferings(state.local.map(normalizeOffering).filter(Boolean));
             state.published = uniqueOfferings(state.published.map(normalizeOffering).filter(Boolean));
             state.collections = state.collections.map(normalizeCollection).filter(Boolean);
+            state.exhibitions = state.exhibitions.map(normalizeExhibition).filter(Boolean);
             state.revisions = state.revisions.map(normalizeRevision).filter(Boolean);
             saveLocalOfferings();
             saveCollections();
+            saveExhibitions();
             saveOfferingRevisions();
             renderAll();
         }
@@ -2105,6 +2160,7 @@
                 published: state.published,
                 revisions: state.revisions,
                 collections: state.collections,
+                exhibitions: state.exhibitions,
                 spotlight: state.spotlight
             };
         }
@@ -2127,14 +2183,17 @@
             const published = Array.isArray(parsed.published) ? parsed.published : [];
             const revisions = Array.isArray(parsed.revisions) ? parsed.revisions : [];
             const collections = Array.isArray(parsed.collections) ? parsed.collections : [];
+            const exhibitions = Array.isArray(parsed.exhibitions) ? parsed.exhibitions : [];
             const spotlight = Array.isArray(parsed.spotlight) ? parsed.spotlight.filter(Boolean).map(String).slice(0, 2) : [];
             state.local = uniqueOfferings(state.local.concat(local.map(normalizeOffering).filter(Boolean)));
             state.published = uniqueOfferings(state.published.concat(published.map(normalizeOffering).filter(Boolean)));
             state.revisions = revisions.map(normalizeRevision).filter(Boolean).concat(state.revisions).slice(0, 200);
             state.collections = collections.map(normalizeCollection).filter(Boolean).concat(state.collections).slice(0, 50);
+            state.exhibitions = exhibitions.map(normalizeExhibition).filter(Boolean).concat(state.exhibitions).slice(0, 50);
             if (spotlight.length) state.spotlight = spotlight;
             saveLocalOfferings();
             saveCollections();
+            saveExhibitions();
             saveOfferingRevisions();
             saveSpotlightKeys();
             renderAll();
@@ -2336,6 +2395,25 @@
             };
         }
 
+        function normalizeExhibition(exhibition) {
+            if (!exhibition) return null;
+            const title = String(exhibition.title || "").trim();
+            if (!title) return null;
+            const createdAt = exhibition.createdAt || new Date().toISOString();
+            const memberKeys = Array.isArray(exhibition.memberKeys) ? exhibition.memberKeys.filter(Boolean).map(String) : [];
+            const memberCount = Number.isFinite(Number(exhibition.memberCount)) ? Number(exhibition.memberCount) : memberKeys.length;
+            return {
+                id: String(exhibition.id || `${title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${createdAt}`).trim(),
+                title,
+                note: String(exhibition.note || "").trim(),
+                createdAt,
+                updatedAt: exhibition.updatedAt || createdAt,
+                memberKeys,
+                memberCount,
+                source: String(exhibition.source || "public").trim().toLowerCase() || "public"
+            };
+        }
+
         function renderTagRow(item) {
             const tags = Array.isArray(item?.tags) ? item.tags.filter(Boolean) : [];
             if (!tags.length) return null;
@@ -2383,6 +2461,47 @@
         function selectCollection(collection) {
             state.selectedCollection = collectionKey(collection);
             renderCollections();
+        }
+
+        function exhibitionKey(exhibition) {
+            if (!exhibition) return "";
+            return String(exhibition.id || exhibition.createdAt || exhibition.title || "").trim();
+        }
+
+        function exhibitionItems(exhibition) {
+            const keys = new Set((exhibition?.memberKeys || []).map(String));
+            return archiveItems().filter(item => keys.has(offeringKey(item)));
+        }
+
+        function createExhibitionFromView(title, note, existing = null) {
+            const visible = archiveVisibleItems();
+            if (!visible.length) return null;
+            const now = new Date().toISOString();
+            const createdAt = existing?.createdAt || now;
+            const base = normalizeExhibition({
+                title,
+                note,
+                createdAt,
+                updatedAt: now,
+                memberKeys: visible.map(item => offeringKey(item)).filter(Boolean),
+                memberCount: visible.length,
+                source: "public"
+            });
+            if (!base) return null;
+            const index = state.exhibitions.findIndex(entry => exhibitionKey(entry) === exhibitionKey(base));
+            if (index >= 0) {
+                state.exhibitions[index] = base;
+            } else {
+                state.exhibitions.unshift(base);
+            }
+            state.selectedExhibition = exhibitionKey(base);
+            saveExhibitions();
+            return base;
+        }
+
+        function selectExhibition(exhibition) {
+            state.selectedExhibition = exhibitionKey(exhibition);
+            renderExhibitions();
         }
 
         function recordRevision(item, action, before = null, after = null) {
@@ -2779,6 +2898,20 @@
                 source: collection.source || "local",
                 collection
             }));
+            const exhibitions = state.exhibitions.map(normalizeExhibition).filter(Boolean).map(exhibition => ({
+                kind: "exhibition",
+                key: `exhibition:${exhibitionKey(exhibition)}`,
+                title: exhibition.title,
+                meta: exhibition.note || "Public exhibition",
+                body: exhibition.note || "Saved exhibition",
+                section: "exhibitions",
+                category: "exhibition",
+                createdAt: exhibition.updatedAt || exhibition.createdAt,
+                visibility: exhibition.source || "public",
+                tags: parseTags(exhibition.note),
+                source: exhibition.source || "public",
+                exhibition
+            }));
             const revisions = state.revisions.map(normalizeRevision).filter(Boolean).map(revision => {
                 const current = revision.after || revision.before || {};
                 return {
@@ -2803,10 +2936,11 @@
                 tags: Array.isArray(item.tags) ? item.tags : []
             }));
             const pool = {
-                all: offerings.concat(revisions, collections),
+                all: offerings.concat(revisions, collections, exhibitions),
                 offerings,
                 revisions,
-                collections
+                collections,
+                exhibitions
             };
             const visible = pool[scope] || pool.all;
             return visible.filter(item => {
@@ -2834,7 +2968,8 @@
                 all: "all records",
                 offerings: "offerings only",
                 revisions: "revisions only",
-                collections: "collections only"
+                collections: "collections only",
+                exhibitions: "exhibitions only"
             }[scope] || "all records";
         }
 
@@ -2896,7 +3031,13 @@
                 const open = document.createElement("button");
                 open.className = "action";
                 open.type = "button";
-                open.textContent = item.kind === "revision" ? "Open Versions" : item.kind === "collection" ? "Open Collections" : "Open Archive";
+                open.textContent = item.kind === "revision"
+                    ? "Open Versions"
+                    : item.kind === "collection"
+                        ? "Open Collections"
+                        : item.kind === "exhibition"
+                            ? "Open Exhibitions"
+                            : "Open Archive";
                 open.addEventListener("click", () => {
                     if (item.kind === "revision") {
                         switchSection("versions");
@@ -2905,6 +3046,11 @@
                             selectCollection(item.collection);
                         }
                         switchSection("collections");
+                    } else if (item.kind === "exhibition") {
+                        if (item.exhibition) {
+                            selectExhibition(item.exhibition);
+                        }
+                        switchSection("exhibitions");
                     } else {
                         if (item.visibility === "review") {
                             switchSection("review");
@@ -2943,6 +3089,21 @@
                         if (next) {
                             renderCollections();
                             switchSection("collections");
+                        }
+                    });
+                    actions.appendChild(recapture);
+                }
+
+                if (item.kind === "exhibition" && item.exhibition) {
+                    const recapture = document.createElement("button");
+                    recapture.className = "action ghost";
+                    recapture.type = "button";
+                    recapture.textContent = "Recapture";
+                    recapture.addEventListener("click", () => {
+                        const next = createExhibitionFromView(item.exhibition.title, item.exhibition.note, item.exhibition);
+                        if (next) {
+                            renderExhibitions();
+                            switchSection("exhibitions");
                         }
                     });
                     actions.appendChild(recapture);
@@ -3628,18 +3789,165 @@
             collectionBoard.appendChild(memberGrid);
         }
 
+        function renderExhibitions() {
+            if (!exhibitionShelf || !exhibitionBoard) return;
+            const exhibitions = state.exhibitions.map(normalizeExhibition).filter(Boolean);
+            if (!exhibitions.length) {
+                exhibitionShelf.innerHTML = `
+                    <div class="collection-empty">
+                        No exhibitions have been saved yet. Capture the current archive view to begin a public wall.
+                    </div>
+                `;
+                exhibitionBoard.innerHTML = `
+                    <div class="collection-empty">
+                        Saved exhibitions will appear here as public-facing displays.
+                    </div>
+                `;
+                return;
+            }
+            if (!state.selectedExhibition || !exhibitions.some(entry => exhibitionKey(entry) === state.selectedExhibition)) {
+                state.selectedExhibition = exhibitionKey(exhibitions[0]);
+            }
+            exhibitionShelf.innerHTML = "";
+            exhibitions.forEach(exhibition => {
+                const card = document.createElement("article");
+                card.className = `collection-card${exhibitionKey(exhibition) === state.selectedExhibition ? " active" : ""}`;
+                const active = exhibitionKey(exhibition) === state.selectedExhibition;
+                const members = exhibitionItems(exhibition);
+                card.innerHTML = `
+                    <div class="collection-head">
+                        <div>
+                            <strong>${escapeHtml(exhibition.title)}</strong>
+                            <div class="management-pill">${escapeHtml(formatSubmissionTime(exhibition.updatedAt || exhibition.createdAt))}</div>
+                        </div>
+                        <small>${String(members.length).padStart(2, "0")} works</small>
+                    </div>
+                    <p>${escapeHtml(exhibition.note || "No curatorial note stored.")}</p>
+                    <div class="collection-meta">
+                        <span>${escapeHtml(exhibition.source || "public")}</span>
+                        <span>${escapeHtml(exhibition.memberCount || members.length)} captured</span>
+                    </div>
+                `;
+                const actions = document.createElement("div");
+                actions.className = "collection-actions";
+                const open = document.createElement("button");
+                open.className = "action";
+                open.type = "button";
+                open.textContent = active ? "Showing" : "Show";
+                open.disabled = active;
+                open.addEventListener("click", () => selectExhibition(exhibition));
+                actions.appendChild(open);
+                const refresh = document.createElement("button");
+                refresh.className = "action ghost";
+                refresh.type = "button";
+                refresh.textContent = "Refresh";
+                refresh.addEventListener("click", () => {
+                    const next = createExhibitionFromView(exhibition.title, exhibition.note, exhibition);
+                    if (!next) return;
+                    const index = state.exhibitions.findIndex(entry => exhibitionKey(entry) === exhibitionKey(exhibition));
+                    if (index >= 0) {
+                        state.exhibitions[index] = next;
+                        state.selectedExhibition = exhibitionKey(next);
+                        saveExhibitions();
+                        renderExhibitions();
+                    }
+                });
+                actions.appendChild(refresh);
+                card.appendChild(actions);
+                exhibitionShelf.appendChild(card);
+            });
+
+            const selected = exhibitions.find(entry => exhibitionKey(entry) === state.selectedExhibition) || exhibitions[0];
+            const members = exhibitionItems(selected);
+            exhibitionBoard.innerHTML = "";
+            const detail = document.createElement("article");
+            detail.className = "management-card";
+            detail.innerHTML = `
+                <div class="management-head">
+                    <div>
+                        <strong>${escapeHtml(selected.title)}</strong>
+                        <div class="management-pill">${escapeHtml(selected.note || "Public exhibition")}</div>
+                    </div>
+                    <small>${String(members.length).padStart(2, "0")} works</small>
+                </div>
+                <div class="management-meta">
+                    <span>Updated ${escapeHtml(formatSubmissionTime(selected.updatedAt || selected.createdAt))}</span>
+                    <span>${escapeHtml(selected.source || "public")}</span>
+                </div>
+                <p>${escapeHtml(selected.note || "No curatorial note stored.")}</p>
+            `;
+            const selectedTags = renderTagRow({ tags: parseTags(selected.note) });
+            if (selectedTags) detail.appendChild(selectedTags);
+            const actions = document.createElement("div");
+            actions.className = "management-actions";
+            const recapture = document.createElement("button");
+            recapture.className = "action";
+            recapture.type = "button";
+            recapture.textContent = "Recapture Current View";
+            recapture.addEventListener("click", () => {
+                const next = createExhibitionFromView(selected.title, selected.note, selected);
+                if (next) renderExhibitions();
+            });
+            actions.appendChild(recapture);
+            detail.appendChild(actions);
+            exhibitionBoard.appendChild(detail);
+
+            if (!members.length) {
+                const empty = document.createElement("div");
+                empty.className = "collection-empty";
+                empty.textContent = "This exhibition has no members.";
+                exhibitionBoard.appendChild(empty);
+                return;
+            }
+            const memberGrid = document.createElement("div");
+            memberGrid.className = "management-board";
+            members.forEach(item => {
+                const article = document.createElement("article");
+                article.className = "management-card";
+                article.innerHTML = `
+                    <div class="management-head">
+                        <div>
+                            <strong>${escapeHtml(item.title || "Untitled offering")}</strong>
+                            <div class="management-pill">${escapeHtml(item.section || "portfolio")} · ${escapeHtml(item.category || "other")} · ${escapeHtml(curatorLabel(item))}</div>
+                        </div>
+                        <small>${escapeHtml(item.visibility || "draft")}</small>
+                    </div>
+                    <div class="management-meta">
+                        <span>${escapeHtml(formatSubmissionTime(item.createdAt))}</span>
+                        ${item.edgeId ? `<span>Edge #${escapeHtml(String(item.edgeId))}</span>` : ""}
+                    </div>
+                    <p>${escapeHtml(item.body || "No description stored.")}</p>
+                `;
+                const tags = renderTagRow(item);
+                if (tags) article.appendChild(tags);
+                const actions = document.createElement("div");
+                actions.className = "management-actions";
+                const open = document.createElement("button");
+                open.className = "action ghost";
+                open.type = "button";
+                open.textContent = "Open in Archive";
+                open.addEventListener("click", () => switchSection("archive"));
+                actions.appendChild(open);
+                article.appendChild(actions);
+                memberGrid.appendChild(article);
+            });
+            exhibitionBoard.appendChild(memberGrid);
+        }
+
         function renderMaintenanceBoard() {
             if (!maintenanceBoard) return;
             const localCount = state.local.length;
             const publishedCount = state.published.length;
             const revisionCount = state.revisions.length;
             const collectionCount = state.collections.length;
+            const exhibitionCount = state.exhibitions.length;
             if (maintenanceSummaryNote) {
                 maintenanceSummaryNote.textContent = [
                     `${String(localCount).padStart(2, "0")} local offerings.`,
                     `${String(publishedCount).padStart(2, "0")} published offerings.`,
                     `${String(revisionCount).padStart(2, "0")} revisions.`,
-                    `${String(collectionCount).padStart(2, "0")} collections.`
+                    `${String(collectionCount).padStart(2, "0")} collections.`,
+                    `${String(exhibitionCount).padStart(2, "0")} exhibitions.`
                 ].join(" ");
             }
             maintenanceBoard.innerHTML = "";
@@ -3707,11 +4015,12 @@
             renderReviewQueue();
             renderVersionsBoard();
             renderCollections();
+            renderExhibitions();
             renderMaintenanceBoard();
         }
 
         function switchSection(name) {
-            const next = ["home", "archive", "find", "management", "review", "versions", "collections", "maintenance", "music", "writing", "visuals", "research", "submissions"].includes(name) ? name : "home";
+            const next = ["home", "archive", "find", "management", "review", "versions", "collections", "exhibitions", "maintenance", "music", "writing", "visuals", "research", "submissions"].includes(name) ? name : "home";
             document.querySelectorAll(".section").forEach(section => section.classList.toggle("active", section.id === `section-${next}`));
             document.querySelectorAll(".nav button").forEach(button => button.classList.toggle("active", button.dataset.section === next));
             if (next === "archive") {
@@ -3729,6 +4038,8 @@
                 renderVersionsBoard();
             } else if (next === "collections") {
                 renderCollections();
+            } else if (next === "exhibitions") {
+                renderExhibitions();
             } else if (next === "maintenance") {
                 renderMaintenanceBoard();
             } else if (next === "submissions") {
@@ -4062,9 +4373,11 @@
         $("clear-local-btn").addEventListener("click", () => {
             localStorage.removeItem("tilaelia-local-offerings");
             localStorage.removeItem("tilaelia-offering-revisions");
+            localStorage.removeItem("tilaelia-exhibitions");
             state.local = [];
             state.bulkSelection = [];
             state.revisions = [];
+            state.exhibitions = [];
             renderAll();
         });
 
@@ -4091,6 +4404,19 @@
             renderCollections();
             switchSection("collections");
             announceSubmission(`Captured collection “${collection.title}” with ${collection.memberCount} items.`);
+        });
+
+        captureExhibitionBtn?.addEventListener("click", () => {
+            const title = String(exhibitionTitle?.value || "").trim();
+            const note = String(exhibitionNote?.value || "").trim();
+            const exhibition = createExhibitionFromView(title, note);
+            if (!exhibition) {
+                announceSubmission("Capture a visible archive view first, then name the exhibition.");
+                return;
+            }
+            renderExhibitions();
+            switchSection("exhibitions");
+            announceSubmission(`Captured exhibition “${exhibition.title}” with ${exhibition.memberCount} works.`);
         });
 
         $("import-local-btn").addEventListener("click", () => importLocalFile?.click());
