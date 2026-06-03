@@ -2004,7 +2004,7 @@
             }
         }
         @media (max-width: 620px) {
-            .shell { width: min(100% - 22px, 1280px); }
+            .shell { width: min(100% - 16px, 1280px); }
             .topbar { align-items: flex-start; flex-direction: column; }
             .nav {
                 justify-content: flex-start;
@@ -2020,11 +2020,42 @@
                 min-height: auto;
                 padding: 18px 0 44px;
             }
+            .hero,
+            .section,
+            .hero-grid,
+            .home-feature-stage,
+            .portal-card,
+            .section-head,
+            .grid,
+            .gallery,
+            .home-feature-board,
+            .visual-gallery,
+            .visual-gallery-intro,
+            .visual-gallery-wall,
+            .archive-summary,
+            .find-summary,
+            .management-summary,
+            .collection-tools,
+            .collection-shelf,
+            .collection-board,
+            .public-gallery-board,
+            .presentation-board,
+            .submission-ledger,
+            .owner-panel,
+            .archive-stream,
+            .archive-group {
+                max-width: 100%;
+                min-width: 0;
+            }
             .hero-grid { gap: 22px; }
             .hero h2 { font-size: clamp(1.95rem, 11.75vw, 3.2rem); }
             .hero p {
                 font-size: 0.95rem;
                 line-height: 1.7;
+            }
+            .home-feature-stage,
+            .portal-card {
+                padding: 14px;
             }
             .gallery { grid-template-columns: 1fr; }
             .home-feature-head {
