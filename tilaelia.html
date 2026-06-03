@@ -1192,6 +1192,23 @@
             display: grid;
             gap: 12px;
         }
+        .tag-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .tag-row .tag-pill {
+            display: inline-flex;
+            align-items: center;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 999px;
+            padding: 4px 8px;
+            color: var(--muted);
+            font-size: 0.68rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            line-height: 1;
+        }
         .management-card {
             border: 1px solid var(--line);
             background: var(--panel);
@@ -1637,7 +1654,7 @@
                     <div class="archive-tools">
                         <div class="field">
                             <label for="archive-search">Search archive</label>
-                            <input id="archive-search" placeholder="Search titles, categories, notes, and bodies">
+                            <input id="archive-search" placeholder="Search titles, categories, tags, notes, and bodies">
                         </div>
                         <div class="field">
                             <label for="archive-sort">Sort order</label>
@@ -1759,15 +1776,19 @@
                                     <option value="research">Research</option>
                                 </select>
                             </div>
-                            <div class="field">
-                                <label for="submit-category">Category</label>
-                                <input id="submit-category" placeholder="poem, poetry, picture, sounds, tracks, physics, gallery...">
-                            </div>
-                            <div class="field">
-                                <label for="submit-visibility">Publication State</label>
-                                <select id="submit-visibility">
-                                    <option value="draft" selected>Private draft</option>
-                                    <option value="review">Needs review</option>
+                        <div class="field">
+                            <label for="submit-category">Category</label>
+                            <input id="submit-category" placeholder="poem, poetry, picture, sounds, tracks, physics, gallery...">
+                        </div>
+                        <div class="field">
+                            <label for="submit-tags">Tags</label>
+                            <input id="submit-tags" placeholder="sacred, nocturne, portrait, theory">
+                        </div>
+                        <div class="field">
+                            <label for="submit-visibility">Publication State</label>
+                            <select id="submit-visibility">
+                                <option value="draft" selected>Private draft</option>
+                                <option value="review">Needs review</option>
                                     <option value="published">Published</option>
                                     <option value="archived">Archived</option>
                                 </select>
@@ -1902,6 +1923,7 @@
         const collectionNote = $("collection-note");
         const captureCollectionBtn = $("capture-collection-btn");
         const importLocalFile = $("import-local-file");
+        const submitTags = $("submit-tags");
         const qaMode = new URLSearchParams(window.location.search).get("qa") === "1" || localStorage.getItem("tilaelia-qa-open") === "1";
 
         function loadLocalOfferings() {
@@ -1942,6 +1964,17 @@
                 localStorage.removeItem("tilaelia-collections");
                 return [];
             }
+        }
+
+        function parseTags(value) {
+            if (Array.isArray(value)) {
+                return value.map(tag => String(tag || "").trim().toLowerCase()).filter(Boolean).slice(0, 12);
+            }
+            return String(value || "")
+                .split(/[,#/|]+/)
+                .map(tag => tag.trim().toLowerCase())
+                .filter(Boolean)
+                .slice(0, 12);
         }
 
         function normalizeRevision(entry) {
@@ -2046,7 +2079,8 @@
                 item.mediaType || "",
                 item.mediaUrl || "",
                 item.visibility || "",
-                item.body || ""
+                item.body || "",
+                (item.tags || []).join(",")
             ].join("|");
         }
 
@@ -2130,6 +2164,7 @@
                 title: item.title || "Untitled offering",
                 meta: item.meta || "",
                 body: item.body || "",
+                tags: Array.isArray(item.tags) ? item.tags.slice(0, 12) : [],
                 mediaType: item.mediaType || "",
                 mediaUrl: item.mediaUrl || "",
                 createdAt: item.createdAt || new Date().toISOString(),
@@ -2157,6 +2192,20 @@
                 memberCount,
                 source: String(collection.source || "local").trim().toLowerCase() || "local"
             };
+        }
+
+        function renderTagRow(item) {
+            const tags = Array.isArray(item?.tags) ? item.tags.filter(Boolean) : [];
+            if (!tags.length) return null;
+            const row = document.createElement("div");
+            row.className = "tag-row";
+            row.append(...tags.slice(0, 8).map(tag => {
+                const pill = document.createElement("span");
+                pill.className = "tag-pill";
+                pill.textContent = tag;
+                return pill;
+            }));
+            return row;
         }
 
         function collectionItems(collection) {
@@ -2280,6 +2329,7 @@
             const mediaType = String(item.mediaType || item.media_type || "").trim().toLowerCase();
             const rawCategory = String(item.category || defaultCategory(section)).trim().toLowerCase();
             const mediaUrl = String(item.mediaUrl || item.media_url || "").trim();
+            const tags = parseTags(item.tags || item.tagList || item.tag_string || item.tagString);
             const category = routeCategory(section, rawCategory, mediaType, mediaUrl);
             const createdAt = item.createdAt || item.created_at || new Date().toISOString();
             const source = String(item.source || "").trim().toLowerCase() || (String(item.visibility || "").trim().toLowerCase() === "published" ? "published" : "");
@@ -2289,6 +2339,7 @@
                 title: String(item.title).trim(),
                 meta: withTimestamp(String(item.meta || category).trim(), createdAt),
                 body: String(item.body || "").trim(),
+                tags,
                 mediaType,
                 mediaUrl,
                 createdAt,
@@ -2385,6 +2436,8 @@
                     createTextNode("p", "", item.meta || item.category),
                     createTextNode("p", "", item.body)
                 );
+                const tags = renderTagRow(item);
+                if (tags) body.appendChild(tags);
                 if (item.createdAt) {
                     body.appendChild(createTextNode("p", "", `Submitted ${formatSubmissionTime(item.createdAt)}`));
                 }
@@ -2400,6 +2453,8 @@
                 createTextNode("h3", "", item.title),
                 createTextNode("p", "", item.body)
             );
+            const tags = renderTagRow(item);
+            if (tags) article.appendChild(tags);
             if (item.createdAt) {
                 article.appendChild(createTextNode("p", "meta", `Submitted ${formatSubmissionTime(item.createdAt)}`));
             }
@@ -2542,7 +2597,8 @@
                     item.category,
                     item.body,
                     item.section,
-                    curatorLabel(item)
+                    curatorLabel(item),
+                    Array.isArray(item.tags) ? item.tags.join(" ") : ""
                 ].some(value => String(value || "").toLowerCase().includes(query)))
                 : scoped;
             const sorted = filtered.slice();
@@ -2740,6 +2796,8 @@
                     <span>${escapeHtml(item.section || "portfolio")} · ${escapeHtml(item.category || "other")} · ${escapeHtml(curatorLabel(item))}</span>
                     <span>Submitted ${escapeHtml(formatSubmissionTime(item.createdAt))}</span>
                 `;
+                const tags = renderTagRow(item);
+                if (tags) article.appendChild(tags);
                 submissionLedger.appendChild(article);
             });
         }
@@ -2850,6 +2908,9 @@
                         body.textContent = item.body || "No description stored.";
                         entry.appendChild(body);
 
+                        const tags = renderTagRow(item);
+                        if (tags) entry.appendChild(tags);
+
                         const media = createMediaNode(item);
                         if (media) {
                             media.classList.add("archive-media");
@@ -2905,6 +2966,8 @@
                     </div>
                     <p>${escapeHtml(item.body || "No description stored.")}</p>
                 `;
+                const tags = renderTagRow(item);
+                if (tags) card.appendChild(tags);
                 const actions = document.createElement("div");
                 actions.className = "management-actions";
                 ["draft", "review", "published", "archived"].forEach(visibility => {
@@ -2978,6 +3041,8 @@
                     </div>
                     <p>${escapeHtml(item.body || "No description stored.")}</p>
                 `;
+                const tags = renderTagRow(item);
+                if (tags) card.appendChild(tags);
                 const actions = document.createElement("div");
                 actions.className = "management-actions review-actions";
                 const approve = document.createElement("button");
@@ -3042,6 +3107,8 @@
                     </div>
                     <p>${escapeHtml(current.body || "No description stored.")}</p>
                 `;
+                const tags = renderTagRow(current);
+                if (tags) card.appendChild(tags);
                 const actions = document.createElement("div");
                 actions.className = "management-actions version-actions";
                 if (revision.before) {
@@ -3156,6 +3223,8 @@
                 </div>
                 <p>${escapeHtml(selected.note || "No curator note stored.")}</p>
             `;
+            const selectedTags = renderTagRow({ tags: parseTags(selected.note) });
+            if (selectedTags) detail.appendChild(selectedTags);
             const actions = document.createElement("div");
             actions.className = "management-actions";
             const recapture = document.createElement("button");
@@ -3196,6 +3265,8 @@
                     </div>
                     <p>${escapeHtml(item.body || "No description stored.")}</p>
                 `;
+                const tags = renderTagRow(item);
+                if (tags) article.appendChild(tags);
                 const actions = document.createElement("div");
                 actions.className = "management-actions";
                 const open = document.createElement("button");
@@ -3550,6 +3621,7 @@
             const mediaType = $("submit-media-type").value;
             const mediaUrl = $("submit-media-url").value.trim();
             const typedCategory = $("submit-category").value.trim().toLowerCase();
+            const tags = parseTags(submitTags?.value || "");
             const file = submitMediaFile?.files?.[0] || null;
             let mediaPayload = mediaUrl;
             let mediaKind = mediaType;
@@ -3572,6 +3644,7 @@
                 body: $("submit-body").value.trim(),
                 mediaType: mediaKind,
                 mediaUrl: mediaPayload || mediaUrl,
+                tags,
                 createdAt: new Date().toISOString(),
                 kind: defaultKind(section, category),
                 visibility
@@ -3598,6 +3671,7 @@
                                 body: normalized.body,
                                 mediaType: normalized.mediaType,
                                 mediaUrl: normalized.mediaUrl,
+                                tags: normalized.tags,
                                 visibility: "published"
                             })
                         });
