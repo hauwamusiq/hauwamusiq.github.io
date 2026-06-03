@@ -5488,15 +5488,21 @@
         enterBtn.addEventListener("click", () => {
             const gate = $("gate");
             if (gate.classList.contains("entering") || gate.classList.contains("open")) return;
-            gate.classList.add("entering");
-            window.setTimeout(() => {
+            const finishGateOpen = () => {
+                if (gate.classList.contains("open")) return;
                 gate.classList.add("open");
                 document.body.classList.remove("locked");
                 document.body.classList.add("unlocked");
-            }, 1450);
-            window.setTimeout(() => {
                 titleSparkState.active = false;
-            }, 1700);
+            };
+            gate.classList.add("entering");
+            const gateCopy = gate.querySelector(".gate-copy");
+            const onGateAnimationEnd = event => {
+                if (event.target !== gateCopy || event.animationName !== "gateDive") return;
+                finishGateOpen();
+            };
+            gateCopy?.addEventListener("animationend", onGateAnimationEnd, { once: true });
+            window.setTimeout(finishGateOpen, 1700);
         });
 
         const titleSparkState = { sparks: [], lastX: 0, lastY: 0, lastEmit: 0, active: false };
