@@ -1572,6 +1572,26 @@
             color: var(--muted);
             line-height: 1.68;
         }
+        .program-notes {
+            border: 1px solid rgba(255,255,255,0.09);
+            background: rgba(255,255,255,0.025);
+            border-radius: 10px;
+            padding: 14px 16px;
+            display: grid;
+            gap: 8px;
+        }
+        .program-notes h4 {
+            margin: 0;
+            font-family: var(--serif);
+            font-size: 1rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+        .program-notes p {
+            margin: 0;
+            color: var(--muted);
+            line-height: 1.68;
+        }
         .maintenance-board {
             display: grid;
             gap: 12px;
@@ -2163,7 +2183,7 @@
                             <input id="exhibition-title" placeholder="Open Sanctum, Year One, Winter Light">
                         </div>
                         <div class="field">
-                            <label for="exhibition-note">Curatorial note</label>
+                            <label for="exhibition-note">Program notes</label>
                             <input id="exhibition-note" placeholder="What the visitor should feel or notice first">
                         </div>
                         <div class="field">
@@ -2360,6 +2380,7 @@
             selectedExhibition: "",
             selectedGallery: "",
             galleryRotationIndex: Number(localStorage.getItem("tilaelia-gallery-rotation-index") || "0") || 0,
+            showProgramNotes: localStorage.getItem("tilaelia-program-notes-visible") === "1" || new URLSearchParams(window.location.search).get("notes") === "1",
             presentationIndex: 0,
             presentationMode: "stage",
             visitorMode: new URLSearchParams(window.location.search).get("visitor") === "1" || localStorage.getItem("tilaelia-visitor-mode") === "1",
@@ -2914,6 +2935,15 @@
                 localStorage.setItem(key, String((nextIndex + 1) % list.length));
             } catch {}
             return selected;
+        }
+
+        function toggleProgramNotes(force = null) {
+            state.showProgramNotes = typeof force === "boolean" ? force : !state.showProgramNotes;
+            try {
+                localStorage.setItem("tilaelia-program-notes-visible", state.showProgramNotes ? "1" : "0");
+            } catch {}
+            renderPresentation();
+            renderPublicGallery();
         }
 
         function createExhibitionFromView(title, note, existing = null) {
@@ -4269,7 +4299,7 @@
                         </div>
                         <small>${String(members.length).padStart(2, "0")} works</small>
                     </div>
-                    <p>${escapeHtml(exhibition.note || "No curatorial note stored.")}</p>
+                    <p>${escapeHtml(exhibition.note ? "Program notes available." : "No program notes stored.")}</p>
                     <div class="collection-meta">
                         <span>${escapeHtml(exhibition.source || "public")}</span>
                         <span>${escapeHtml(exhibition.memberCount || members.length)} captured</span>
@@ -4436,7 +4466,6 @@
             stage.innerHTML = `
                 <div class="presentation-kicker">Now presenting</div>
                 <h3>${escapeHtml(selected.title)}</h3>
-                <p>${escapeHtml(selected.note || "A public exhibition assembled from the archive.")}</p>
                 <div class="management-meta">
                     <span>${escapeHtml(formatSubmissionTime(selected.updatedAt || selected.createdAt))}</span>
                     <span>${escapeHtml(selected.source || "public")}</span>
@@ -4469,7 +4498,23 @@
             snapshot.textContent = "Export Snapshot";
             snapshot.addEventListener("click", () => downloadExhibitionSnapshot(selected));
             actions.appendChild(snapshot);
+            const notesToggle = document.createElement("button");
+            notesToggle.className = "action ghost";
+            notesToggle.type = "button";
+            notesToggle.textContent = state.showProgramNotes ? "Hide Notes" : "Program Notes";
+            notesToggle.addEventListener("click", () => toggleProgramNotes());
+            actions.appendChild(notesToggle);
             stage.appendChild(actions);
+
+            if (state.showProgramNotes && selected.note) {
+                const notes = document.createElement("section");
+                notes.className = "program-notes";
+                notes.innerHTML = `
+                    <h4>Program Notes</h4>
+                    <p>${escapeHtml(selected.note)}</p>
+                `;
+                stage.appendChild(notes);
+            }
 
             const spotlight = document.createElement("section");
             spotlight.className = "presentation-spotlight";
@@ -4617,7 +4662,6 @@
             stage.innerHTML = `
                 <div class="presentation-kicker">Public gallery</div>
                 <h3>${escapeHtml(selected.title)}</h3>
-                <p>${escapeHtml(selected.note || "A finished wall of work presented for visitors.")}</p>
                 <div class="management-meta">
                     <span>${escapeHtml(formatSubmissionTime(selected.updatedAt || selected.createdAt))}</span>
                     <span>${escapeHtml(selected.source || "public")}</span>
@@ -4639,6 +4683,24 @@
             const featuredTags = renderTagRow(featured);
             if (featuredTags) intro.appendChild(featuredTags);
             stage.appendChild(intro);
+            if (state.showProgramNotes && selected.note) {
+                const notes = document.createElement("section");
+                notes.className = "program-notes";
+                notes.innerHTML = `
+                    <h4>Program Notes</h4>
+                    <p>${escapeHtml(selected.note)}</p>
+                `;
+                stage.appendChild(notes);
+            }
+            const notesToggle = document.createElement("div");
+            notesToggle.className = "management-actions";
+            const notesButton = document.createElement("button");
+            notesButton.className = "action ghost";
+            notesButton.type = "button";
+            notesButton.textContent = state.showProgramNotes ? "Hide Notes" : "Show Notes";
+            notesButton.addEventListener("click", () => toggleProgramNotes());
+            notesToggle.appendChild(notesButton);
+            stage.appendChild(notesToggle);
 
             const rail = document.createElement("div");
             rail.className = "public-gallery-rail";
@@ -4654,7 +4716,7 @@
                         <span>${String(count).padStart(2, "0")} works</span>
                         <span>${escapeHtml(formatSubmissionTime(exhibition.updatedAt || exhibition.createdAt))}</span>
                     </div>
-                    <p>${escapeHtml(exhibition.note || "No curatorial note stored.")}</p>
+                    <p>${escapeHtml(exhibition.note ? "Program notes available." : "No program notes stored.")}</p>
                 `;
                 if (!state.visitorMode) {
                     card.addEventListener("click", () => {
@@ -4711,6 +4773,10 @@
             }
             try {
                 localStorage.setItem("tilaelia-visitor-mode", state.visitorMode ? "1" : "0");
+                if (!localStorage.getItem("tilaelia-program-notes-visible")) {
+                    localStorage.setItem("tilaelia-program-notes-visible", state.visitorMode ? "0" : "1");
+                    state.showProgramNotes = !state.visitorMode;
+                }
             } catch {}
             if (state.visitorMode) {
                 state.findQuery = "";
