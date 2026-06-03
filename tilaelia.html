@@ -2201,6 +2201,7 @@
                     <h2>Presentation hall</h2>
                     <p>A visitor-facing stage for the currently selected exhibition. This is the portfolio as a show, not as a ledger.</p>
                 </div>
+                <div class="sr-only" id="presentation-announcement" aria-live="polite"></div>
                 <div class="presentation-board" id="presentation-board" aria-label="Presentation view"></div>
             </section>
 
@@ -2419,6 +2420,7 @@
         const exhibitionShelf = $("exhibition-shelf");
         const exhibitionBoard = $("exhibition-board");
         const presentationBoard = $("presentation-board");
+        const presentationAnnouncement = $("presentation-announcement");
         const publicGalleryBoard = $("public-gallery-board");
         const galleryAnnouncement = $("gallery-announcement");
         const maintenanceBoard = $("maintenance-board");
@@ -2980,6 +2982,75 @@
             renderExhibitions();
             renderPresentation();
             renderPublicGallery();
+        }
+
+        function visibleExhibitions() {
+            return state.exhibitions.map(normalizeExhibition).filter(Boolean);
+        }
+
+        function currentPresentationExhibition() {
+            const exhibitions = visibleExhibitions();
+            if (!exhibitions.length) return null;
+            return exhibitions.find(entry => exhibitionKey(entry) === state.selectedExhibition) || exhibitions[0];
+        }
+
+        function currentPresentationSequence() {
+            const exhibition = currentPresentationExhibition();
+            if (!exhibition) return { exhibition: null, members: [] };
+            return { exhibition, members: exhibitionItems(exhibition).slice(0, 8) };
+        }
+
+        function announcePresentation(message) {
+            if (presentationAnnouncement) {
+                presentationAnnouncement.textContent = message || "";
+            }
+        }
+
+        function movePresentationSequence(delta = 1) {
+            const { exhibition, members } = currentPresentationSequence();
+            if (!exhibition || !members.length) return;
+            const length = members.length;
+            const next = (state.presentationIndex + delta + length) % length;
+            state.presentationIndex = next;
+            renderPresentation();
+        }
+
+        function jumpPresentationSequence(index = 0) {
+            const { exhibition, members } = currentPresentationSequence();
+            if (!exhibition || !members.length) return;
+            const next = Math.max(0, Math.min(Number(index) || 0, members.length - 1));
+            state.presentationIndex = next;
+            renderPresentation();
+        }
+
+        function isTypingTarget(target) {
+            if (!target) return false;
+            const tag = String(target.tagName || "").toUpperCase();
+            return target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(tag);
+        }
+
+        function handlePortfolioKeyboard(event) {
+            if (event.defaultPrevented || isTypingTarget(event.target)) return;
+            const activeSection = document.querySelector(".section.active")?.id || "";
+            if (activeSection === "section-presentation") {
+                if (event.key === "ArrowRight" || event.key === "PageDown") {
+                    event.preventDefault();
+                    movePresentationSequence(1);
+                } else if (event.key === "ArrowLeft" || event.key === "PageUp") {
+                    event.preventDefault();
+                    movePresentationSequence(-1);
+                } else if (event.key === "Home") {
+                    event.preventDefault();
+                    jumpPresentationSequence(0);
+                } else if (event.key === "End") {
+                    event.preventDefault();
+                    const { members } = currentPresentationSequence();
+                    jumpPresentationSequence(Math.max(0, members.length - 1));
+                } else if (event.key === "n" || event.key === "N") {
+                    event.preventDefault();
+                    toggleProgramNotes();
+                }
+            }
         }
 
         function recordRevision(item, action, before = null, after = null) {
@@ -4435,13 +4506,14 @@
 
         function renderPresentation() {
             if (!presentationBoard) return;
-            const exhibitions = state.exhibitions.map(normalizeExhibition).filter(Boolean);
+            const exhibitions = visibleExhibitions();
             if (!exhibitions.length) {
                 presentationBoard.innerHTML = `
                     <div class="archive-empty">
                         No exhibitions are ready for presentation yet. Build one in the exhibition hall first, then return here for the public-facing stage.
                     </div>
                 `;
+                announcePresentation("No exhibitions are ready for presentation yet.");
                 return;
             }
             const selected = exhibitions.find(entry => exhibitionKey(entry) === state.selectedExhibition) || exhibitions[0];
@@ -4452,6 +4524,7 @@
                         This exhibition has no visible works yet. Return to the exhibition hall and capture an archive view first.
                     </div>
                 `;
+                announcePresentation(`Presentation is showing ${selected.title}, but it has no visible works yet.`);
                 return;
             }
             const sequence = members.slice(0, 8);
@@ -4473,6 +4546,7 @@
                     <span>${String(members.length).padStart(2, "0")} works on view</span>
                 </div>
             `;
+            announcePresentation(`Presentation is showing ${selected.title}. Active work: ${active?.title || "Untitled offering"}.`);
             const actions = document.createElement("div");
             actions.className = "management-actions";
             const openExhibition = document.createElement("button");
@@ -4886,6 +4960,8 @@
             renderPublicGallery();
             renderMaintenanceBoard();
         }
+
+        document.addEventListener("keydown", handlePortfolioKeyboard);
 
         function switchSection(name) {
             const next = ["home", "archive", "find", "management", "review", "versions", "collections", "exhibitions", "presentation", "gallery", "maintenance", "music", "writing", "visuals", "research", "submissions"].includes(name) ? name : "home";
