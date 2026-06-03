@@ -1112,7 +1112,19 @@
             font-size: 0.78rem;
             letter-spacing: 0.04em;
         }
+        .review-summary {
+            margin-bottom: 14px;
+        }
+        .review-summary small {
+            color: var(--muted);
+            font-size: 0.78rem;
+            letter-spacing: 0.04em;
+        }
         .management-board {
+            display: grid;
+            gap: 12px;
+        }
+        .review-board {
             display: grid;
             gap: 12px;
         }
@@ -1427,6 +1439,7 @@
                 <button class="active" data-section="home">Home</button>
                 <button data-section="archive">Archive</button>
                 <button data-section="management">Manage</button>
+                <button data-section="review">Review</button>
                 <button data-section="music">Music</button>
                 <button data-section="writing">Writing</button>
                 <button data-section="visuals">Visuals</button>
@@ -1568,6 +1581,17 @@
                 <div class="management-board" id="management-board" aria-label="Curator ledger"></div>
             </section>
 
+            <section class="section" id="section-review">
+                <div class="section-head">
+                    <h2>Review queue</h2>
+                    <p>Submissions waiting for a decision before they move into publication, holding, or archive.</p>
+                </div>
+                <div class="review-summary">
+                    <small id="review-summary-note">Showing the current review queue.</small>
+                </div>
+                <div class="management-board review-board" id="review-board" aria-label="Review queue"></div>
+            </section>
+
             <section class="section" id="section-submissions">
                 <div class="section-head">
                     <h2>Keeper console</h2>
@@ -1612,6 +1636,7 @@
                                 <label for="submit-visibility">Publication State</label>
                                 <select id="submit-visibility">
                                     <option value="draft" selected>Private draft</option>
+                                    <option value="review">Needs review</option>
                                     <option value="published">Published</option>
                                     <option value="archived">Archived</option>
                                 </select>
@@ -1728,6 +1753,8 @@
         const archiveStream = $("archive-stream");
         const managementBoard = $("management-board");
         const managementSummaryNote = $("management-summary-note");
+        const reviewBoard = $("review-board");
+        const reviewSummaryNote = $("review-summary-note");
         const submissionLedger = $("submission-ledger");
         const submitStatus = $("submit-status");
         const qaMode = new URLSearchParams(window.location.search).get("qa") === "1" || localStorage.getItem("tilaelia-qa-open") === "1";
@@ -1856,7 +1883,7 @@
 
         async function updateOfferingVisibility(item, visibility) {
             const nextVisibility = String(visibility || "").trim().toLowerCase();
-            if (!["draft", "published", "archived"].includes(nextVisibility)) return;
+            if (!["draft", "review", "published", "archived"].includes(nextVisibility)) return;
             const normalized = setLocalMirror(item, { visibility: nextVisibility });
             if (!normalized) return;
             if (nextVisibility === "published" && item?.source !== "published" && window.TilelliEdge) {
@@ -2134,6 +2161,12 @@
                 .sort((a, b) => archiveTimeValue(b) - archiveTimeValue(a));
         }
 
+        function reviewItems() {
+            return archiveItems()
+                .filter(item => item.source !== "seed" && item.visibility === "review")
+                .sort((a, b) => archiveTimeValue(b) - archiveTimeValue(a));
+        }
+
         function archiveTimeValue(item) {
             if (!item || item.source === "seed" || !item.createdAt) return 0;
             const time = new Date(item.createdAt).getTime();
@@ -2324,6 +2357,7 @@
             if (!item) return "offering";
             if (item.source === "seed") return "seed library";
             if (item.source === "published" || item.visibility === "published") return "published";
+            if (item.visibility === "review") return "needs review";
             if (item.visibility === "draft" || item.source === "local") return "private draft";
             return item.category || "offering";
         }
@@ -2444,7 +2478,7 @@
                             later.addEventListener("click", () => moveSpotlight(item, 1));
                             actions.appendChild(later);
                         }
-                        if (item.visibility === "draft" || item.visibility === "published" || item.visibility === "archived") {
+                        if (item.visibility === "draft" || item.visibility === "review" || item.visibility === "published" || item.visibility === "archived") {
                             const stateChip = document.createElement("button");
                             stateChip.className = "action ghost";
                             stateChip.type = "button";
@@ -2515,7 +2549,7 @@
                 `;
                 const actions = document.createElement("div");
                 actions.className = "management-actions";
-                ["draft", "published", "archived"].forEach(visibility => {
+                ["draft", "review", "published", "archived"].forEach(visibility => {
                     const button = document.createElement("button");
                     button.className = "action";
                     button.type = "button";
@@ -2551,6 +2585,69 @@
             });
         }
 
+        function renderReviewQueue() {
+            if (!reviewBoard) return;
+            const items = reviewItems();
+            if (!items.length) {
+                reviewBoard.innerHTML = `
+                    <div class="archive-empty">
+                        No submissions are waiting for review. Mark an offering as <strong>review</strong> in the keeper console or management ledger to seed the queue.
+                    </div>
+                `;
+                if (reviewSummaryNote) {
+                    reviewSummaryNote.textContent = "No submissions are currently waiting for review.";
+                }
+                return;
+            }
+            reviewBoard.innerHTML = "";
+            if (reviewSummaryNote) {
+                reviewSummaryNote.textContent = `Reviewing ${items.length} offering${items.length === 1 ? "" : "s"} awaiting a decision.`;
+            }
+            items.forEach(item => {
+                const card = document.createElement("article");
+                card.className = "management-card review-card";
+                card.innerHTML = `
+                    <div class="management-head">
+                        <div>
+                            <strong>${escapeHtml(item.title || "Untitled offering")}</strong>
+                            <div class="management-pill">${escapeHtml(item.section || "portfolio")} · ${escapeHtml(item.category || "other")} · ${escapeHtml(curatorLabel(item))}</div>
+                        </div>
+                        <small>review</small>
+                    </div>
+                    <div class="management-meta">
+                        <span>${escapeHtml(formatSubmissionTime(item.createdAt))}</span>
+                        ${item.edgeId ? `<span>Edge #${escapeHtml(String(item.edgeId))}</span>` : ""}
+                    </div>
+                    <p>${escapeHtml(item.body || "No description stored.")}</p>
+                `;
+                const actions = document.createElement("div");
+                actions.className = "management-actions review-actions";
+                const approve = document.createElement("button");
+                approve.className = "action";
+                approve.type = "button";
+                approve.textContent = "Approve";
+                approve.addEventListener("click", () => updateOfferingVisibility(item, "published"));
+                actions.appendChild(approve);
+
+                const hold = document.createElement("button");
+                hold.className = "action ghost";
+                hold.type = "button";
+                hold.textContent = "Hold";
+                hold.addEventListener("click", () => updateOfferingVisibility(item, "draft"));
+                actions.appendChild(hold);
+
+                const reject = document.createElement("button");
+                reject.className = "action ghost";
+                reject.type = "button";
+                reject.textContent = "Reject";
+                reject.addEventListener("click", () => updateOfferingVisibility(item, "archived"));
+                actions.appendChild(reject);
+
+                card.appendChild(actions);
+                reviewBoard.appendChild(card);
+            });
+        }
+
         function renderAll() {
             ["music", "writing", "visuals", "research"].forEach(renderSection);
             renderPortfolioOverview();
@@ -2558,10 +2655,11 @@
             renderSubmissionLedger();
             renderArchiveStream();
             renderManagementBoard();
+            renderReviewQueue();
         }
 
         function switchSection(name) {
-            const next = ["home", "archive", "management", "music", "writing", "visuals", "research", "submissions"].includes(name) ? name : "home";
+            const next = ["home", "archive", "management", "review", "music", "writing", "visuals", "research", "submissions"].includes(name) ? name : "home";
             document.querySelectorAll(".section").forEach(section => section.classList.toggle("active", section.id === `section-${next}`));
             document.querySelectorAll(".nav button").forEach(button => button.classList.toggle("active", button.dataset.section === next));
             if (next === "archive") {
@@ -2571,6 +2669,8 @@
                 renderPortfolioOverview();
             } else if (next === "management") {
                 renderManagementBoard();
+            } else if (next === "review") {
+                renderReviewQueue();
             } else if (next === "submissions") {
                 renderSubmissionLedger();
             }
@@ -2878,7 +2978,12 @@
                 $("submit-body").placeholder = "This browser could not save locally. Export additions before leaving.";
                 announceSubmission("Local save failed in this browser. Export the additions before leaving.");
             }
-            switchSection(normalized.visibility === "published" ? "archive" : "submissions");
+            const nextSection = normalized.visibility === "published"
+                ? "archive"
+                : normalized.visibility === "review"
+                    ? "review"
+                    : "submissions";
+            switchSection(nextSection);
         });
 
         $("clear-local-btn").addEventListener("click", () => {
