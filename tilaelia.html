@@ -227,32 +227,34 @@
             position: absolute;
             inset: 0;
             overflow: hidden;
-            perspective: none;
+            perspective: 1100px;
+            perspective-origin: 50% 50%;
             background: #020103;
             z-index: 1;
             pointer-events: none;
         }
         .word-space span {
             position: absolute;
-            left: calc(50% + var(--x, 0px));
-            top: calc(50% + var(--y, 0px));
+            left: 50%;
+            top: 50%;
             color: rgba(255,248,237,0.82);
             font-family: var(--ritual);
             font-size: clamp(0.8rem, 1.8vw, 1.2rem);
             text-transform: uppercase;
             letter-spacing: 0.2em;
             white-space: nowrap;
-            text-shadow: 0 0 18px rgba(255,109,158,0.42);
-            animation: wordDrift var(--duration, 13s) ease-in-out infinite;
+            text-shadow: 0 0 18px rgba(255,109,158,0.42), 0 0 42px rgba(246,204,114,0.12);
+            animation: wordAether var(--duration, 13s) ease-in-out infinite;
             animation-delay: var(--delay, 0s);
-            transform: translate(-50%, -50%) scale(0.96);
-            opacity: 0.34;
+            transform: translate3d(var(--x, 0), var(--y, 0), -1100px) scale(0.12);
+            opacity: 0;
         }
-        @keyframes wordDrift {
-            0% { opacity: 0.16; transform: translate(-50%, -50%) scale(0.95); }
-            16% { opacity: 0.88; transform: translate(-50%, calc(-50% - 4px)) scale(1); }
-            72% { opacity: 0.82; transform: translate(-50%, calc(-50% + 4px)) scale(1.02); }
-            100% { opacity: 0.16; transform: translate(-50%, -50%) scale(1.04); }
+        @keyframes wordAether {
+            0% { opacity: 0; transform: translate3d(var(--x, 0), var(--y, 0), -2200px) scale(0.06) rotateX(28deg); filter: blur(10px); }
+            16% { opacity: 0.56; transform: translate3d(calc(var(--x, 0) * 0.88), calc(var(--y, 0) * 0.88), -1100px) scale(0.26) rotateX(16deg); filter: blur(7px); }
+            42% { opacity: 0.86; transform: translate3d(calc(var(--x, 0) * 0.94), calc(var(--y, 0) * 0.94), -420px) scale(0.62) rotateX(8deg); filter: blur(2.5px); }
+            68% { opacity: 0.92; transform: translate3d(calc(var(--x, 0) * 1), calc(var(--y, 0) * 1), 60px) scale(1) rotateX(0deg); filter: blur(0); }
+            100% { opacity: 0; transform: translate3d(calc(var(--x, 0) * 1.08), calc(var(--y, 0) * 1.08), 420px) scale(1.12) rotateX(-4deg); filter: blur(1px); }
         }
         .gate-copy {
             position: relative;
@@ -2180,15 +2182,15 @@
         <canvas id="gate-canvas" aria-hidden="true"></canvas>
         <div class="word-space" aria-hidden="true">
             <span style="--x:-42vw;--y:-32vh;--duration:12s;--delay:-1s;">poems</span>
-            <span style="--x:24vw;--y:-36vh;--duration:15s;--delay:-5s;">songs</span>
+            <span style="--x:30vw;--y:-34vh;--duration:15s;--delay:-5s;">songs</span>
             <span style="--x:-8vw;--y:-24vh;--duration:13s;--delay:-8s;">essays</span>
-            <span style="--x:38vw;--y:-10vh;--duration:16s;--delay:-2s;">visions</span>
+            <span style="--x:42vw;--y:-14vh;--duration:16s;--delay:-2s;">visions</span>
             <span style="--x:-34vw;--y:2vh;--duration:14s;--delay:-6s;">sketches</span>
-            <span style="--x:38vw;--y:-16vh;--duration:12s;--delay:-3s;">paintings</span>
+            <span style="--x:48vw;--y:-18vh;--duration:12s;--delay:-3s;">paintings</span>
             <span style="--x:-22vw;--y:28vh;--duration:17s;--delay:-10s;">research</span>
-            <span style="--x:32vw;--y:30vh;--duration:13s;--delay:-7s;">sound</span>
+            <span style="--x:40vw;--y:30vh;--duration:13s;--delay:-7s;">sound</span>
             <span style="--x:-4vw;--y:38vh;--duration:18s;--delay:-12s;">devotion</span>
-            <span style="--x:44vw;--y:8vh;--duration:15s;--delay:-9s;">creation</span>
+            <span style="--x:52vw;--y:8vh;--duration:15s;--delay:-9s;">creation</span>
         </div>
         <canvas id="title-spark-canvas" aria-hidden="true"></canvas>
         <div class="gate-copy">
