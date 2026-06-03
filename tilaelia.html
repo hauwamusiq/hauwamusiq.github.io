@@ -416,6 +416,12 @@
             font-size: clamp(0.72rem, 1.1vw, 1rem);
             animation: livingWordFloat var(--d, 16s) ease-in-out infinite alternate;
         }
+        body.unlocked #world-canvas,
+        body.unlocked .sanctum-aura,
+        body.unlocked .thread-field,
+        body.unlocked .living-words {
+            display: none;
+        }
         @keyframes threadDrift {
             from { transform: translate3d(-4vw, 0, 0) rotate(var(--r)); opacity: 0.24; }
             to { transform: translate3d(7vw, -4vh, 0) rotate(calc(var(--r) + 8deg)); opacity: 0.72; }
