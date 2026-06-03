@@ -194,18 +194,6 @@
             60% { transform: translateX(4%) skewY(1.6deg); opacity: 1; }
             100% { transform: translateX(13%) skewY(3deg); opacity: 0; }
         }
-        @media (max-width: 620px) {
-            #gate.entering { animation: gateDoorFadeMobile 1.25s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-            #gate.entering .gate-copy {
-                animation: gateDiveMobile 1.25s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
-            }
-            #gate.entering::before {
-                animation: gateLeftOpenMobile 1.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-            }
-            #gate.entering::after {
-                animation: gateRightOpenMobile 1.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-            }
-        }
         #gate-canvas {
             position: absolute;
             inset: 0;
@@ -2023,6 +2011,10 @@
             }
         }
         @media (max-width: 620px) {
+            #gate {
+                min-height: 100svh;
+                padding: max(12px, env(safe-area-inset-top)) 0 max(12px, env(safe-area-inset-bottom));
+            }
             .shell { width: min(100% - 16px, 1280px); }
             .topbar { align-items: flex-start; flex-direction: column; }
             .nav {
@@ -2076,17 +2068,25 @@
             .portal-card {
                 padding: 14px;
             }
+            .home-feature-board {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+            .home-feature-slide {
+                min-height: 0;
+                padding: 14px;
+            }
+            .home-feature-slide .home-feature-media,
+            .home-feature-slide .home-feature-media > * {
+                min-height: 150px;
+            }
+            .home-feature-list {
+                display: none;
+            }
             .gallery { grid-template-columns: 1fr; }
             .home-feature-head {
                 flex-direction: column;
                 align-items: flex-start;
-            }
-            .home-feature-slide {
-                min-height: 0;
-            }
-            .home-feature-slide .home-feature-media,
-            .home-feature-slide .home-feature-media > * {
-                min-height: 180px;
             }
             .visual-gallery-wall { grid-template-columns: 1fr; }
             .visual-gallery-wall .art-tile,
@@ -2174,35 +2174,38 @@
             .home-intro-stack { gap: 26px; }
             .home-feature-stage { margin-top: 22px; padding: 20px 14px 14px; }
             .gate-copy {
-                width: min(100% - 14px, 430px);
-                padding: 14px 6px;
+                width: min(100% - 12px, 360px);
+                padding: 12px 4px;
                 margin-inline: auto;
             }
             .gate-kicker {
-                font-size: 0.52rem;
-                letter-spacing: 0.18em;
-                margin-bottom: 8px;
+                font-size: 0.5rem;
+                letter-spacing: 0.16em;
+                margin-bottom: 6px;
             }
             .gate-copy h1 {
-                font-size: clamp(1.85rem, 12vw, 2.85rem);
-                line-height: 0.84;
-                max-width: 7.5ch;
+                font-size: clamp(1.4rem, 10vw, 2.15rem);
+                line-height: 0.82;
+                max-width: 7.6ch;
                 margin-inline: auto;
             }
             .gate-copy p {
-                font-size: 0.76rem;
-                line-height: 1.45;
-                margin: 10px auto 14px;
-                width: min(100%, 22rem);
+                font-size: 0.67rem;
+                line-height: 1.38;
+                margin: 8px auto 10px;
+                width: min(100%, 18rem);
             }
             .portal-card { min-height: auto; }
             .title-drifter { animation: titleBreathe 11s ease-in-out infinite; }
-            .word-space { perspective: none; }
-            .word-space span {
-                font-size: 0.58rem;
-                letter-spacing: 0.1em;
+            .word-space {
+                display: block;
+                perspective: 880px;
             }
-            .word-space span:nth-child(n+5) {
+            .word-space span {
+                font-size: 0.52rem;
+                letter-spacing: 0.08em;
+            }
+            .word-space span:nth-child(n+9) {
                 display: none;
             }
             .sanctum-aura {
@@ -2211,14 +2214,17 @@
             }
             #title-spark-canvas { display: none; }
             .gate-copy .enter-btn {
-                font-size: 0.72rem;
-                letter-spacing: 0.14em;
+                font-size: 0.62rem;
+                letter-spacing: 0.1em;
             }
             #gate.entering .gate-copy {
                 animation: gateDiveMobile 1.25s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
             }
             .gate-copy h1, .gate-copy p, .gate-copy .enter-btn {
                 max-width: 100%;
+            }
+            .contact-band {
+                margin-top: 18px;
             }
         }
         @keyframes gateDiveMobile {
