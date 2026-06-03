@@ -1381,6 +1381,89 @@
             font-size: 0.76rem;
             letter-spacing: 0.04em;
         }
+        .public-gallery-board {
+            display: grid;
+            gap: 14px;
+        }
+        .public-gallery-stage {
+            border: 1px solid rgba(255,255,255,0.09);
+            background: linear-gradient(160deg, rgba(255,255,255,0.05), rgba(246,204,114,0.05) 40%, rgba(100,234,220,0.03));
+            backdrop-filter: blur(18px);
+            border-radius: 10px;
+            padding: 18px;
+            display: grid;
+            gap: 14px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.16);
+        }
+        .public-gallery-stage h3 {
+            margin: 0;
+            font-family: var(--serif);
+            font-size: clamp(1.7rem, 3vw, 3rem);
+            line-height: 1.02;
+        }
+        .public-gallery-stage p {
+            margin: 0;
+            color: var(--muted);
+            line-height: 1.72;
+            max-width: 72ch;
+        }
+        .public-gallery-rail {
+            display: grid;
+            gap: 10px;
+        }
+        .public-gallery-exhibitions {
+            display: grid;
+            gap: 10px;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .public-gallery-exhibition {
+            border: 1px solid var(--line);
+            background: rgba(255,255,255,0.03);
+            border-radius: 8px;
+            padding: 14px;
+            display: grid;
+            gap: 8px;
+        }
+        .public-gallery-exhibition.active {
+            border-color: rgba(246,204,114,0.34);
+            background: linear-gradient(160deg, rgba(246,204,114,0.08), rgba(255,255,255,0.02));
+        }
+        .public-gallery-exhibition strong {
+            font-family: var(--serif);
+            font-size: 1.05rem;
+        }
+        .public-gallery-exhibition .gallery-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px 12px;
+            color: #d9ced8;
+            font-size: 0.76rem;
+            letter-spacing: 0.04em;
+        }
+        .public-gallery-program {
+            display: grid;
+            gap: 10px;
+        }
+        .public-gallery-program .public-gallery-items {
+            display: grid;
+            gap: 10px;
+        }
+        .public-gallery-program .public-gallery-item {
+            border: 1px solid var(--line);
+            background: rgba(255,255,255,0.03);
+            border-radius: 8px;
+            padding: 12px 14px;
+            display: grid;
+            gap: 6px;
+        }
+        .public-gallery-program .public-gallery-item.featured {
+            border-color: rgba(246,204,114,0.35);
+            background: linear-gradient(160deg, rgba(246,204,114,0.08), rgba(255,255,255,0.02));
+        }
+        .public-gallery-program .public-gallery-item strong {
+            font-family: var(--serif);
+            font-size: 1.02rem;
+        }
         .maintenance-board {
             display: grid;
             gap: 12px;
@@ -1739,6 +1822,7 @@
                 <button data-section="collections">Collections</button>
                 <button data-section="exhibitions">Exhibitions</button>
                 <button data-section="presentation">Presentation</button>
+                <button data-section="gallery">Gallery</button>
                 <button data-section="maintenance">Maintenance</button>
                 <button data-section="music">Music</button>
                 <button data-section="writing">Writing</button>
@@ -1990,6 +2074,14 @@
                 <div class="presentation-board" id="presentation-board" aria-label="Presentation view"></div>
             </section>
 
+            <section class="section" id="section-gallery">
+                <div class="section-head">
+                    <h2>Public gallery</h2>
+                    <p>A visitor-facing gallery that presents the current exhibition without the editing controls. This is the finished wall.</p>
+                </div>
+                <div class="public-gallery-board" id="public-gallery-board" aria-label="Public gallery view"></div>
+            </section>
+
             <section class="section" id="section-maintenance">
                 <div class="section-head">
                     <h2>Maintenance vault</h2>
@@ -2155,6 +2247,7 @@
             exhibitions: loadExhibitions(),
             selectedCollection: "",
             selectedExhibition: "",
+            selectedGallery: "",
             presentationIndex: 0,
             presentationMode: "stage",
             maintenanceImportMode: "local"
@@ -2192,6 +2285,7 @@
         const exhibitionShelf = $("exhibition-shelf");
         const exhibitionBoard = $("exhibition-board");
         const presentationBoard = $("presentation-board");
+        const publicGalleryBoard = $("public-gallery-board");
         const maintenanceBoard = $("maintenance-board");
         const maintenanceSummaryNote = $("maintenance-summary-note");
         const submissionLedger = $("submission-ledger");
@@ -2677,8 +2771,10 @@
         function selectExhibition(exhibition) {
             state.selectedExhibition = exhibitionKey(exhibition);
             state.presentationIndex = 0;
+            state.selectedGallery = exhibitionKey(exhibition);
             renderExhibitions();
             renderPresentation();
+            renderPublicGallery();
         }
 
         function recordRevision(item, action, before = null, after = null) {
@@ -4297,6 +4393,127 @@
             presentationBoard.appendChild(programWrap);
         }
 
+        function renderPublicGallery() {
+            if (!publicGalleryBoard) return;
+            const exhibitions = state.exhibitions.map(normalizeExhibition).filter(Boolean);
+            if (!exhibitions.length) {
+                publicGalleryBoard.innerHTML = `
+                    <div class="archive-empty">
+                        No public exhibitions are ready yet. Build one in the exhibition hall first.
+                    </div>
+                `;
+                return;
+            }
+            const selected = exhibitions.find(entry => exhibitionKey(entry) === state.selectedGallery) || exhibitions.find(entry => exhibitionKey(entry) === state.selectedExhibition) || exhibitions[0];
+            const members = exhibitionItems(selected);
+            if (!members.length) {
+                publicGalleryBoard.innerHTML = `
+                    <div class="archive-empty">
+                        This exhibition has no visible works yet.
+                    </div>
+                `;
+                return;
+            }
+            const featured = members[0];
+            const rest = members.slice(1, 6);
+            publicGalleryBoard.innerHTML = "";
+
+            const stage = document.createElement("article");
+            stage.className = "public-gallery-stage";
+            stage.innerHTML = `
+                <div class="presentation-kicker">Public gallery</div>
+                <h3>${escapeHtml(selected.title)}</h3>
+                <p>${escapeHtml(selected.note || "A finished wall of work presented for visitors.")}</p>
+                <div class="management-meta">
+                    <span>${escapeHtml(formatSubmissionTime(selected.updatedAt || selected.createdAt))}</span>
+                    <span>${escapeHtml(selected.source || "public")}</span>
+                    <span>${String(members.length).padStart(2, "0")} works on view</span>
+                </div>
+            `;
+            const rail = document.createElement("div");
+            rail.className = "public-gallery-rail";
+            const featuredPanel = document.createElement("section");
+            featuredPanel.className = "presentation-spotlight";
+            featuredPanel.innerHTML = `
+                <div class="presentation-spotlight-head">
+                    <div>
+                        <strong>${escapeHtml(featured.title || "Untitled offering")}</strong>
+                        <div class="management-pill">${escapeHtml(featured.section || "portfolio")} · ${escapeHtml(featured.category || "other")} · ${escapeHtml(curatorLabel(featured))}</div>
+                    </div>
+                    <small>Featured</small>
+                </div>
+            `;
+            const featuredFrame = document.createElement("div");
+            featuredFrame.className = "presentation-spotlight-frame";
+            const featuredBody = document.createElement("p");
+            featuredBody.textContent = featured.body || "No description stored.";
+            featuredFrame.appendChild(featuredBody);
+            const featuredMedia = createMediaNode(featured);
+            if (featuredMedia) {
+                featuredMedia.classList.add("presentation-spotlight-media");
+                featuredFrame.appendChild(featuredMedia);
+            }
+            const featuredTags = renderTagRow(featured);
+            if (featuredTags) featuredFrame.appendChild(featuredTags);
+            featuredPanel.appendChild(featuredFrame);
+            rail.appendChild(featuredPanel);
+
+            const exhibitionList = document.createElement("div");
+            exhibitionList.className = "public-gallery-exhibitions";
+            exhibitions.forEach(exhibition => {
+                const card = document.createElement("article");
+                card.className = `public-gallery-exhibition${exhibitionKey(exhibition) === exhibitionKey(selected) ? " active" : ""}`;
+                const count = exhibitionItems(exhibition).length;
+                card.innerHTML = `
+                    <strong>${escapeHtml(exhibition.title)}</strong>
+                    <div class="gallery-meta">
+                        <span>${String(count).padStart(2, "0")} works</span>
+                        <span>${escapeHtml(formatSubmissionTime(exhibition.updatedAt || exhibition.createdAt))}</span>
+                    </div>
+                    <p>${escapeHtml(exhibition.note || "No curatorial note stored.")}</p>
+                `;
+                card.addEventListener("click", () => {
+                    state.selectedGallery = exhibitionKey(exhibition);
+                    renderPublicGallery();
+                });
+                exhibitionList.appendChild(card);
+            });
+            rail.appendChild(exhibitionList);
+            stage.appendChild(rail);
+            publicGalleryBoard.appendChild(stage);
+
+            const program = document.createElement("section");
+            program.className = "public-gallery-program";
+            program.innerHTML = `
+                <div class="section-head">
+                    <h3>On view</h3>
+                    <p>The public gallery presents the selected exhibition with no curator controls, just the work and its sequence.</p>
+                </div>
+            `;
+            const items = document.createElement("div");
+            items.className = "public-gallery-items";
+            [featured, ...rest].forEach((item, index) => {
+                const card = document.createElement("article");
+                card.className = `public-gallery-item${index === 0 ? " featured" : ""}`;
+                card.innerHTML = `
+                    <strong>${escapeHtml(item.title || "Untitled offering")}</strong>
+                    <div class="gallery-meta">
+                        <span>${String(index + 1).padStart(2, "0")}</span>
+                        <span>${escapeHtml(item.section || "portfolio")} · ${escapeHtml(item.category || "other")}</span>
+                        <span>${escapeHtml(item.visibility || "draft")}</span>
+                    </div>
+                    <p>${escapeHtml(item.body || "No description stored.")}</p>
+                `;
+                const itemTags = renderTagRow(item);
+                if (itemTags) card.appendChild(itemTags);
+                const media = createMediaNode(item);
+                if (media) card.appendChild(media);
+                items.appendChild(card);
+            });
+            program.appendChild(items);
+            publicGalleryBoard.appendChild(program);
+        }
+
         function renderMaintenanceBoard() {
             if (!maintenanceBoard) return;
             const localCount = state.local.length;
@@ -4380,11 +4597,12 @@
             renderCollections();
             renderExhibitions();
             renderPresentation();
+            renderPublicGallery();
             renderMaintenanceBoard();
         }
 
         function switchSection(name) {
-            const next = ["home", "archive", "find", "management", "review", "versions", "collections", "exhibitions", "presentation", "maintenance", "music", "writing", "visuals", "research", "submissions"].includes(name) ? name : "home";
+            const next = ["home", "archive", "find", "management", "review", "versions", "collections", "exhibitions", "presentation", "gallery", "maintenance", "music", "writing", "visuals", "research", "submissions"].includes(name) ? name : "home";
             document.querySelectorAll(".section").forEach(section => section.classList.toggle("active", section.id === `section-${next}`));
             document.querySelectorAll(".nav button").forEach(button => button.classList.toggle("active", button.dataset.section === next));
             if (next === "archive") {
@@ -4406,6 +4624,8 @@
                 renderExhibitions();
             } else if (next === "presentation") {
                 renderPresentation();
+            } else if (next === "gallery") {
+                renderPublicGallery();
             } else if (next === "maintenance") {
                 renderMaintenanceBoard();
             } else if (next === "submissions") {
