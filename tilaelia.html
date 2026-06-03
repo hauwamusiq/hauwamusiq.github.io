@@ -4199,16 +4199,26 @@
                 media.classList.add("home-feature-media");
                 slide.appendChild(media);
             }
-            slide.insertAdjacentHTML("beforeend", `
-                <div class="home-feature-meta">
-                    <span>${escapeHtml(active.section || "portfolio")}</span>
-                    <span>${escapeHtml(active.category || "other")}</span>
-                    <span>${escapeHtml(curatorLabel(active))}</span>
-                    ${active.createdAt ? `<span>${escapeHtml(formatSubmissionTime(active.createdAt))}</span>` : ""}
-                </div>
-                <h4>${escapeHtml(active.title || "Untitled offering")}</h4>
-                <p>${escapeHtml(active.body || "No description stored.")}</p>
-            `);
+            const meta = document.createElement("div");
+            meta.className = "home-feature-meta";
+            const metaPieces = [
+                active.section || "portfolio",
+                active.category || "other",
+                curatorLabel(active),
+                active.createdAt ? formatSubmissionTime(active.createdAt) : ""
+            ].filter(Boolean);
+            metaPieces.forEach(piece => {
+                const span = document.createElement("span");
+                span.textContent = piece;
+                meta.appendChild(span);
+            });
+            slide.appendChild(meta);
+            const title = document.createElement("h4");
+            title.textContent = active.title || "Untitled offering";
+            slide.appendChild(title);
+            const body = document.createElement("p");
+            body.textContent = active.body || "No description stored.";
+            slide.appendChild(body);
             const tags = renderTagRow(active);
             if (tags) slide.appendChild(tags);
             homeFeatureBoard.appendChild(slide);
