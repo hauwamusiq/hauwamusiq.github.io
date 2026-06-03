@@ -1218,6 +1218,72 @@
             display: grid;
             gap: 12px;
         }
+        .presentation-board {
+            display: grid;
+            gap: 14px;
+        }
+        .presentation-stage {
+            border: 1px solid rgba(246,204,114,0.2);
+            background:
+                linear-gradient(160deg, rgba(246,204,114,0.08), rgba(255,109,158,0.05) 45%, rgba(100,234,220,0.04)),
+                var(--panel);
+            backdrop-filter: blur(18px);
+            border-radius: 10px;
+            padding: 20px;
+            display: grid;
+            gap: 14px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.16);
+        }
+        .presentation-stage .presentation-kicker {
+            color: var(--accent);
+            font-size: 0.72rem;
+            letter-spacing: 0.24em;
+            text-transform: uppercase;
+        }
+        .presentation-stage h3 {
+            margin: 0;
+            font-family: var(--serif);
+            font-size: clamp(1.6rem, 3vw, 2.6rem);
+            line-height: 1.05;
+        }
+        .presentation-stage p {
+            margin: 0;
+            color: var(--muted);
+            line-height: 1.72;
+            max-width: 72ch;
+        }
+        .presentation-program {
+            display: grid;
+            gap: 12px;
+        }
+        .presentation-program .program-list {
+            display: grid;
+            gap: 10px;
+        }
+        .presentation-program .program-card {
+            border: 1px solid var(--line);
+            background: rgba(255,255,255,0.03);
+            border-radius: 8px;
+            padding: 14px;
+            display: grid;
+            gap: 8px;
+        }
+        .presentation-program .program-card.featured {
+            border-color: rgba(246,204,114,0.35);
+            background: linear-gradient(160deg, rgba(246,204,114,0.08), rgba(255,255,255,0.02));
+        }
+        .presentation-program .program-card strong {
+            font-family: var(--serif);
+            font-size: 1.08rem;
+        }
+        .presentation-program .program-card .program-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px 12px;
+            color: #d9ced8;
+            font-size: 0.78rem;
+            letter-spacing: 0.04em;
+        }
         .maintenance-board {
             display: grid;
             gap: 12px;
@@ -1575,6 +1641,7 @@
                 <button data-section="versions">Versions</button>
                 <button data-section="collections">Collections</button>
                 <button data-section="exhibitions">Exhibitions</button>
+                <button data-section="presentation">Presentation</button>
                 <button data-section="maintenance">Maintenance</button>
                 <button data-section="music">Music</button>
                 <button data-section="writing">Writing</button>
@@ -1818,6 +1885,14 @@
                 <div class="collection-board" id="exhibition-board" aria-label="Exhibition details"></div>
             </section>
 
+            <section class="section" id="section-presentation">
+                <div class="section-head">
+                    <h2>Presentation hall</h2>
+                    <p>A visitor-facing stage for the currently selected exhibition. This is the portfolio as a show, not as a ledger.</p>
+                </div>
+                <div class="presentation-board" id="presentation-board" aria-label="Presentation view"></div>
+            </section>
+
             <section class="section" id="section-maintenance">
                 <div class="section-head">
                     <h2>Maintenance vault</h2>
@@ -1983,6 +2058,7 @@
             exhibitions: loadExhibitions(),
             selectedCollection: "",
             selectedExhibition: "",
+            presentationMode: "stage",
             maintenanceImportMode: "local"
         };
 
@@ -2017,6 +2093,7 @@
         const collectionBoard = $("collection-board");
         const exhibitionShelf = $("exhibition-shelf");
         const exhibitionBoard = $("exhibition-board");
+        const presentationBoard = $("presentation-board");
         const maintenanceBoard = $("maintenance-board");
         const maintenanceSummaryNote = $("maintenance-summary-note");
         const submissionLedger = $("submission-ledger");
@@ -3837,6 +3914,15 @@
                 open.disabled = active;
                 open.addEventListener("click", () => selectExhibition(exhibition));
                 actions.appendChild(open);
+                const present = document.createElement("button");
+                present.className = "action ghost";
+                present.type = "button";
+                present.textContent = "Present";
+                present.addEventListener("click", () => {
+                    selectExhibition(exhibition);
+                    switchSection("presentation");
+                });
+                actions.appendChild(present);
                 const refresh = document.createElement("button");
                 refresh.className = "action ghost";
                 refresh.type = "button";
@@ -3889,6 +3975,12 @@
                 if (next) renderExhibitions();
             });
             actions.appendChild(recapture);
+            const present = document.createElement("button");
+            present.className = "action ghost";
+            present.type = "button";
+            present.textContent = "Present";
+            present.addEventListener("click", () => switchSection("presentation"));
+            actions.appendChild(present);
             detail.appendChild(actions);
             exhibitionBoard.appendChild(detail);
 
@@ -3932,6 +4024,109 @@
                 memberGrid.appendChild(article);
             });
             exhibitionBoard.appendChild(memberGrid);
+        }
+
+        function renderPresentation() {
+            if (!presentationBoard) return;
+            const exhibitions = state.exhibitions.map(normalizeExhibition).filter(Boolean);
+            if (!exhibitions.length) {
+                presentationBoard.innerHTML = `
+                    <div class="archive-empty">
+                        No exhibitions are ready for presentation yet. Build one in the exhibition hall first, then return here for the public-facing stage.
+                    </div>
+                `;
+                return;
+            }
+            const selected = exhibitions.find(entry => exhibitionKey(entry) === state.selectedExhibition) || exhibitions[0];
+            const members = exhibitionItems(selected);
+            const lead = members[0];
+            const rest = members.slice(1);
+            presentationBoard.innerHTML = "";
+
+            const stage = document.createElement("article");
+            stage.className = "presentation-stage";
+            stage.innerHTML = `
+                <div class="presentation-kicker">Now presenting</div>
+                <h3>${escapeHtml(selected.title)}</h3>
+                <p>${escapeHtml(selected.note || "A public exhibition assembled from the archive.")}</p>
+                <div class="management-meta">
+                    <span>${escapeHtml(formatSubmissionTime(selected.updatedAt || selected.createdAt))}</span>
+                    <span>${escapeHtml(selected.source || "public")}</span>
+                    <span>${String(members.length).padStart(2, "0")} works on view</span>
+                </div>
+            `;
+            const actions = document.createElement("div");
+            actions.className = "management-actions";
+            const openExhibition = document.createElement("button");
+            openExhibition.className = "action";
+            openExhibition.type = "button";
+            openExhibition.textContent = "Open Exhibition";
+            openExhibition.addEventListener("click", () => switchSection("exhibitions"));
+            actions.appendChild(openExhibition);
+            const recapture = document.createElement("button");
+            recapture.className = "action ghost";
+            recapture.type = "button";
+            recapture.textContent = "Refresh From Archive";
+            recapture.addEventListener("click", () => {
+                const next = createExhibitionFromView(selected.title, selected.note, selected);
+                if (next) {
+                    renderExhibitions();
+                    renderPresentation();
+                }
+            });
+            actions.appendChild(recapture);
+            stage.appendChild(actions);
+            presentationBoard.appendChild(stage);
+
+            const programWrap = document.createElement("section");
+            programWrap.className = "presentation-program";
+            programWrap.innerHTML = `
+                <div class="section-head">
+                    <h3>Program</h3>
+                    <p>The lead work anchors the room, followed by the remaining pieces in the order they were captured.</p>
+                </div>
+            `;
+            const programList = document.createElement("div");
+            programList.className = "program-list";
+
+            if (lead) {
+                const leadCard = document.createElement("article");
+                leadCard.className = "program-card featured";
+                leadCard.innerHTML = `
+                    <strong>${escapeHtml(lead.title || "Untitled offering")}</strong>
+                    <div class="program-meta">
+                        <span>Lead work</span>
+                        <span>${escapeHtml(lead.section || "portfolio")} · ${escapeHtml(lead.category || "other")}</span>
+                        <span>${escapeHtml(curatorLabel(lead))}</span>
+                    </div>
+                    <p>${escapeHtml(lead.body || "No description stored.")}</p>
+                `;
+                const leadTags = renderTagRow(lead);
+                if (leadTags) leadCard.appendChild(leadTags);
+                const leadMedia = createMediaNode(lead);
+                if (leadMedia) leadCard.appendChild(leadMedia);
+                programList.appendChild(leadCard);
+            }
+
+            rest.forEach((item, index) => {
+                const card = document.createElement("article");
+                card.className = "program-card";
+                card.innerHTML = `
+                    <strong>${escapeHtml(item.title || "Untitled offering")}</strong>
+                    <div class="program-meta">
+                        <span>${String(index + 2).padStart(2, "0")}</span>
+                        <span>${escapeHtml(item.section || "portfolio")} · ${escapeHtml(item.category || "other")}</span>
+                        <span>${escapeHtml(item.visibility || "draft")}</span>
+                    </div>
+                    <p>${escapeHtml(item.body || "No description stored.")}</p>
+                `;
+                const tags = renderTagRow(item);
+                if (tags) card.appendChild(tags);
+                programList.appendChild(card);
+            });
+
+            programWrap.appendChild(programList);
+            presentationBoard.appendChild(programWrap);
         }
 
         function renderMaintenanceBoard() {
@@ -4016,11 +4211,12 @@
             renderVersionsBoard();
             renderCollections();
             renderExhibitions();
+            renderPresentation();
             renderMaintenanceBoard();
         }
 
         function switchSection(name) {
-            const next = ["home", "archive", "find", "management", "review", "versions", "collections", "exhibitions", "maintenance", "music", "writing", "visuals", "research", "submissions"].includes(name) ? name : "home";
+            const next = ["home", "archive", "find", "management", "review", "versions", "collections", "exhibitions", "presentation", "maintenance", "music", "writing", "visuals", "research", "submissions"].includes(name) ? name : "home";
             document.querySelectorAll(".section").forEach(section => section.classList.toggle("active", section.id === `section-${next}`));
             document.querySelectorAll(".nav button").forEach(button => button.classList.toggle("active", button.dataset.section === next));
             if (next === "archive") {
@@ -4040,6 +4236,8 @@
                 renderCollections();
             } else if (next === "exhibitions") {
                 renderExhibitions();
+            } else if (next === "presentation") {
+                renderPresentation();
             } else if (next === "maintenance") {
                 renderMaintenanceBoard();
             } else if (next === "submissions") {
