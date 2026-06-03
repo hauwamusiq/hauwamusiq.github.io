@@ -1222,6 +1222,9 @@
             display: grid;
             gap: 14px;
         }
+        .presentation-board.featured-show {
+            gap: 18px;
+        }
         .presentation-stage {
             border: 1px solid rgba(246,204,114,0.2);
             background:
@@ -1233,6 +1236,28 @@
             display: grid;
             gap: 14px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.16);
+        }
+        .presentation-stage.featured-show {
+            grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.9fr);
+            align-items: start;
+        }
+        .presentation-stage.featured-show .presentation-kicker {
+            grid-column: 1 / -1;
+        }
+        .presentation-stage.featured-show h3 {
+            grid-column: 1 / -1;
+        }
+        .presentation-stage.featured-show > p {
+            grid-column: 1 / 2;
+        }
+        .presentation-featured-frame {
+            display: grid;
+            gap: 12px;
+            grid-column: 2 / 3;
+            align-self: stretch;
+        }
+        .presentation-featured-frame .presentation-spotlight-media {
+            min-height: 100%;
         }
         .presentation-stage .presentation-kicker {
             color: var(--accent);
@@ -1328,6 +1353,9 @@
         .presentation-sequence-rail {
             display: grid;
             gap: 8px;
+        }
+        .presentation-sequence.featured-show {
+            grid-column: 1 / -1;
         }
         .presentation-sequence .sequence-card {
             border: 1px solid var(--line);
@@ -4128,7 +4156,7 @@
             presentationBoard.innerHTML = "";
 
             const stage = document.createElement("article");
-            stage.className = "presentation-stage";
+            stage.className = "presentation-stage featured-show";
             stage.innerHTML = `
                 <div class="presentation-kicker">Now presenting</div>
                 <h3>${escapeHtml(selected.title)}</h3>
@@ -4160,7 +4188,6 @@
             });
             actions.appendChild(recapture);
             stage.appendChild(actions);
-            presentationBoard.appendChild(stage);
 
             const spotlight = document.createElement("section");
             spotlight.className = "presentation-spotlight";
@@ -4222,7 +4249,8 @@
             controls.appendChild(restart);
             frame.appendChild(controls);
             spotlight.appendChild(frame);
-            presentationBoard.appendChild(spotlight);
+            stage.appendChild(spotlight);
+            presentationBoard.appendChild(stage);
 
             const programWrap = document.createElement("section");
             programWrap.className = "presentation-program";
@@ -4233,11 +4261,11 @@
                 </div>
             `;
             const programList = document.createElement("div");
-            programList.className = "program-list";
+            programList.className = "program-list presentation-sequence-rail";
 
             sequence.forEach((item, index) => {
                 const card = document.createElement("article");
-                card.className = `program-card${index === activeIndex ? " featured" : ""}`;
+                card.className = `program-card sequence-card${index === activeIndex ? " active featured" : ""}`;
                 card.innerHTML = `
                     <strong>${escapeHtml(item.title || "Untitled offering")}</strong>
                     <div class="program-meta">
