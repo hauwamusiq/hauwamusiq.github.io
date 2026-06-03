@@ -1431,6 +1431,22 @@
             gap: 14px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.16);
         }
+        .public-gallery-stage.featured-intro {
+            grid-template-columns: minmax(0, 1.25fr) minmax(260px, 0.75fr);
+            align-items: start;
+            gap: 16px 18px;
+        }
+        .public-gallery-stage.featured-intro > .presentation-kicker,
+        .public-gallery-stage.featured-intro > h3,
+        .public-gallery-stage.featured-intro > p,
+        .public-gallery-stage.featured-intro > .management-meta {
+            grid-column: 1 / -1;
+        }
+        .public-gallery-feature {
+            display: grid;
+            gap: 12px;
+            grid-column: 1 / 2;
+        }
         .public-gallery-stage h3 {
             margin: 0;
             font-family: var(--serif);
@@ -1479,6 +1495,7 @@
         .public-gallery-program {
             display: grid;
             gap: 10px;
+            grid-column: 2 / 3;
         }
         .public-gallery-program .public-gallery-items {
             display: grid;
@@ -1499,6 +1516,28 @@
         .public-gallery-program .public-gallery-item strong {
             font-family: var(--serif);
             font-size: 1.02rem;
+        }
+        .public-gallery-intro {
+            display: grid;
+            gap: 8px;
+            align-content: start;
+        }
+        .public-gallery-intro .gallery-kicker {
+            color: var(--accent);
+            font-size: 0.72rem;
+            letter-spacing: 0.24em;
+            text-transform: uppercase;
+        }
+        .public-gallery-intro h4 {
+            margin: 0;
+            font-family: var(--serif);
+            font-size: 1.4rem;
+            line-height: 1.05;
+        }
+        .public-gallery-intro p {
+            margin: 0;
+            color: var(--muted);
+            line-height: 1.68;
         }
         .maintenance-board {
             display: grid;
@@ -4458,7 +4497,7 @@
             publicGalleryBoard.innerHTML = "";
 
             const stage = document.createElement("article");
-            stage.className = "public-gallery-stage";
+            stage.className = "public-gallery-stage featured-intro";
             stage.innerHTML = `
                 <div class="presentation-kicker">Public gallery</div>
                 <h3>${escapeHtml(selected.title)}</h3>
@@ -4469,34 +4508,24 @@
                     <span>${String(members.length).padStart(2, "0")} works on view</span>
                 </div>
             `;
-            const rail = document.createElement("div");
-            rail.className = "public-gallery-rail";
-            const featuredPanel = document.createElement("section");
-            featuredPanel.className = "presentation-spotlight";
-            featuredPanel.innerHTML = `
-                <div class="presentation-spotlight-head">
-                    <div>
-                        <strong>${escapeHtml(featured.title || "Untitled offering")}</strong>
-                        <div class="management-pill">${escapeHtml(featured.section || "portfolio")} · ${escapeHtml(featured.category || "other")} · ${escapeHtml(curatorLabel(featured))}</div>
-                    </div>
-                    <small>Featured</small>
-                </div>
+            const intro = document.createElement("section");
+            intro.className = "public-gallery-intro public-gallery-feature";
+            intro.innerHTML = `
+                <div class="gallery-kicker">Featured intro</div>
+                <h4>${escapeHtml(featured.title || "Untitled offering")}</h4>
+                <p>${escapeHtml(featured.body || "No description stored.")}</p>
             `;
-            const featuredFrame = document.createElement("div");
-            featuredFrame.className = "presentation-spotlight-frame";
-            const featuredBody = document.createElement("p");
-            featuredBody.textContent = featured.body || "No description stored.";
-            featuredFrame.appendChild(featuredBody);
             const featuredMedia = createMediaNode(featured);
             if (featuredMedia) {
                 featuredMedia.classList.add("presentation-spotlight-media");
-                featuredFrame.appendChild(featuredMedia);
+                intro.appendChild(featuredMedia);
             }
             const featuredTags = renderTagRow(featured);
-            if (featuredTags) featuredFrame.appendChild(featuredTags);
-            featuredPanel.appendChild(featuredFrame);
-            rail.appendChild(featuredPanel);
+            if (featuredTags) intro.appendChild(featuredTags);
+            stage.appendChild(intro);
 
+            const rail = document.createElement("div");
+            rail.className = "public-gallery-rail";
             const exhibitionList = document.createElement("div");
             exhibitionList.className = "public-gallery-exhibitions";
             exhibitions.forEach(exhibition => {
