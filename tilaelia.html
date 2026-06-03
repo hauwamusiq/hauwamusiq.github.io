@@ -331,11 +331,11 @@
             width: 100%;
             height: 100%;
             z-index: 1;
-            opacity: 0.84;
+            opacity: 0.2;
             display: block;
             pointer-events: none;
-            mix-blend-mode: screen;
-            filter: saturate(1.08) contrast(1.04);
+            mix-blend-mode: normal;
+            filter: saturate(0.85) contrast(0.96);
         }
         .living-bg {
             position: fixed;
@@ -343,9 +343,10 @@
             z-index: 0;
             overflow: hidden;
             background:
-                radial-gradient(circle at 18% 18%, rgba(246,204,114,0.22), transparent 28rem),
-                radial-gradient(circle at 78% 28%, rgba(255,109,158,0.18), transparent 32rem),
-                linear-gradient(180deg, #1a0b18 0%, #2a1021 34%, #070608 100%);
+                radial-gradient(circle at 20% 18%, rgba(246,204,114,0.10), transparent 24rem),
+                radial-gradient(circle at 82% 28%, rgba(255,109,158,0.08), transparent 26rem),
+                radial-gradient(circle at 52% 58%, rgba(100,234,220,0.06), transparent 28rem),
+                linear-gradient(180deg, #110f16 0%, #0c0b10 44%, #07070a 100%);
         }
         .living-bg video {
             position: absolute;
@@ -354,27 +355,24 @@
             height: 100%;
             object-fit: cover;
             opacity: 0;
-            filter: saturate(1.1) contrast(1.08) brightness(0.76);
+            filter: saturate(0.95) contrast(1.02) brightness(0.78);
         }
         .living-bg::before {
             content: "";
             position: absolute;
             inset: 0;
             background:
-                linear-gradient(90deg, rgba(6,5,7,0.72), rgba(6,5,7,0.12) 48%, rgba(6,5,7,0.78)),
-                linear-gradient(180deg, rgba(6,5,7,0.28), rgba(6,5,7,0.86));
+                linear-gradient(90deg, rgba(7,6,10,0.84), rgba(7,6,10,0.14) 48%, rgba(7,6,10,0.88)),
+                linear-gradient(180deg, rgba(7,6,10,0.22), rgba(7,6,10,0.82));
         }
         .living-bg::after {
             content: "";
             position: absolute;
-            inset: -15%;
+            inset: 0;
             background:
-                radial-gradient(circle, rgba(255,255,255,0.82) 0 1px, transparent 1.8px),
-                radial-gradient(circle, rgba(255,255,255,0.68) 0 1px, transparent 1.9px),
-                radial-gradient(circle, rgba(255,255,255,0.72) 0 1.2px, transparent 2px);
-            background-size: 76px 76px, 124px 124px, 48px 48px;
-            opacity: 0.34;
-            animation: livingSparkles 18s linear infinite;
+                radial-gradient(circle at 50% 50%, rgba(255,255,255,0.03), transparent 36rem),
+                radial-gradient(circle at 50% 20%, rgba(255,109,158,0.05), transparent 18rem);
+            opacity: 0.9;
         }
         .sanctum-aura {
             position: fixed;
@@ -382,14 +380,13 @@
             z-index: 2;
             pointer-events: none;
             background:
-                radial-gradient(circle at 22% 18%, rgba(255,109,158,0.18), transparent 18rem),
-                radial-gradient(circle at 78% 22%, rgba(246,204,114,0.16), transparent 20rem),
-                radial-gradient(circle at 52% 56%, rgba(100,234,220,0.08), transparent 28rem),
-                radial-gradient(circle at 48% 48%, rgba(255,255,255,0.02), transparent 42rem);
-            mix-blend-mode: screen;
-            opacity: 0.88;
-            filter: blur(2px);
-            animation: sanctumAuraDrift 24s ease-in-out infinite alternate;
+                radial-gradient(circle at 22% 18%, rgba(255,109,158,0.10), transparent 20rem),
+                radial-gradient(circle at 78% 22%, rgba(246,204,114,0.08), transparent 22rem),
+                radial-gradient(circle at 52% 56%, rgba(100,234,220,0.05), transparent 28rem),
+                radial-gradient(circle at 48% 48%, rgba(255,255,255,0.015), transparent 42rem);
+            mix-blend-mode: normal;
+            opacity: 0.62;
+            filter: blur(1px);
         }
         .thread-field, .living-words {
             position: absolute;
@@ -418,10 +415,6 @@
             letter-spacing: 0.22em;
             font-size: clamp(0.72rem, 1.1vw, 1rem);
             animation: livingWordFloat var(--d, 16s) ease-in-out infinite alternate;
-        }
-        @keyframes livingSparkles {
-            from { transform: translate3d(0, 0, 0) rotate(0deg); }
-            to { transform: translate3d(74px, -92px, 0) rotate(8deg); }
         }
         @keyframes threadDrift {
             from { transform: translate3d(-4vw, 0, 0) rotate(var(--r)); opacity: 0.24; }
