@@ -14,8 +14,8 @@
             --ink: #fff8ed;
             --muted: #b8aeb9;
             --line: rgba(255, 248, 237, 0.15);
-            --panel: rgba(14, 12, 18, 0.74);
-            --panel-strong: rgba(9, 7, 12, 0.92);
+            --panel: rgba(14, 12, 18, 0.68);
+            --panel-strong: rgba(9, 7, 12, 0.88);
             --gold: #f6cc72;
             --rose: #ff6d9e;
             --cyan: #64eadc;
@@ -485,11 +485,6 @@
         }
         .section.active {
             display: block;
-            animation: sectionReveal 540ms ease-out both;
-        }
-        @keyframes sectionReveal {
-            from { opacity: 0; transform: translate3d(0, 12px, 0); }
-            to { opacity: 1; transform: translate3d(0, 0, 0); }
         }
         @keyframes heroFieldDrift {
             from { transform: translate3d(-0.8vw, 0.6vh, 0) scale(1); }
@@ -5660,10 +5655,11 @@
             currentStageScene = config;
         }
 
-        function animateStageScene(nextScene) {
+        function animateStageScene(nextScene, onComplete) {
             const config = { ...stageSceneDefaults, ...nextScene };
             if (!currentStageScene) {
                 applyStageScene(config);
+                if (typeof onComplete === "function") onComplete();
                 return;
             }
             if (stageTravelFrame) {
@@ -5735,39 +5731,45 @@
                 }
                 applyStageScene(config);
                 stageTravelFrame = null;
+                if (typeof onComplete === "function") onComplete();
             };
             stageTravelFrame = requestAnimationFrame(step);
         }
 
-        function setStageScene(name) {
+        function setStageScene(name, onComplete) {
+            const masterStageImage = "assets/markup_1247-4k.png";
             const sceneMap = {
-                home: { image: "assets/markup_1247-home-4k.png", position: "50% 50%", scale: "1.0", brightness: "1.1", cameraX: "0vw", cameraY: "0vh", cameraScale: "1" },
-                visuals: { image: "assets/markup_1247-visuals-4k.png", position: "50% 50%", scale: "1.0", brightness: "1.12", cameraX: "0.2vw", cameraY: "-0.2vh", cameraScale: "1.02" },
-                writing: { image: "assets/markup_1247-home-4k.png", position: "50% 50%", scale: "1.02", brightness: "1.04", cameraX: "0vw", cameraY: "0vh", cameraScale: "1.02" },
-                music: { image: "assets/markup_1247-music-focus-4k.png", position: "50% 50%", scale: "1.0", brightness: "1.08", cameraX: "0.2vw", cameraY: "0vh", cameraScale: "1.02" },
-                research: { image: "assets/markup_1247-research-focus-4k.png", position: "50% 50%", scale: "1.0", brightness: "1.06", cameraX: "-0.2vw", cameraY: "0.1vh", cameraScale: "1.02" },
-                archive: { image: "assets/markup_1247-home-4k.png", position: "50% 50%", scale: "1.02", brightness: "1.05", cameraX: "0vw", cameraY: "0vh", cameraScale: "1.02" },
-                gallery: { image: "assets/markup_1247-home-4k.png", position: "50% 50%", scale: "1.02", brightness: "1.08", cameraX: "-0.2vw", cameraY: "0vh", cameraScale: "1.03" },
-                presentation: { image: "assets/markup_1247-home-4k.png", position: "50% 50%", scale: "1.02", brightness: "1.08", cameraX: "0.2vw", cameraY: "-0.2vh", cameraScale: "1.02" },
-                exhibitions: { image: "assets/markup_1247-home-4k.png", position: "50% 50%", scale: "1.02", brightness: "1.06", cameraX: "0vw", cameraY: "0vh", cameraScale: "1.02" },
-                submissions: { image: "assets/markup_1247-home-4k.png", position: "50% 50%", scale: "1.02", brightness: "1.0", cameraX: "0vw", cameraY: "0vh", cameraScale: "1.02" },
-                management: { image: "assets/markup_1247-home-4k.png", position: "50% 50%", scale: "1.02", brightness: "1.02", cameraX: "0vw", cameraY: "0vh", cameraScale: "1.02" },
-                review: { image: "assets/markup_1247-home-4k.png", position: "50% 50%", scale: "1.02", brightness: "1.02", cameraX: "0vw", cameraY: "0vh", cameraScale: "1.02" },
-                versions: { image: "assets/markup_1247-home-4k.png", position: "50% 50%", scale: "1.02", brightness: "1.02", cameraX: "0vw", cameraY: "0vh", cameraScale: "1.02" },
-                collections: { image: "assets/markup_1247-home-4k.png", position: "50% 50%", scale: "1.02", brightness: "1.04", cameraX: "0vw", cameraY: "0vh", cameraScale: "1.02" },
-                find: { image: "assets/markup_1247-home-4k.png", position: "50% 50%", scale: "1.0", brightness: "1.02", cameraX: "0vw", cameraY: "0vh", cameraScale: "1.01" },
-                maintenance: { image: "assets/markup_1247-home-4k.png", position: "50% 50%", scale: "1.0", brightness: "1.0", cameraX: "0vw", cameraY: "0vh", cameraScale: "1.01" }
+                home: { image: masterStageImage, position: "50% 50%", scale: "1.22", brightness: "1.08", cameraX: "0vw", cameraY: "0vh", cameraScale: "1.02" },
+                visuals: { image: masterStageImage, position: "35% 38%", scale: "1.48", brightness: "1.1", cameraX: "0.15vw", cameraY: "-0.12vh", cameraScale: "1.05" },
+                writing: { image: masterStageImage, position: "50% 50%", scale: "1.18", brightness: "1.03", cameraX: "0vw", cameraY: "0vh", cameraScale: "1.02" },
+                music: { image: masterStageImage, position: "71% 54%", scale: "1.5", brightness: "1.06", cameraX: "0.18vw", cameraY: "0vh", cameraScale: "1.05" },
+                research: { image: masterStageImage, position: "29% 58%", scale: "1.52", brightness: "1.04", cameraX: "-0.15vw", cameraY: "0.08vh", cameraScale: "1.05" },
+                archive: { image: masterStageImage, position: "50% 50%", scale: "1.16", brightness: "1.04", cameraX: "0vw", cameraY: "0vh", cameraScale: "1.02" },
+                gallery: { image: masterStageImage, position: "50% 50%", scale: "1.18", brightness: "1.06", cameraX: "-0.12vw", cameraY: "0vh", cameraScale: "1.03" },
+                presentation: { image: masterStageImage, position: "50% 50%", scale: "1.18", brightness: "1.06", cameraX: "0.12vw", cameraY: "-0.12vh", cameraScale: "1.03" },
+                exhibitions: { image: masterStageImage, position: "50% 50%", scale: "1.16", brightness: "1.04", cameraX: "0vw", cameraY: "0vh", cameraScale: "1.02" },
+                submissions: { image: masterStageImage, position: "50% 50%", scale: "1.12", brightness: "1.0", cameraX: "0vw", cameraY: "0vh", cameraScale: "1.01" },
+                management: { image: masterStageImage, position: "50% 50%", scale: "1.12", brightness: "1.02", cameraX: "0vw", cameraY: "0vh", cameraScale: "1.01" },
+                review: { image: masterStageImage, position: "50% 50%", scale: "1.12", brightness: "1.02", cameraX: "0vw", cameraY: "0vh", cameraScale: "1.01" },
+                versions: { image: masterStageImage, position: "50% 50%", scale: "1.12", brightness: "1.02", cameraX: "0vw", cameraY: "0vh", cameraScale: "1.01" },
+                collections: { image: masterStageImage, position: "50% 50%", scale: "1.14", brightness: "1.04", cameraX: "0vw", cameraY: "0vh", cameraScale: "1.01" },
+                find: { image: masterStageImage, position: "50% 50%", scale: "1.1", brightness: "1.02", cameraX: "0vw", cameraY: "0vh", cameraScale: "1.01" },
+                maintenance: { image: masterStageImage, position: "50% 50%", scale: "1.1", brightness: "1.0", cameraX: "0vw", cameraY: "0vh", cameraScale: "1.01" }
             };
             const config = sceneMap[name] || sceneMap.home;
-            animateStageScene(config);
+            animateStageScene(config, onComplete);
         }
 
         function switchSection(name) {
             const next = ["home", "archive", "find", "management", "review", "versions", "collections", "exhibitions", "presentation", "gallery", "maintenance", "music", "writing", "visuals", "research", "submissions"].includes(name) ? name : "home";
+            document.querySelectorAll(".nav button").forEach(button => button.classList.toggle("active", button.dataset.section === next));
+            if (document.body.dataset.activeSection === next || document.body.classList.contains("stage-traveling")) return;
+            setStageScene(next, () => activateSection(next));
+        }
+
+        function activateSection(next) {
             document.body.dataset.activeSection = next;
             document.querySelectorAll(".section").forEach(section => section.classList.toggle("active", section.id === `section-${next}`));
-            document.querySelectorAll(".nav button").forEach(button => button.classList.toggle("active", button.dataset.section === next));
-            setStageScene(next);
             if (next === "archive") {
                 renderArchiveShelf();
                 renderArchiveStream();
@@ -5876,17 +5878,16 @@
         enterBtn.addEventListener("click", () => {
             const gate = $("gate");
             if (gate.classList.contains("entering") || gate.classList.contains("open")) return;
+            const targetSection = pendingInitialSection || "home";
+            pendingInitialSection = null;
             const finishGateOpen = () => {
                 if (gate.classList.contains("open")) return;
                 gate.classList.add("open");
                 document.body.classList.remove("locked");
                 document.body.classList.add("unlocked");
                 titleSparkState.active = false;
-                if (pendingInitialSection) {
-                    const targetSection = pendingInitialSection;
-                    pendingInitialSection = null;
-                    switchSection(targetSection);
-                }
+                activateSection(targetSection);
+                setStageScene(targetSection);
             };
             gate.classList.add("entering");
             const gateCopy = gate.querySelector(".gate-copy");
