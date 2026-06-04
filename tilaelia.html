@@ -14,8 +14,8 @@
             --ink: #fff8ed;
             --muted: #b8aeb9;
             --line: rgba(255, 248, 237, 0.15);
-            --panel: rgba(14, 12, 18, 0.68);
-            --panel-strong: rgba(9, 7, 12, 0.88);
+            --panel: rgba(14, 12, 18, 0.62);
+            --panel-strong: rgba(9, 7, 12, 0.84);
             --gold: #f6cc72;
             --rose: #ff6d9e;
             --cyan: #64eadc;
@@ -156,6 +156,8 @@
         .stage-camera {
             position: relative;
             z-index: 0;
+            display: grid;
+            grid-template-areas: "stack";
             transform-style: preserve-3d;
             transform-origin: 50% 16%;
             transform: translate3d(var(--camera-x, 0vw), var(--camera-y, 0vh), 0) scale(var(--camera-scale, 1));
@@ -483,8 +485,27 @@
             width: min(1280px, calc(100% - 32px));
             margin: 0 auto;
         }
-        .section.active {
+        .section {
             display: block;
+            grid-area: stack;
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transform: none;
+            transition: none;
+            will-change: opacity, transform;
+        }
+        .section.active {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+            transform: none;
+            transition: none;
+        }
+        body.stage-traveling .section {
+            visibility: visible !important;
+            transition: none !important;
+            pointer-events: none !important;
         }
         @keyframes heroFieldDrift {
             from { transform: translate3d(-0.8vw, 0.6vh, 0) scale(1); }
@@ -5634,6 +5655,12 @@
             return a + (b - a) * t;
         }
 
+        function smoothstep(edge0, edge1, x) {
+            if (edge0 === edge1) return x >= edge1 ? 1 : 0;
+            const t = Math.max(0, Math.min(1, (x - edge0) / (edge1 - edge0)));
+            return t * t * (3 - 2 * t);
+        }
+
         function applyStageScene(scene) {
             const config = { ...stageSceneDefaults, ...scene };
             if (stageImage && config.image && stageImage.getAttribute("src") !== config.image) {
@@ -5655,10 +5682,11 @@
             currentStageScene = config;
         }
 
-        function animateStageScene(nextScene, onComplete) {
+        function animateStageScene(nextScene, onComplete, onSwitch, onProgress) {
             const config = { ...stageSceneDefaults, ...nextScene };
             if (!currentStageScene) {
                 applyStageScene(config);
+                if (typeof onSwitch === "function") onSwitch();
                 if (typeof onComplete === "function") onComplete();
                 return;
             }
@@ -5667,7 +5695,7 @@
                 stageTravelFrame = null;
             }
             const start = performance.now();
-            const duration = window.matchMedia("(max-width: 620px)").matches ? 980 : 1180;
+            const duration = window.matchMedia("(max-width: 620px)").matches ? 1500 : 2000;
             const from = currentStageScene;
             const fromPos = parsePosition(from.position);
             const toPos = parsePosition(config.position);
@@ -5681,6 +5709,7 @@
             const toScale = Number.parseFloat(config.scale) || 1;
             const fromBrightness = Number.parseFloat(from.brightness) || 1;
             const toBrightness = Number.parseFloat(config.brightness) || 1;
+            let switched = false;
             if (stageImageNext) {
                 stageImageNext.setAttribute("src", config.image);
                 stageImageNext.classList.remove("stage-image-visible");
@@ -5696,15 +5725,28 @@
             };
             const step = now => {
                 const raw = Math.min(1, (now - start) / duration);
-                const cameraX = lerp(fromCamX.value, toCamX.value, raw);
-                const cameraY = lerp(fromCamY.value, toCamY.value, raw);
-                const cameraScale = lerp(fromCamScale, toCamScale, raw);
-                const scale = lerp(fromScale, toScale, raw);
-                const brightness = lerp(fromBrightness, toBrightness, raw);
+                const motion = raw;
+                const cameraX = lerp(fromCamX.value, toCamX.value, motion);
+                const cameraY = lerp(fromCamY.value, toCamY.value, motion);
+                const cameraScale = lerp(fromCamScale, toCamScale, motion);
+                const scale = lerp(fromScale, toScale, motion);
+                const brightness = lerp(fromBrightness, toBrightness, motion);
                 const position = {
-                    x: lerp(fromPos.x.value, toPos.x.value, raw),
-                    y: lerp(fromPos.y.value, toPos.y.value, raw)
+                    x: lerp(fromPos.x.value, toPos.x.value, motion),
+                    y: lerp(fromPos.y.value, toPos.y.value, motion)
                 };
+                if (typeof onProgress === "function") onProgress(raw, {
+                    cameraX,
+                    cameraY,
+                    cameraScale,
+                    scale,
+                    brightness,
+                    position
+                });
+                if (!switched && raw >= 0.54) {
+                    switched = true;
+                    if (typeof onSwitch === "function") onSwitch();
+                }
                 setImageLayer(stageImage, position, scale, brightness, 0.96);
                 document.body.style.setProperty("--camera-x", formatAxisValue(cameraX, fromCamX.unit));
                 document.body.style.setProperty("--camera-y", formatAxisValue(cameraY, fromCamY.unit));
@@ -5716,7 +5758,6 @@
                     stageTravelFrame = requestAnimationFrame(step);
                     return;
                 }
-                document.body.classList.remove("stage-traveling");
                 if (stageImageNext) {
                     stageImage.setAttribute("src", config.image);
                     stageImage.style.opacity = "";
@@ -5732,21 +5773,22 @@
                 applyStageScene(config);
                 stageTravelFrame = null;
                 if (typeof onComplete === "function") onComplete();
+                document.body.classList.remove("stage-traveling");
             };
             stageTravelFrame = requestAnimationFrame(step);
         }
 
-        function setStageScene(name, onComplete) {
+        function getStageSceneConfig(name) {
             const masterStageImage = "assets/markup_1247-4k.png";
             const sceneMap = {
-                home: { image: masterStageImage, position: "50% 50%", scale: "1.22", brightness: "1.08", cameraX: "0vw", cameraY: "0vh", cameraScale: "1.02" },
-                visuals: { image: masterStageImage, position: "35% 38%", scale: "1.48", brightness: "1.1", cameraX: "0.15vw", cameraY: "-0.12vh", cameraScale: "1.05" },
+                home: { image: masterStageImage, position: "50% 52%", scale: "1.38", brightness: "1.08", cameraX: "0vw", cameraY: "0vh", cameraScale: "1.04" },
+                visuals: { image: masterStageImage, position: "49% 24%", scale: "2.28", brightness: "1.08", cameraX: "-24vw", cameraY: "-12vh", cameraScale: "1.22" },
                 writing: { image: masterStageImage, position: "50% 50%", scale: "1.18", brightness: "1.03", cameraX: "0vw", cameraY: "0vh", cameraScale: "1.02" },
-                music: { image: masterStageImage, position: "71% 54%", scale: "1.5", brightness: "1.06", cameraX: "0.18vw", cameraY: "0vh", cameraScale: "1.05" },
-                research: { image: masterStageImage, position: "29% 58%", scale: "1.52", brightness: "1.04", cameraX: "-0.15vw", cameraY: "0.08vh", cameraScale: "1.05" },
+                music: { image: masterStageImage, position: "82% 58%", scale: "2.34", brightness: "1.06", cameraX: "24vw", cameraY: "6vh", cameraScale: "1.22" },
+                research: { image: masterStageImage, position: "18% 64%", scale: "2.36", brightness: "1.04", cameraX: "-26vw", cameraY: "8vh", cameraScale: "1.22" },
                 archive: { image: masterStageImage, position: "50% 50%", scale: "1.16", brightness: "1.04", cameraX: "0vw", cameraY: "0vh", cameraScale: "1.02" },
-                gallery: { image: masterStageImage, position: "50% 50%", scale: "1.18", brightness: "1.06", cameraX: "-0.12vw", cameraY: "0vh", cameraScale: "1.03" },
-                presentation: { image: masterStageImage, position: "50% 50%", scale: "1.18", brightness: "1.06", cameraX: "0.12vw", cameraY: "-0.12vh", cameraScale: "1.03" },
+                gallery: { image: masterStageImage, position: "50% 50%", scale: "1.18", brightness: "1.06", cameraX: "-8vw", cameraY: "0vh", cameraScale: "1.05" },
+                presentation: { image: masterStageImage, position: "50% 50%", scale: "1.18", brightness: "1.06", cameraX: "8vw", cameraY: "-1vh", cameraScale: "1.05" },
                 exhibitions: { image: masterStageImage, position: "50% 50%", scale: "1.16", brightness: "1.04", cameraX: "0vw", cameraY: "0vh", cameraScale: "1.02" },
                 submissions: { image: masterStageImage, position: "50% 50%", scale: "1.12", brightness: "1.0", cameraX: "0vw", cameraY: "0vh", cameraScale: "1.01" },
                 management: { image: masterStageImage, position: "50% 50%", scale: "1.12", brightness: "1.02", cameraX: "0vw", cameraY: "0vh", cameraScale: "1.01" },
@@ -5756,20 +5798,76 @@
                 find: { image: masterStageImage, position: "50% 50%", scale: "1.1", brightness: "1.02", cameraX: "0vw", cameraY: "0vh", cameraScale: "1.01" },
                 maintenance: { image: masterStageImage, position: "50% 50%", scale: "1.1", brightness: "1.0", cameraX: "0vw", cameraY: "0vh", cameraScale: "1.01" }
             };
-            const config = sceneMap[name] || sceneMap.home;
-            animateStageScene(config, onComplete);
+            return sceneMap[name] || sceneMap.home;
+        }
+
+        function setStageScene(name, onComplete, onSwitch, onProgress) {
+            const config = getStageSceneConfig(name);
+            animateStageScene(config, onComplete, onSwitch, onProgress);
         }
 
         function switchSection(name) {
             const next = ["home", "archive", "find", "management", "review", "versions", "collections", "exhibitions", "presentation", "gallery", "maintenance", "music", "writing", "visuals", "research", "submissions"].includes(name) ? name : "home";
-            document.querySelectorAll(".nav button").forEach(button => button.classList.toggle("active", button.dataset.section === next));
             if (document.body.dataset.activeSection === next || document.body.classList.contains("stage-traveling")) return;
-            setStageScene(next, () => activateSection(next));
+            const from = document.body.dataset.activeSection || "home";
+            const fromSection = document.getElementById(`section-${from}`);
+            const toSection = document.getElementById(`section-${next}`);
+            const fromScene = getStageSceneConfig(from);
+            const toScene = getStageSceneConfig(next);
+            const fromPos = parsePosition(fromScene.position);
+            const toPos = parsePosition(toScene.position);
+            const travelDirX = Math.sign(toPos.x.value - fromPos.x.value) || 0;
+            const travelDirY = Math.sign(toPos.y.value - fromPos.y.value) || 0;
+            if (fromSection) {
+                fromSection.style.opacity = "1";
+                fromSection.style.visibility = "visible";
+                fromSection.style.pointerEvents = "none";
+                fromSection.style.transform = "none";
+            }
+            if (toSection) {
+                toSection.style.opacity = "0";
+                toSection.style.visibility = "visible";
+                toSection.style.pointerEvents = "none";
+                toSection.style.transform = "none";
+            }
+            document.body.classList.add("stage-traveling");
+            setStageScene(next, () => {
+                activateSection(next);
+                document.querySelectorAll(".nav button").forEach(button => {
+                    button.classList.toggle("active", button.dataset.section === next);
+                });
+                document.querySelectorAll(".section").forEach(section => {
+                    section.style.visibility = "";
+                    section.style.opacity = "";
+                    section.style.pointerEvents = "";
+                    section.style.transform = "";
+                });
+            }, null, raw => {
+                const leadIn = raw;
+                const leadOut = 1 - raw;
+                if (fromSection) {
+                    fromSection.style.opacity = String(leadOut);
+                    fromSection.style.transform = "none";
+                }
+                if (toSection) {
+                    toSection.style.opacity = String(leadIn);
+                    toSection.style.transform = "none";
+                }
+            });
         }
 
         function activateSection(next) {
             document.body.dataset.activeSection = next;
+            const traveling = document.body.classList.contains("stage-traveling");
             document.querySelectorAll(".section").forEach(section => section.classList.toggle("active", section.id === `section-${next}`));
+            if (!traveling) {
+                document.querySelectorAll(".section").forEach(section => {
+                    section.style.visibility = "";
+                    section.style.opacity = "";
+                    section.style.pointerEvents = "";
+                    section.style.transform = "";
+                });
+            }
             if (next === "archive") {
                 renderArchiveShelf();
                 renderArchiveStream();
@@ -5797,7 +5895,6 @@
             } else if (next === "submissions") {
                 renderSubmissionLedger();
             }
-            window.scrollTo({ top: 0, behavior: "auto" });
         }
 
         document.querySelectorAll(".nav button").forEach(button => button.addEventListener("click", () => switchSection(button.dataset.section)));
