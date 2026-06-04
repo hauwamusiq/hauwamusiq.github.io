@@ -519,7 +519,7 @@
             font-family: var(--ritual);
             font-weight: 900;
             background: transparent;
-            font-size: 1.35rem;
+            font-size: 1.7rem;
             line-height: 1;
             transform: translateY(-0.04em);
         }
@@ -2089,15 +2089,25 @@
             }
         }
         @media (max-width: 620px) {
+            html,
+            body {
+                overflow-x: clip;
+            }
             #gate {
                 min-height: 100svh;
                 padding: max(12px, env(safe-area-inset-top)) 0 max(12px, env(safe-area-inset-bottom));
             }
             .shell { width: min(100% - 12px, 1280px); }
+            main {
+                width: 100vw;
+                overflow-x: clip;
+            }
             .stage-camera {
                 transform-origin: 50% 14%;
                 transform: translate3d(calc(var(--camera-x, 0vw) * 0.32), calc(var(--camera-y, 0vh) * 0.32), 0) scale(calc(var(--camera-scale, 1) * 0.986));
                 transition-duration: 920ms;
+                width: 100%;
+                overflow-x: clip;
             }
             .topbar { align-items: flex-start; flex-direction: column; }
             .nav {
@@ -2307,6 +2317,7 @@
                 animation: gateDiveMobile 1.05s linear forwards !important;
             }
             .stage-image {
+                position: absolute;
                 transform: scale(var(--stage-scale, 1.02));
                 filter: brightness(var(--stage-brightness, 0.76)) saturate(1.02) contrast(1.02);
             }
@@ -2854,6 +2865,12 @@
         let pendingInitialSection = initialSection;
 
         const $ = id => document.getElementById(id);
+        const escapeHtml = value => String(value ?? "")
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#39;");
         const sectionTargets = { music: "music-grid", writing: "writing-grid", visuals: "visual-grid", research: "research-grid" };
         const keeperHash = "nyma";
         const edgeOwnerKeyStorage = "tilelli-owner-key";
@@ -5728,7 +5745,7 @@
             } else if (next === "submissions") {
                 renderSubmissionLedger();
             }
-            window.scrollTo({ top: 0, behavior: "smooth" });
+            window.scrollTo({ top: 0, behavior: "auto" });
         }
 
         document.querySelectorAll(".nav button").forEach(button => button.addEventListener("click", () => switchSection(button.dataset.section)));
