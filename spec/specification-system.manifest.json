@@ -15,8 +15,9 @@
   "relations": [
     "spec/specification-system.md",
     "scripts/tilelli-cli.mjs",
+    "scripts/tilelli-local-stack.mjs",
     "agents/tilelli/*.json",
-    "workers/tilelli-api/*"
+    "workers/tilelli-api/src/index.js"
   ],
   "safety": [
     "This file must not contain secret values.",
@@ -51,28 +52,28 @@
       "extensions": [".js", ".mjs"],
       "commentStart": "/*",
       "commentEnd": "*/",
-      "runtime": "Browser, Node, or Cloudflare Workers",
+      "runtime": "Browser, Node, or local Node",
       "secretPolicy": "server-only"
     },
     "sql": {
       "extensions": [".sql"],
       "commentStart": "--",
       "commentEnd": "\n",
-      "runtime": "Cloudflare D1 / SQLite",
+      "runtime": "SQLite",
       "secretPolicy": "forbidden"
     },
     "toml": {
       "extensions": [".toml"],
       "commentStart": "#",
       "commentEnd": "\n",
-      "runtime": "Wrangler",
+      "runtime": "nginx / local config",
       "secretPolicy": "forbidden"
     },
     "yaml": {
       "extensions": [".yml", ".yaml"],
       "commentStart": "#",
       "commentEnd": "\n",
-      "runtime": "GitHub Actions",
+      "runtime": "local scripts or CI",
       "secretPolicy": "references-only"
     },
     "json": {
@@ -110,13 +111,11 @@
     "spec/specification-system.manifest.json",
     "workers/tilelli-api/src/index.js",
     "workers/tilelli-api/schema/0001_initial.sql",
-    "workers/tilelli-api/wrangler.toml",
-    "docs/tilelli-edge.workflow.yml.template",
-    ".github/workflows/tilelli-edge.yml",
+    "scripts/tilelli-local-stack.mjs",
     "agents/tilelli/base-agent.json",
     "agents/tilelli/coding-agent.json",
     "agents/tilelli/forms/coding-task.schema.json",
     "agents/tilelli/forms/coding-task.request.json",
-    "scripts/tilelli-cloudflare.mjs"
+    "scripts/tilelli-cli.mjs"
   ]
 }

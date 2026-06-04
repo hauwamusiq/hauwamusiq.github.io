@@ -2,68 +2,38 @@
   "form": "JSON",
   "runtime": "Tilelli agents and coding harnesses",
   "purpose": "Base capability map for the Tilelli project-of-projects agent.",
-  "inputs": ["TILELLI_ environment namespace", "Cloudflare account", "GitHub repository"],
-  "outputs": ["Scoped capability decisions", "Token minting requests", "Deployment guidance"],
-  "safety": ["No raw secret values", "Global key is bootstrap only", "Prefer least-privilege scoped tokens"],
-  "relations": ["scripts/tilelli-cloudflare.mjs", "agents/tilelli/forms/*.json", "workers/tilelli-api"],
+  "inputs": ["TILELLI_ environment namespace", "Local Tilelli origin", "GitHub repository"],
+  "outputs": ["Scoped capability decisions", "Local stack guidance", "SQLite-backed execution notes"],
+  "safety": ["No raw secret values", "Prefer least-privilege local writes", "Keep the public surface on the local origin"],
+  "relations": ["scripts/tilelli-local-stack.mjs", "agents/tilelli/forms/*.json", "scripts/tilelli-cli.mjs"],
   "agent": "tilelli-base-agent",
   "version": "0.1.0",
   "scope": "TILELLI",
   "projectRoot": "/Users/johnmobley/tilelli",
   "repo": "hauwamusiq/hauwamusiq.github.io",
-  "mission": "Operate the Tilelli project-of-projects edge backend, static sites, automation jobs, and data stores through narrow capabilities.",
+  "mission": "Operate the Tilelli project-of-projects edge backend, static sites, automation jobs, and data stores through local-only capabilities.",
   "principles": [
     "Use TILELLI_ environment labels only.",
-    "Use the Cloudflare Global API Key only as a bootstrap credential.",
-    "Mint scoped API tokens for day-to-day deployment and database work.",
+    "Treat the local nginx origin, local SQLite DB, and local render path as canonical.",
     "Keep secrets out of git, browser code, logs, and client-side HTML.",
-    "Prefer idempotent scripts that can be rerun safely."
+    "Prefer idempotent scripts that can be rerun safely.",
+    "Prefer local files and loopback services over remote infrastructure."
   ],
   "capabilityProfiles": {
-    "cloudflare_workers_d1_deployer": {
-      "description": "Deploy Tilelli Workers and manage D1 databases for this Cloudflare account.",
-      "permissions": [
-        "Workers Scripts Write",
-        "Workers Tail Read",
-        "D1 Write",
-        "Account Settings Read"
-      ],
-      "resource": "account"
+    "local_stack_operator": {
+      "description": "Start, inspect, and maintain the local Tilelli origin, API server, SQLite database, and media mirror.",
+      "permissions": ["Local Files Write", "Local Process Control", "SQLite Write", "nginx Reload"],
+      "resource": "machine"
     },
-    "cloudflare_workers_d1_secret_deployer": {
-      "description": "Deploy Tilelli Workers, manage D1 databases, and write Worker secrets for this Cloudflare account.",
-      "permissions": [
-        "Workers Scripts Write",
-        "Workers Tail Read",
-        "D1 Write",
-        "Account Settings Read",
-        "Account Settings Write",
-        "Secrets Store Write"
-      ],
-      "resource": "account"
-    },
-    "cloudflare_observer": {
-      "description": "Read-only account observer for inventory, health checks, and diagnostics.",
-      "permissions": [
-        "Workers Scripts Read",
-        "D1 Read",
-        "Account Settings Read"
-      ],
-      "resource": "account"
-    },
-    "cloudflare_token_minter": {
-      "description": "Mint future narrower user tokens. Keep highly restricted and rotate.",
-      "permissions": [
-        "API Tokens Write",
-        "API Tokens Read",
-        "Account Settings Read"
-      ],
-      "resource": "user"
+    "local_renderer_operator": {
+      "description": "Dispatch local anime renders through ffmpeg and publish the resulting media mirror.",
+      "permissions": ["Local Files Write", "Local Process Control", "ffmpeg Execute", "SQLite Write"],
+      "resource": "machine"
     }
   },
   "executionModel": {
-    "local": "Wrangler commands and scripts run from the repo using TILELLI_ variables.",
-    "githubActions": "CI deploys Workers with TILELLI_CLOUDFLARE_API_TOKEN stored as a GitHub secret.",
-    "cloudflareCron": "Worker scheduled handlers write heartbeat and future automation run records into D1."
+    "local": "Node scripts, nginx, and SQLite run from the repo using TILELLI_ variables.",
+    "serve": "The local nginx origin serves the repo root and proxies /tilelli-api/ to the local Node API server.",
+    "render": "The local API server dispatches generation jobs to the local ffmpeg renderer and mirrors outputs into GravNova Q9 at /Users/johnmobley/gravnova/q9/public/."
   }
 }

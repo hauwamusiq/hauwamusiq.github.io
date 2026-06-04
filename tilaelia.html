@@ -185,22 +185,22 @@
             animation: gateDive 1.15s linear forwards !important;
         }
         @keyframes gateDive {
-            0% { transform: translate3d(0, 0, -160px) scale(0.95); opacity: 1; filter: blur(0); }
-            100% { transform: translate3d(0, 0, 1400px) scale(1.72); opacity: 0; filter: blur(5px); }
+            0% { transform: translate3d(0, 0, -120px) scale(0.98); opacity: 1; filter: blur(0); }
+            100% { transform: translate3d(0, 0, 980px) scale(1.38); opacity: 0; filter: blur(3px); }
         }
         @keyframes gateDoorFade {
-            0%, 58% { opacity: 1; visibility: visible; }
+            0%, 45% { opacity: 1; visibility: visible; }
             100% { opacity: 0; visibility: hidden; }
         }
         @keyframes gateLeftOpen {
             0% { transform: translateX(0) skewY(0deg); opacity: 1; }
-            60% { transform: translateX(-4%) skewY(-1.6deg); opacity: 1; }
-            100% { transform: translateX(-13%) skewY(-3deg); opacity: 0; }
+            60% { transform: translateX(-3%) skewY(-0.9deg); opacity: 1; }
+            100% { transform: translateX(-11%) skewY(-1.7deg); opacity: 0; }
         }
         @keyframes gateRightOpen {
             0% { transform: translateX(0) skewY(0deg); opacity: 1; }
-            60% { transform: translateX(4%) skewY(1.6deg); opacity: 1; }
-            100% { transform: translateX(13%) skewY(3deg); opacity: 0; }
+            60% { transform: translateX(3%) skewY(0.9deg); opacity: 1; }
+            100% { transform: translateX(11%) skewY(1.7deg); opacity: 0; }
         }
         #gate-canvas {
             position: absolute;
@@ -364,6 +364,16 @@
             filter: brightness(var(--stage-brightness, 1.02)) saturate(1.14) contrast(1.06);
             transition: opacity 900ms ease, transform 1200ms ease, filter 1200ms ease, object-position 1200ms ease;
         }
+        .stage-image.stage-image-next {
+            opacity: 0 !important;
+        }
+        .stage-image.stage-image-current {
+            opacity: 0.96;
+        }
+        body.stage-traveling .stage-camera,
+        body.stage-traveling .stage-image {
+            transition: none !important;
+        }
         body.unlocked .stage-image {
             opacity: 0.96;
         }
@@ -381,18 +391,28 @@
             position: absolute;
             inset: 0;
             background:
-                radial-gradient(circle at 50% 38%, rgba(255, 198, 121, 0.08), transparent 34%),
-                linear-gradient(180deg, rgba(0,0,0,0.08), rgba(0,0,0,0.3));
-            opacity: 0.34;
+                radial-gradient(circle at 50% 42%, rgba(255, 231, 177, 0.30), rgba(255, 193, 112, 0.14) 18%, transparent 46%),
+                radial-gradient(circle at 50% 42%, rgba(255, 109, 158, 0.10), transparent 36%),
+                linear-gradient(180deg, rgba(0,0,0,0.06), rgba(0,0,0,0.24));
+            opacity: 0.55;
+            mix-blend-mode: screen;
             pointer-events: none;
         }
         .living-bg::after {
             content: "";
             position: absolute;
             inset: 0;
-            background: linear-gradient(90deg, rgba(0,0,0,0.34), transparent 22%, transparent 78%, rgba(0,0,0,0.34));
-            opacity: 0.42;
+            background:
+                radial-gradient(circle at 50% 44%, transparent 30%, rgba(0,0,0,0.08) 52%, rgba(0,0,0,0.62) 100%),
+                linear-gradient(90deg, rgba(0,0,0,0.40), transparent 20%, transparent 80%, rgba(0,0,0,0.40));
+            opacity: 0.72;
             pointer-events: none;
+        }
+        body.unlocked .living-bg::before {
+            opacity: 0.48;
+        }
+        body.unlocked .living-bg::after {
+            opacity: 0.66;
         }
         .sanctum-aura {
             position: fixed;
@@ -2296,20 +2316,20 @@
             }
         }
         @keyframes gateDiveMobile {
-            0% { transform: translate3d(0, 0, -180px) scale(0.98); opacity: 1; filter: blur(0); }
-            100% { transform: translate3d(0, 0, 920px) scale(1.54); opacity: 0; filter: blur(4px); }
+            0% { transform: translate3d(0, 0, -120px) scale(0.99); opacity: 1; filter: blur(0); }
+            100% { transform: translate3d(0, 0, 860px) scale(1.32); opacity: 0; filter: blur(2px); }
         }
         @keyframes gateDoorFadeMobile {
-            0%, 54% { opacity: 1; visibility: visible; }
+            0%, 45% { opacity: 1; visibility: visible; }
             100% { opacity: 0; visibility: visible; }
         }
         @keyframes gateLeftOpenMobile {
             0% { transform: translateX(0); opacity: 1; }
-            100% { transform: translateX(-10%); opacity: 0; }
+            100% { transform: translateX(-8%); opacity: 0; }
         }
         @keyframes gateRightOpenMobile {
             0% { transform: translateX(0); opacity: 1; }
-            100% { transform: translateX(10%); opacity: 0; }
+            100% { transform: translateX(8%); opacity: 0; }
         }
         @media (prefers-reduced-motion: reduce) {
             #world-canvas, #gate-canvas, #title-spark-canvas { display: none; }
@@ -2345,7 +2365,8 @@
     </section>
 
     <div class="living-bg" aria-hidden="true">
-        <img class="stage-image" id="stage-image" src="assets/markup_1247-4k.png" alt="" decoding="async" fetchpriority="high">
+        <img class="stage-image stage-image-current" id="stage-image" src="assets/markup_1247-4k.png" alt="" decoding="async" fetchpriority="high">
+        <img class="stage-image stage-image-next" id="stage-image-next" src="assets/markup_1247-4k.png" alt="" decoding="async" fetchpriority="high">
         <canvas id="world-canvas"></canvas>
         <div class="thread-field">
             <span style="--x:4%;--y:18%;--r:-10deg;--d:13s;"></span>
@@ -2365,7 +2386,7 @@
     <div class="shell">
         <header class="topbar">
             <a href="index.html" class="brand" aria-label="Return to command center">
-                <span class="sigil">T</span>
+                <span class="sigil" aria-label="Alpha">Α</span>
                 <span>
                     <strong>Ariadni's Thread</strong>
                     <span>Sacred creation archive</span>
@@ -2835,6 +2856,8 @@
         const homeFeatureCount = $("home-feature-count");
         const homeFeaturePrev = $("home-feature-prev");
         const homeFeatureNext = $("home-feature-next");
+        const stageImage = $("stage-image");
+        const stageImageNext = $("stage-image-next");
         let homeFeatureAutoTimer = null;
         const archiveSearch = $("archive-search");
         const archiveSort = $("archive-sort");
@@ -5489,32 +5512,159 @@
 
         document.addEventListener("keydown", handlePortfolioKeyboard);
 
-        function setStageScene(name) {
-            const sceneMap = {
-                home: { position: "50% 42%", scale: "1.03", brightness: "1.12", cameraX: "0vw", cameraY: "0vh", cameraScale: "1" },
-                visuals: { position: "30% 46%", scale: "1.2", brightness: "1.08", cameraX: "-6vw", cameraY: "-1.2vh", cameraScale: "1.12" },
-                writing: { position: "50% 34%", scale: "1.14", brightness: "1.04", cameraX: "0vw", cameraY: "-2.2vh", cameraScale: "1.06" },
-                music: { position: "73% 52%", scale: "1.2", brightness: "1.04", cameraX: "6.5vw", cameraY: "0.8vh", cameraScale: "1.12" },
-                research: { position: "52% 66%", scale: "1.16", brightness: "1.04", cameraX: "0.8vw", cameraY: "3.2vh", cameraScale: "1.06" },
-                archive: { position: "50% 50%", scale: "1.08", brightness: "1.05", cameraX: "0vw", cameraY: "0vh", cameraScale: "1.02" },
-                gallery: { position: "41% 42%", scale: "1.18", brightness: "1.08", cameraX: "-3.8vw", cameraY: "-0.8vh", cameraScale: "1.08" },
-                presentation: { position: "59% 40%", scale: "1.18", brightness: "1.08", cameraX: "3.8vw", cameraY: "-1.8vh", cameraScale: "1.08" },
-                exhibitions: { position: "50% 30%", scale: "1.16", brightness: "1.06", cameraX: "0vw", cameraY: "-3.5vh", cameraScale: "1.06" },
-                submissions: { position: "50% 58%", scale: "1.12", brightness: "1.0", cameraX: "0vw", cameraY: "2.4vh", cameraScale: "1.04" },
-                management: { position: "63% 45%", scale: "1.1", brightness: "1.02", cameraX: "4vw", cameraY: "-0.2vh", cameraScale: "1.02" },
-                review: { position: "37% 46%", scale: "1.1", brightness: "1.02", cameraX: "-4vw", cameraY: "0vh", cameraScale: "1.02" },
-                versions: { position: "54% 54%", scale: "1.1", brightness: "1.02", cameraX: "1vw", cameraY: "1vh", cameraScale: "1.03" },
-                collections: { position: "48% 39%", scale: "1.12", brightness: "1.04", cameraX: "-1vw", cameraY: "-1.8vh", cameraScale: "1.03" },
-                find: { position: "50% 47%", scale: "1.08", brightness: "1.02", cameraX: "0vw", cameraY: "-0.4vh", cameraScale: "1.01" },
-                maintenance: { position: "50% 62%", scale: "1.08", brightness: "1.0", cameraX: "0vw", cameraY: "3vh", cameraScale: "1.01" }
-            };
-            const config = sceneMap[name] || sceneMap.home;
+        let currentStageScene = null;
+        let stageTravelFrame = null;
+        const stageSceneDefaults = {
+            image: "assets/markup_1247-4k.png",
+            position: "50% 50%",
+            scale: "1",
+            brightness: "1",
+            cameraX: "0vw",
+            cameraY: "0vh",
+            cameraScale: "1"
+        };
+
+        function parseAxisValue(value) {
+            const match = /^(-?\d+(?:\.\d+)?)(vw|vh|%)$/.exec(String(value).trim());
+            return match ? { value: Number(match[1]), unit: match[2] } : { value: Number.parseFloat(value) || 0, unit: "px" };
+        }
+
+        function formatAxisValue(value, unit) {
+            const precision = unit === "%" ? 1 : 3;
+            return `${Number(value.toFixed(precision))}${unit}`;
+        }
+
+        function parsePosition(value) {
+            const parts = String(value).trim().split(/\s+/);
+            const x = parseAxisValue(parts[0] || "50%");
+            const y = parseAxisValue(parts[1] || "50%");
+            return { x, y };
+        }
+
+        function lerp(a, b, t) {
+            return a + (b - a) * t;
+        }
+
+        function applyStageScene(scene) {
+            const config = { ...stageSceneDefaults, ...scene };
+            if (stageImage && config.image && stageImage.getAttribute("src") !== config.image) {
+                stageImage.setAttribute("src", config.image);
+            }
             document.body.style.setProperty("--stage-position", config.position);
             document.body.style.setProperty("--stage-scale", config.scale);
             document.body.style.setProperty("--stage-brightness", config.brightness);
             document.body.style.setProperty("--camera-x", config.cameraX);
             document.body.style.setProperty("--camera-y", config.cameraY);
             document.body.style.setProperty("--camera-scale", config.cameraScale);
+            currentStageScene = config;
+        }
+
+        function animateStageScene(nextScene) {
+            const config = { ...stageSceneDefaults, ...nextScene };
+            if (!currentStageScene) {
+                applyStageScene(config);
+                return;
+            }
+            if (stageTravelFrame) {
+                cancelAnimationFrame(stageTravelFrame);
+                stageTravelFrame = null;
+            }
+            const start = performance.now();
+            const duration = window.matchMedia("(max-width: 620px)").matches ? 980 : 1180;
+            const from = currentStageScene;
+            const fromPos = parsePosition(from.position);
+            const toPos = parsePosition(config.position);
+            const fromCamX = parseAxisValue(from.cameraX);
+            const toCamX = parseAxisValue(config.cameraX);
+            const fromCamY = parseAxisValue(from.cameraY);
+            const toCamY = parseAxisValue(config.cameraY);
+            const fromCamScale = Number.parseFloat(from.cameraScale) || 1;
+            const toCamScale = Number.parseFloat(config.cameraScale) || 1;
+            const fromScale = Number.parseFloat(from.scale) || 1;
+            const toScale = Number.parseFloat(config.scale) || 1;
+            const fromBrightness = Number.parseFloat(from.brightness) || 1;
+            const toBrightness = Number.parseFloat(config.brightness) || 1;
+            const midPos = {
+                x: (fromPos.x.value + toPos.x.value) / 2 + (toPos.x.value - fromPos.x.value) * 0.12,
+                y: (fromPos.y.value + toPos.y.value) / 2 - (toPos.x.value - fromPos.x.value) * 0.04
+            };
+            const midCamX = (fromCamX.value + toCamX.value) / 2 + (toCamX.value - fromCamX.value) * 0.18;
+            const midCamY = (fromCamY.value + toCamY.value) / 2 - (toCamX.value - fromCamX.value) * 0.12;
+            const midCamScale = Math.max(fromCamScale, toCamScale) * 1.045;
+            const midScale = Math.max(fromScale, toScale) * 1.03;
+            const midBrightness = Math.min(1.18, (fromBrightness + toBrightness) / 2 + 0.02);
+            if (stageImageNext) {
+                stageImageNext.setAttribute("src", config.image);
+            }
+            document.body.classList.add("stage-traveling");
+            const step = now => {
+                const raw = Math.min(1, (now - start) / duration);
+                const t = raw < 0.5 ? raw * 2 : (raw - 0.5) * 2;
+                const phase = raw < 0.5 ? 0 : 1;
+                const mix = phase === 0 ? t : t;
+                const curve = phase === 0 ? mix : mix;
+                const position = phase === 0
+                    ? {
+                        x: lerp(fromPos.x.value, midPos.x, curve),
+                        y: lerp(fromPos.y.value, midPos.y, curve)
+                    }
+                    : {
+                        x: lerp(midPos.x, toPos.x.value, curve),
+                        y: lerp(midPos.y, toPos.y.value, curve)
+                    };
+                const cameraX = phase === 0
+                    ? lerp(fromCamX.value, midCamX, curve)
+                    : lerp(midCamX, toCamX.value, curve);
+                const cameraY = phase === 0
+                    ? lerp(fromCamY.value, midCamY, curve)
+                    : lerp(midCamY, toCamY.value, curve);
+                const cameraScale = phase === 0
+                    ? lerp(fromCamScale, midCamScale, curve)
+                    : lerp(midCamScale, toCamScale, curve);
+                const scale = phase === 0
+                    ? lerp(fromScale, midScale, curve)
+                    : lerp(midScale, toScale, curve);
+                const brightness = phase === 0
+                    ? lerp(fromBrightness, midBrightness, curve)
+                    : lerp(midBrightness, toBrightness, curve);
+                document.body.style.setProperty("--stage-position", `${formatAxisValue(position.x, fromPos.x.unit)} ${formatAxisValue(position.y, fromPos.y.unit)}`);
+                document.body.style.setProperty("--stage-scale", String(scale));
+                document.body.style.setProperty("--stage-brightness", String(brightness));
+                document.body.style.setProperty("--camera-x", formatAxisValue(cameraX, fromCamX.unit));
+                document.body.style.setProperty("--camera-y", formatAxisValue(cameraY, fromCamY.unit));
+                document.body.style.setProperty("--camera-scale", String(cameraScale));
+                if (raw < 1) {
+                    stageTravelFrame = requestAnimationFrame(step);
+                    return;
+                }
+                document.body.classList.remove("stage-traveling");
+                applyStageScene(config);
+                stageTravelFrame = null;
+            };
+            stageTravelFrame = requestAnimationFrame(step);
+        }
+
+        function setStageScene(name) {
+            const sceneMap = {
+                home: { image: "assets/markup_1247-4k.png", position: "50% 46%", scale: "1.04", brightness: "1.1", cameraX: "0vw", cameraY: "0vh", cameraScale: "1" },
+                visuals: { image: "assets/markup_1247-4k.png", position: "40% 34%", scale: "1.78", brightness: "1.12", cameraX: "-1.6vw", cameraY: "-0.7vh", cameraScale: "1.06" },
+                writing: { image: "assets/markup_1247-4k.png", position: "50% 34%", scale: "1.32", brightness: "1.04", cameraX: "0vw", cameraY: "-0.7vh", cameraScale: "1.03" },
+                music: { image: "assets/markup_1247-4k.png", position: "69% 47%", scale: "2.04", brightness: "1.08", cameraX: "1.8vw", cameraY: "-0.1vh", cameraScale: "1.08" },
+                research: { image: "assets/markup_1247-4k.png", position: "39% 63%", scale: "2.0", brightness: "1.06", cameraX: "-1.5vw", cameraY: "0.9vh", cameraScale: "1.07" },
+                archive: { image: "assets/markup_1247-4k.png", position: "50% 50%", scale: "1.12", brightness: "1.05", cameraX: "0vw", cameraY: "0vh", cameraScale: "1.02" },
+                gallery: { image: "assets/markup_1247-4k.png", position: "50% 48%", scale: "1.64", brightness: "1.08", cameraX: "-0.5vw", cameraY: "0vh", cameraScale: "1.03" },
+                presentation: { image: "assets/markup_1247-4k.png", position: "50% 40%", scale: "1.44", brightness: "1.08", cameraX: "0.9vw", cameraY: "-0.6vh", cameraScale: "1.04" },
+                exhibitions: { image: "assets/markup_1247-4k.png", position: "50% 30%", scale: "1.42", brightness: "1.06", cameraX: "0vw", cameraY: "-1vh", cameraScale: "1.03" },
+                submissions: { image: "assets/markup_1247-4k.png", position: "50% 58%", scale: "1.2", brightness: "1.0", cameraX: "0vw", cameraY: "0.6vh", cameraScale: "1.02" },
+                management: { image: "assets/markup_1247-4k.png", position: "63% 45%", scale: "1.18", brightness: "1.02", cameraX: "0.8vw", cameraY: "-0.1vh", cameraScale: "1.02" },
+                review: { image: "assets/markup_1247-4k.png", position: "37% 46%", scale: "1.18", brightness: "1.02", cameraX: "-0.8vw", cameraY: "0vh", cameraScale: "1.02" },
+                versions: { image: "assets/markup_1247-4k.png", position: "54% 54%", scale: "1.18", brightness: "1.02", cameraX: "0.4vw", cameraY: "0.4vh", cameraScale: "1.02" },
+                collections: { image: "assets/markup_1247-4k.png", position: "48% 39%", scale: "1.2", brightness: "1.04", cameraX: "-0.6vw", cameraY: "-0.5vh", cameraScale: "1.03" },
+                find: { image: "assets/markup_1247-4k.png", position: "50% 47%", scale: "1.12", brightness: "1.02", cameraX: "0vw", cameraY: "-0.2vh", cameraScale: "1.01" },
+                maintenance: { image: "assets/markup_1247-4k.png", position: "50% 62%", scale: "1.12", brightness: "1.0", cameraX: "0vw", cameraY: "0.8vh", cameraScale: "1.01" }
+            };
+            const config = sceneMap[name] || sceneMap.home;
+            animateStageScene(config);
         }
 
         function switchSection(name) {
@@ -5640,7 +5790,7 @@
             gate.classList.add("entering");
             const gateCopy = gate.querySelector(".gate-copy");
             const onGateAnimationEnd = event => {
-                if (event.target !== gateCopy || event.animationName !== "gateDive") return;
+                if (event.target !== gateCopy || !["gateDive", "gateDiveMobile"].includes(event.animationName)) return;
                 finishGateOpen();
             };
             gateCopy?.addEventListener("animationend", onGateAnimationEnd, { once: true });

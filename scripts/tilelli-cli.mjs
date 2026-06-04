@@ -14,6 +14,8 @@ import path from "node:path";
 import process from "node:process";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
+import { publishQ9RenderArtifacts, q9Contract, reportQ9Storage } from "file:///Users/johnmobley/gravnova/q9/q9-media.mjs";
+import { animeImageProviderContract, requestAnimeStill } from "file:///Users/johnmobley/gravnova/q9/anime-models.mjs";
 
 const execFileAsync = promisify(execFile);
 const DEFAULT_REPO_ROOT = process.env.TILELLI_REPO_ROOT || "/Users/johnmobley/tilelli/hauwamusiq.github.io";
@@ -25,10 +27,12 @@ const FFMPEG_BIN = process.env.TILELLI_FFMPEG_BIN || "/opt/homebrew/bin/ffmpeg";
 const AGENT_ROOT = path.join(DEFAULT_REPO_ROOT, "agents/tilelli");
 const LOCAL_RENDER_DIR = path.join(DEFAULT_REPO_ROOT, ".tilelli/renders");
 const LOCAL_RENDER_WORK_DIR = path.join(DEFAULT_REPO_ROOT, ".tilelli/render-work");
+const GRAVNOVA_Q9_ROOT = process.env.GRAVNOVA_Q9_ROOT || "/Users/johnmobley/gravnova/q9";
+const LOCAL_MEDIA_ROOT = process.env.GRAVNOVA_Q9_MEDIA_ROOT || path.join(GRAVNOVA_Q9_ROOT, "public");
+const ANIME_BACKEND_STATE_PATH = process.env.TILELLI_ANIME_BACKEND_STATE_PATH || path.join(GRAVNOVA_Q9_ROOT, "status", "anime-backend-state.json");
 const GENERATION_CALLBACK_KEY_PATH = path.join(DEFAULT_REPO_ROOT, ".tilelli/generation-callback-key");
-const TILELLI_MEDIA_BUCKET = process.env.TILELLI_MEDIA_BUCKET || "";
-const TILELLI_MEDIA_PUBLIC_BASE_URL = process.env.TILELLI_MEDIA_PUBLIC_BASE_URL || "";
-const TILELLI_API_BASE_URL = process.env.TILELLI_API_BASE_URL || "https://tilelli-api.hauwamusiq.workers.dev";
+const TILELLI_MEDIA_PUBLIC_BASE_URL = process.env.TILELLI_MEDIA_PUBLIC_BASE_URL || "http://127.0.0.1:8081/q9-media";
+const TILELLI_API_BASE_URL = process.env.TILELLI_API_BASE_URL || "http://127.0.0.1:8787";
 
 function logLine(message = "") {
   process.stdout.write(`${message}\n`);
@@ -46,6 +50,14 @@ function fail(message, exitCode = 1) {
 async function readJson(filePath) {
   const raw = await fs.readFile(filePath, "utf8");
   return JSON.parse(raw);
+}
+
+async function readJsonIfExists(filePath) {
+  try {
+    return await readJson(filePath);
+  } catch {
+    return null;
+  }
 }
 
 function parseJsonSafe(text, fallback = null) {
@@ -73,6 +85,10 @@ async function repoExists(relPath) {
   } catch {
     return false;
   }
+}
+
+async function ensureParentDir(filePath) {
+  await fs.mkdir(path.dirname(filePath), { recursive: true });
 }
 
 async function readModelFleetConfig() {
@@ -127,6 +143,57 @@ function normalizeLoopbackUrl(value) {
   return value;
 }
 
+function inferPromptRole(prompt = "") {
+  const lowered = String(prompt || "").toLowerCase();
+  if (/\b(code|bug|fix|build|deploy|patch|script|function|class|file|nginx|worker|api|render|html|css|js|json|yaml|sql)\b/.test(lowered)) {
+    return "code";
+  }
+  if (/\b(why|explain|reason|analy[sz]e|compare|investigate|reflect|what does|how does|should we)\b/.test(lowered)) {
+    return "reasoning";
+  }
+  return "general";
+}
+
+function modelCandidatesForRole(role, fleetConfig) {
+  const explicitCoder = process.env.TILELLI_CODE_MODEL_NAME || "qwen2.5-coder:7b";
+  const explicitReasoner = process.env.TILELLI_REASONING_MODEL_NAME || "deepseek-r1:7b";
+  const fleetCoder = fleetConfig?.model_tiers?.small?.ollama_model_name || "";
+  const fleetReasoner = fleetConfig?.model_tiers?.medium?.ollama_model_name || "";
+  const general = process.env.TILELLI_MODEL_NAME || explicitCoder;
+  const fallback = process.env.TILELLI_MODEL_FALLBACK_NAME || explicitCoder;
+
+  if (role === "code") {
+    return [explicitCoder, fleetCoder, general, fallback];
+  }
+  if (role === "reasoning") {
+    return [explicitReasoner, fleetReasoner, explicitCoder, general, fallback];
+  }
+  return [general, explicitCoder, explicitReasoner, fleetCoder, fleetReasoner, fallback];
+}
+
+async function listLocalModelNames(baseUrl, apiKey = "") {
+  if (!baseUrl) return [];
+  const endpoint = baseUrl.replace(/\/$/, "") + "/api/tags";
+  try {
+    const response = await fetch(endpoint, {
+      headers: apiKey ? { Authorization: `Bearer ${apiKey}` } : {}
+    });
+    const body = await response.json().catch(() => ({}));
+    const models = Array.isArray(body?.models) ? body.models : [];
+    return models.map(model => String(model?.name || "").trim()).filter(Boolean);
+  } catch {
+    return [];
+  }
+}
+
+function chooseModelName(candidates, availableNames) {
+  const available = new Set((availableNames || []).map(name => String(name).trim()));
+  for (const candidate of candidates || []) {
+    if (candidate && available.has(candidate)) return candidate;
+  }
+  return (candidates || []).find(Boolean) || "";
+}
+
 async function gitStatus() {
   try {
     const { stdout } = await execFileAsync("git", ["-C", DEFAULT_REPO_ROOT, "status", "--short"], { maxBuffer: 1024 * 1024 });
@@ -141,35 +208,30 @@ async function doctor() {
   const repoRoot = DEFAULT_REPO_ROOT;
   const fleet = await readModelFleetConfig();
   const modelMode = resolveModelMode(fleet.config);
+  const codeModel = await resolveModelSelection(fleet.config, "code");
+  const reasoningModel = await resolveModelSelection(fleet.config, "reasoning");
   const modelName = getEnv("TILELLI_MODEL_NAME") || "unset";
-  const cloudflareEmail = getEnv("TILELLI_CLOUDFLARE_EMAIL");
-  const cloudflareAccountId = getEnv("TILELLI_CLOUDFLARE_ACCOUNT_ID");
-  const cloudflareTokenFile = getEnv("TILELLI_CLOUDFLARE_API_TOKEN_FILE");
-  const cloudflareToken = getEnv("TILELLI_CLOUDFLARE_API_TOKEN");
   const ghUser = getEnv("TILELLI_GITHUB_USER");
-  const mediaBucket = getEnv("TILELLI_MEDIA_BUCKET");
-  const mediaPublicBaseUrl = getEnv("TILELLI_MEDIA_PUBLIC_BASE_URL");
+  const mediaPublicBaseUrl = getEnv("TILELLI_MEDIA_PUBLIC_BASE_URL") || TILELLI_MEDIA_PUBLIC_BASE_URL;
+  const apiBaseUrl = getEnv("TILELLI_API_BASE_URL") || TILELLI_API_BASE_URL;
+  const q9Storage = await reportQ9Storage();
+  const animeBackendState = await readJsonIfExists(ANIME_BACKEND_STATE_PATH);
   const checks = [
     { name: "repo root", ok: await repoExists(".") },
     { name: "spec manifest", ok: await repoExists("spec/specification-system.manifest.json") },
     { name: "worker source", ok: await repoExists("workers/tilelli-api/src/index.js") },
     { name: "tilelli edge client", ok: await repoExists("tilelli-edge-client.js") },
-    { name: "cloudflare email", ok: Boolean(cloudflareEmail) },
-    { name: "cloudflare account id", ok: Boolean(cloudflareAccountId) },
-    { name: "cloudflare token file", ok: Boolean(cloudflareTokenFile) },
-    { name: "cloudflare api token", ok: Boolean(cloudflareToken) },
     { name: "github user", ok: Boolean(ghUser) },
+    { name: "api base url", ok: Boolean(apiBaseUrl) },
     { name: "model endpoint", ok: Boolean(modelMode.baseUrl) },
     { name: "model fleet config", ok: Boolean(fleet.config) },
-    { name: "media bucket", ok: Boolean(mediaBucket) },
-    { name: "media public base url", ok: Boolean(mediaPublicBaseUrl) }
+    { name: "q9 media public base url", ok: Boolean(mediaPublicBaseUrl) }
   ];
   const requiredChecks = checks.filter(
     item =>
       item.name !== "model endpoint" &&
       item.name !== "model fleet config" &&
-      item.name !== "media bucket" &&
-      item.name !== "media public base url"
+      item.name !== "q9 media public base url"
   );
   const status = {
     ok: requiredChecks.every(item => item.ok),
@@ -184,20 +246,25 @@ async function doctor() {
       baseUrl: modelMode.baseUrl || null,
       name: modelName === "unset" ? null : modelName,
       fleetConfigPath: fleet.config ? fleet.configPath : null,
-      available: Boolean(modelMode.baseUrl)
-    },
-    cloudflare: {
-      email: cloudflareEmail || null,
-      accountId: cloudflareAccountId || null,
-      tokenFile: cloudflareTokenFile || null,
-      token: cloudflareToken ? mask(cloudflareToken) : null
+      available: Boolean(modelMode.baseUrl),
+      code: codeModel,
+      reasoning: reasoningModel
     },
     github: {
       user: ghUser || null
     },
+    api: {
+      baseUrl: apiBaseUrl || null
+    },
     media: {
-      bucket: mediaBucket || null,
-      publicBaseUrl: mediaPublicBaseUrl || null
+      publicBaseUrl: mediaPublicBaseUrl || null,
+      q9Root: GRAVNOVA_Q9_ROOT,
+      q9MediaRoot: LOCAL_MEDIA_ROOT,
+      storage: q9Storage
+    },
+    animeImageProvider: {
+      ...animeImageProviderContract(),
+      backendState: animeBackendState
     },
     checks
   };
@@ -264,6 +331,32 @@ async function validateSpec() {
   };
   logLine(JSON.stringify(result, null, 2));
   return ok ? 0 : 1;
+}
+
+async function resolveModelSelection(fleetConfig, role = "general") {
+  const modelMode = resolveModelMode(fleetConfig);
+  if (!modelMode.baseUrl) {
+    return {
+      role,
+      provider: modelMode.provider,
+      baseUrl: null,
+      model: modelMode.model,
+      available: false,
+      availableModels: []
+    };
+  }
+  const availableModels = await listLocalModelNames(modelMode.baseUrl, modelMode.apiKey);
+  const candidates = modelCandidatesForRole(role, fleetConfig);
+  const model = chooseModelName(candidates, availableModels);
+  return {
+    role,
+    provider: modelMode.provider,
+    baseUrl: modelMode.baseUrl,
+    model: model || modelMode.model,
+    available: Boolean(modelMode.baseUrl),
+    availableModels,
+    candidates
+  };
 }
 
 async function validateAgentForms() {
@@ -425,6 +518,22 @@ function buildRenderCopy(bundle, jobId = "") {
   };
 }
 
+function looksAnimeStyle(bundle = {}) {
+  const text = [
+    bundle?.scene?.art_style,
+    bundle?.scene?.artStyle,
+    bundle?.render?.style,
+    bundle?.title,
+    bundle?.scene?.title,
+    bundle?.scene?.prompt,
+    bundle?.generation_prompt
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+  return /anime|manga|shonen|shoujo|cel|cel-shaded|cel shaded/.test(text);
+}
+
 async function loadGenerationJob(jobId) {
   const response = await fetch(`${TILELLI_API_BASE_URL}/v1/anime/generations?limit=100`);
   if (!response.ok) throw new Error(`Unable to load generation jobs (${response.status}).`);
@@ -459,22 +568,132 @@ async function writeRenderAssets(bundle, jobId = "") {
   return { workDir, titlePath, promptPath, metaPath, beatsPaths, copy };
 }
 
+async function generateAnimeStillFallback(bundle, options = {}) {
+  const width = Number.parseInt(options.width || 1024, 10) || 1024;
+  const height = Number.parseInt(options.height || 1024, 10) || 1024;
+  const { workDir, titlePath, promptPath, metaPath, beatsPaths, copy } = await writeRenderAssets(bundle, options.jobId || "");
+  const outputDir = options.outputDir || LOCAL_RENDER_DIR;
+  await fs.mkdir(outputDir, { recursive: true, mode: 0o700 });
+  const slug = safeSlug(copy.title || options.jobId || "anime-still");
+  const outputPath = path.join(outputDir, `${slug}-${new Date().toISOString().replace(/[:.]/g, "-")}.png`);
+  const assets = { titlePath, promptPath, metaPath, beatsPaths };
+  const animeStyle = looksAnimeStyle(bundle);
+  let filterGraph = buildRenderFilterGraph(assets, { duration: 1, fps: 1, width, height, animeStyle }, true);
+  const renderArgs = () => [
+    "-y",
+    "-f",
+    "lavfi",
+    "-i",
+    `color=c=0x090712:s=${width}x${height}:r=1:d=1`,
+    "-frames:v",
+    "1",
+    "-vf",
+    filterGraph,
+    outputPath
+  ];
+
+  try {
+    await execFileAsync(FFMPEG_BIN, renderArgs(), {
+      cwd: workDir,
+      maxBuffer: 1024 * 1024 * 10
+    });
+  } catch (error) {
+    const errorText = `${error.message}\n${error.stderr || ""}\n${error.stdout || ""}`;
+    if (!/drawtext|Filter not found|No such filter/i.test(errorText)) {
+      throw error;
+    }
+    filterGraph = buildRenderFilterGraph(assets, { duration: 1, fps: 1, width, height, animeStyle }, false);
+    await execFileAsync(
+      FFMPEG_BIN,
+      [
+        "-y",
+        "-f",
+        "lavfi",
+        "-i",
+        `color=c=0x090712:s=${width}x${height}:r=1:d=1`,
+        "-frames:v",
+        "1",
+        "-vf",
+        filterGraph,
+        outputPath
+      ],
+      {
+        cwd: workDir,
+        maxBuffer: 1024 * 1024 * 10
+      }
+    );
+  }
+
+  return {
+    outputPath,
+    metadata: { ...copy, renderMode: animeStyle ? "fallback-anime-still" : "fallback-still" },
+    workDir
+  };
+}
+
+async function generateAnimeStill(bundle, options = {}) {
+  const providerOptions = {
+    jobId: options.jobId || "",
+    width: options.width || 1024,
+    height: options.height || 1024
+  };
+  const provider = await requestAnimeStill(bundle, providerOptions).catch(error => ({
+    ok: false,
+    error: error?.message || String(error)
+  }));
+  if (provider?.ok && provider.outputPath) {
+    try {
+      await fs.access(provider.outputPath);
+      return {
+        outputPath: provider.outputPath,
+        outputUrl: provider.outputUrl || "",
+        metadata: {
+          provider: provider.provider || animeImageProviderContract().provider,
+          mode: provider.mode || animeImageProviderContract().mode,
+          backend: provider.backend || provider.metadata?.backend || null,
+          backendMode: provider.backendMode || provider.metadata?.backendMode || null,
+          source: "provider",
+          providerMetadata: provider.metadata || null
+        }
+      };
+    } catch {
+      // Fall through to fallback still generation.
+    }
+  }
+
+  const fallback = await generateAnimeStillFallback(bundle, options);
+  return {
+    outputPath: fallback.outputPath,
+    outputUrl: "",
+    metadata: {
+      provider: animeImageProviderContract().provider,
+      mode: provider?.ok ? "provider-missing-file" : fallback.metadata?.renderMode || "fallback-still",
+      backend: provider?.backend || provider?.metadata?.backend || "expert",
+      backendMode: provider?.backendMode || provider?.metadata?.backendMode || fallback.metadata?.renderMode || "fallback-still",
+      source: "fallback",
+      providerMetadata: provider?.metadata || null,
+      fallback: fallback.metadata || null
+    }
+  };
+}
+
 function buildRenderFilterGraph(assets, options = {}, includeTextOverlay = true) {
   const durationSeconds = parseDurationSeconds(options.duration || "5s");
   const fps = Number.parseInt(options.fps || "24", 10) || 24;
   const width = Number.parseInt(options.width || 1280, 10) || 1280;
   const height = Number.parseInt(options.height || 720, 10) || 720;
   const beatPositions = [Math.max(240, Math.round(height * 0.66)), Math.max(280, Math.round(height * 0.73)), Math.max(320, Math.round(height * 0.8))];
-  const filterParts = [
-    `fps=${fps}`,
-    `scale=${width}:${height}:force_original_aspect_ratio=decrease`,
-    `pad=${width}:${height}:(ow-iw)/2:(oh-ih)/2:color=0x0b1020`,
-    "format=yuv420p",
-    "drawbox=x=0:y=0:w=iw:h=ih:color=0x120818@0.35:t=fill",
-    `drawbox=x='(w-720)/2+25*sin(t*1.2)':y='h-170':w=720:h=6:color=0xff4fd8@0.35:t=fill`
-  ];
+  const animeStyle = Boolean(options.animeStyle);
 
   if (includeTextOverlay) {
+    const filterParts = [
+      `fps=${fps}`,
+      `scale=${width}:${height}:force_original_aspect_ratio=decrease`,
+      `pad=${width}:${height}:(ow-iw)/2:(oh-ih)/2:color=0x0b1020`,
+      "format=yuv420p",
+      "drawbox=x=0:y=0:w=iw:h=ih:color=0x120818@0.35:t=fill",
+      `drawbox=x='(w-720)/2+25*sin(t*1.2)':y='h-170':w=720:h=6:color=0xff4fd8@0.35:t=fill`
+    ];
     const font = "/System/Library/Fonts/Supplemental/Arial.ttf";
     filterParts.push(
       `drawtext=fontfile='${ffmpegEscapePath(font)}':textfile='${ffmpegEscapePath(assets.titlePath)}':fontcolor=white:fontsize=56:x=(w-text_w)/2+14*sin(t*1.5):y=110+6*cos(t*1.7)`,
@@ -491,12 +710,51 @@ function buildRenderFilterGraph(assets, options = {}, includeTextOverlay = true)
     return filterParts.join(",");
   }
 
-  filterParts.push(
+  if (animeStyle) {
+    const skylineBaseY = Math.round(height * 0.66);
+    const skylineHeights = [32, 58, 44, 78, 52, 94, 38, 66, 84, 48, 56, 72, 40, 88, 46, 68, 54, 100, 42, 76, 60, 92];
+    const animeParts = [
+      `fps=${fps}`,
+      `scale=${width}:${height}:force_original_aspect_ratio=decrease`,
+      `pad=${width}:${height}:(ow-iw)/2:(oh-ih)/2:color=0x090712`,
+      "format=yuv420p",
+      `drawbox=x=0:y=0:w=iw:h=ih:color=0x0a1030@0.72:t=fill`,
+      `drawbox=x=0:y=0:w=iw:h=${Math.round(height * 0.18)}:color=0x12306e@0.55:t=fill`,
+      `drawbox=x=0:y=${Math.round(height * 0.18)}:w=iw:h=${Math.round(height * 0.28)}:color=0x3d114f@0.20:t=fill`,
+      `drawbox=x=0:y=${Math.round(height * 0.46)}:w=iw:h=${Math.round(height * 0.12)}:color=0x06111f@0.58:t=fill`,
+      `drawbox=x='(w-260)/2+90*sin(t*0.55)':y='${Math.round(height * 0.12)}+14*cos(t*0.8)':w=260:h=260:color=0xffd66b@0.12:t=fill`,
+      `drawbox=x='40+60*sin(t*0.85)':y='${Math.round(height * 0.18)}+30*cos(t*0.95)':w=220:h=120:color=0xff4fd8@0.16:t=fill`,
+      `drawbox=x='w-320+80*cos(t*0.7)':y='${Math.round(height * 0.24)}+25*sin(t*1.1)':w=220:h=110:color=0x5eead4@0.14:t=fill`,
+      `drawbox=x='(w-520)/2+25*sin(t*1.2)':y='${Math.round(height * 0.58)}':w=520:h=8:color=0xffffff@0.18:t=fill`
+    ];
+    skylineHeights.forEach((barHeight, index) => {
+      const x = Math.round((width / skylineHeights.length) * index);
+      const color = index % 3 === 0 ? "0x110b1f@0.88" : index % 3 === 1 ? "0x230f2d@0.82" : "0x08172a@0.86";
+      animeParts.push(`drawbox=x=${x}:y=${skylineBaseY - barHeight}:w=${Math.ceil(width / skylineHeights.length) - 2}:h=${barHeight}:color=${color}:t=fill`);
+    });
+    beatPositions.forEach((y, index) => {
+      const start = index * (durationSeconds / 3);
+      const end = Math.min(durationSeconds, start + durationSeconds / 2.2);
+      const color = index === 0 ? "0xff7ac6@0.26" : index === 1 ? "0x67d5ff@0.22" : "0xffffff@0.18";
+      animeParts.push(
+        `drawbox=x='(w-740)/2+18*sin(t*1.15)':y=${y}:w=740:h=10:color=${color}:t=fill:enable='between(t\\,${start.toFixed(2)}\\,${end.toFixed(2)})'`
+      );
+    });
+    animeParts.push("gblur=sigma=8:steps=2", "eq=saturation=1.35:contrast=1.12:brightness=0.03");
+    return animeParts.join(",");
+  }
+
+  const filterParts = [
+    `fps=${fps}`,
+    `scale=${width}:${height}:force_original_aspect_ratio=decrease`,
+    `pad=${width}:${height}:(ow-iw)/2:(oh-ih)/2:color=0x0b1020`,
+    "format=yuv420p",
+    "drawbox=x=0:y=0:w=iw:h=ih:color=0x120818@0.35:t=fill",
     `drawbox=x='(w-340)/2+120*sin(t*0.75)':y='120+50*cos(t*1.1)':w=340:h=10:color=0xffffff@0.18:t=fill`,
     `drawbox=x='40+70*sin(t*0.9)':y='80+40*cos(t*1.3)':w=180:h=180:color=0xff4fd8@0.14:t=fill`,
     `drawbox=x='w-240+50*cos(t*1.4)':y='h-260+35*sin(t*1.1)':w=160:h=160:color=0x22d3ee@0.12:t=fill`,
     `drawbox=x='(w-110)/2+65*sin(t*1.7)':y='(h-110)/2+25*cos(t*1.5)':w=110:h=110:color=0x8b5cf6@0.08:t=fill`
-  );
+  ];
   assets.beatsPaths.forEach((_, index) => {
     const start = index * (durationSeconds / 3);
     const end = Math.min(durationSeconds, start + durationSeconds / 2.2);
@@ -525,7 +783,8 @@ async function renderMp4FromBundle(bundle, options = {}) {
   const outputPath = path.join(outputDir, `${slug}-${new Date().toISOString().replace(/[:.]/g, "-")}.mp4`);
   const thumbnailPath = outputPath.replace(/\.mp4$/i, ".jpg");
   const assets = { titlePath, promptPath, metaPath, beatsPaths };
-  let filterGraph = buildRenderFilterGraph(assets, { duration: durationSeconds, fps, width, height }, true);
+  const animeStyle = looksAnimeStyle(bundle);
+  let filterGraph = buildRenderFilterGraph(assets, { duration: durationSeconds, fps, width, height, animeStyle }, true);
   const renderArgs = () => [
     "-y",
     "-f",
@@ -560,8 +819,8 @@ async function renderMp4FromBundle(bundle, options = {}) {
       throw error;
     }
 
-    renderMode = "fallback-shapes";
-    filterGraph = buildRenderFilterGraph(assets, { duration: durationSeconds, fps, width, height }, false);
+    renderMode = animeStyle ? "fallback-anime" : "fallback-shapes";
+    filterGraph = buildRenderFilterGraph(assets, { duration: durationSeconds, fps, width, height, animeStyle }, false);
     renderRun = await execFileAsync(
       FFMPEG_BIN,
       [
@@ -592,25 +851,39 @@ async function renderMp4FromBundle(bundle, options = {}) {
   }
 
   let thumbnail = "";
+  let thumbnailMeta = null;
   try {
-    await execFileAsync(FFMPEG_BIN, [
-      "-y",
-      "-ss",
-      "1",
-      "-i",
-      outputPath,
-      "-frames:v",
-      "1",
-      "-q:v",
-      "2",
-      thumbnailPath
-    ], {
-      cwd: workDir,
-      maxBuffer: 1024 * 1024 * 10
+    const stillResult = await generateAnimeStill(bundle, {
+      jobId: options.jobId || "",
+      width,
+      height,
+      outputDir,
+      duration: durationSeconds,
+      fps
     });
-    thumbnail = thumbnailPath;
+    thumbnail = stillResult.outputPath || "";
+    thumbnailMeta = stillResult.metadata || null;
   } catch {
-    thumbnail = "";
+    try {
+      await execFileAsync(FFMPEG_BIN, [
+        "-y",
+        "-ss",
+        "1",
+        "-i",
+        outputPath,
+        "-frames:v",
+        "1",
+        "-q:v",
+        "2",
+        thumbnailPath
+      ], {
+        cwd: workDir,
+        maxBuffer: 1024 * 1024 * 10
+      });
+      thumbnail = thumbnailPath;
+    } catch {
+      thumbnail = "";
+    }
   }
 
   return {
@@ -618,7 +891,7 @@ async function renderMp4FromBundle(bundle, options = {}) {
     thumbnailPath: thumbnail,
     stdout: renderRun.stdout.trim(),
     stderr: renderRun.stderr.trim(),
-    metadata: { ...copy, renderMode },
+    metadata: { ...copy, renderMode, thumbnailMeta },
     workDir,
     durationSeconds,
     fps
@@ -630,7 +903,10 @@ async function callbackRenderCompletion(generationId, renderResult, bundle) {
   if (!callbackKey) {
     return { ok: false, reason: "Missing generation callback key." };
   }
-  const published = await publishRenderArtifacts(renderResult, bundle);
+  const published = await publishQ9RenderArtifacts(renderResult, bundle, {
+    mediaRoot: LOCAL_MEDIA_ROOT,
+    publicBaseUrl: TILELLI_MEDIA_PUBLIC_BASE_URL
+  });
   const outputUrl = published.outputUrl || `file://${renderResult.outputPath}`;
   const thumbnailUrl = published.thumbnailUrl || (renderResult.thumbnailPath ? `file://${renderResult.thumbnailPath}` : "");
   const body = {
@@ -642,9 +918,12 @@ async function callbackRenderCompletion(generationId, renderResult, bundle) {
     provider_response_json: {
       renderer: "tilelli-cli",
       mode: "local-ffmpeg",
+      q9_contract: q9Contract(),
+      anime_image_provider: animeImageProviderContract(),
       bundle: bundle || null,
       output_path: renderResult.outputPath,
       thumbnail_path: renderResult.thumbnailPath || "",
+      thumbnail_metadata: renderResult.metadata?.thumbnailMeta || null,
       duration_seconds: renderResult.durationSeconds,
       fps: renderResult.fps
     }
@@ -666,93 +945,6 @@ async function callbackRenderCompletion(generationId, renderResult, bundle) {
     thumbnailUrl,
     published
   };
-}
-
-function buildMediaKey(filePath, bundle = {}, jobId = "") {
-  const baseName = path.basename(filePath || "render.mp4");
-  const slug = safeSlug(bundle?.scene?.title || bundle?.render?.title || bundle?.title || jobId || "tilelli-render");
-  const stamp = new Date().toISOString().replace(/[:.]/g, "-");
-  return `anime/renders/${slug}/${stamp}-${baseName}`;
-}
-
-function publicMediaUrl(key) {
-  const base = String(TILELLI_MEDIA_PUBLIC_BASE_URL || "").trim().replace(/\/$/, "");
-  if (!base) return "";
-  return `${base}/${String(key || "").replace(/^\/+/, "")}`;
-}
-
-async function uploadMediaObject(filePath, contentType, key) {
-  if (!TILELLI_MEDIA_BUCKET || !TILELLI_MEDIA_PUBLIC_BASE_URL) {
-    return { ok: false, reason: "Media bucket or public base URL not configured." };
-  }
-  const script = path.join(DEFAULT_REPO_ROOT, "scripts/tilelli-wrangler.sh");
-  const args = [
-    "r2",
-    "object",
-    "put",
-    `${TILELLI_MEDIA_BUCKET}/${key}`,
-    "--file",
-    filePath,
-    "--content-type",
-    contentType,
-    "--remote",
-    "-y"
-  ];
-  try {
-    const { stdout, stderr } = await execFileAsync(script, args, {
-      cwd: DEFAULT_REPO_ROOT,
-      maxBuffer: 1024 * 1024 * 10
-    });
-    return {
-      ok: true,
-      key,
-      publicUrl: publicMediaUrl(key),
-      stdout: stdout.trim(),
-      stderr: stderr.trim()
-    };
-  } catch (error) {
-    return {
-      ok: false,
-      key,
-      error: error.message,
-      stdout: error.stdout ? String(error.stdout).trim() : "",
-      stderr: error.stderr ? String(error.stderr).trim() : ""
-    };
-  }
-}
-
-async function publishRenderArtifacts(renderResult, bundle) {
-  if (!TILELLI_MEDIA_BUCKET || !TILELLI_MEDIA_PUBLIC_BASE_URL) {
-    return { ok: false, reason: "Media publication environment is not configured." };
-  }
-
-  const outputKey = buildMediaKey(renderResult.outputPath, bundle, bundle?.jobId || bundle?.scene?.title || "");
-  const thumbnailKey = renderResult.thumbnailPath ? buildMediaKey(renderResult.thumbnailPath, bundle, bundle?.jobId || bundle?.scene?.title || "") : "";
-  const published = {
-    ok: false,
-    outputKey,
-    thumbnailKey,
-    outputUrl: "",
-    thumbnailUrl: "",
-    uploads: []
-  };
-
-  const outputUpload = await uploadMediaObject(renderResult.outputPath, "video/mp4", outputKey);
-  published.uploads.push({ type: "video", ...outputUpload });
-  if (outputUpload.ok) {
-    published.outputUrl = outputUpload.publicUrl;
-  }
-
-  if (renderResult.thumbnailPath) {
-    const thumbUpload = await uploadMediaObject(renderResult.thumbnailPath, "image/jpeg", thumbnailKey);
-    published.uploads.push({ type: "thumbnail", ...thumbUpload });
-    if (thumbUpload.ok) {
-      published.thumbnailUrl = thumbUpload.publicUrl;
-    }
-  }
-
-  published.ok = Boolean(published.outputUrl);
-  return published;
 }
 
 function normalizeGenerationBundle(job) {
@@ -962,9 +1154,9 @@ function hyperheuristicFallback(prompt, context = {}) {
     );
   } else if (intent === "deploy" || intent === "worker" || intent === "d1") {
     response.recommended_next_steps.push(
-      "Validate the Worker or migration locally first.",
-      "Confirm Cloudflare token scope before deploy.",
-      "Apply the change through the existing Wrangler wrapper."
+      "Validate the local server or migration locally first.",
+      "Confirm the local API and media paths before publish.",
+      "Apply the change through the local Tilelli stack."
     );
   } else {
     response.recommended_next_steps.push(
@@ -986,19 +1178,23 @@ function hyperheuristicFallback(prompt, context = {}) {
 
 async function callLocalModel(prompt) {
   const fleet = await readModelFleetConfig();
-  const modelMode = resolveModelMode(fleet.config);
+  const role = getEnv("TILELLI_MODEL_ROLE") || inferPromptRole(prompt);
+  const modelMode = await resolveModelSelection(fleet.config, role);
   if (!modelMode.baseUrl) return null;
   const endpoint =
     modelMode.provider === "ollama"
       ? modelMode.baseUrl.replace(/\/$/, "") + "/api/generate"
       : modelMode.baseUrl.replace(/\/$/, "") + "/v1/chat/completions";
+  const systemPrompt = role === "reasoning"
+    ? "You are Tilelli's local reasoning layer. Explain clearly, reason step-by-step in concise visible form, and prefer concrete conclusions."
+    : role === "code"
+      ? "You are Tilelli's local coding layer. Produce exact file targets, diffs, and commands. Prefer code and concrete implementation details."
+      : "You are Tilelli's local reasoning layer. Prefer concise, actionable output.";
   const messages = [
     {
       role: "system",
       content: [
-        "You are Tilelli's local reasoning layer.",
-        "Prefer concise, actionable output.",
-        "If the prompt asks for code, produce direct artifacts or a plan with exact file targets.",
+        systemPrompt,
         "Never claim to have executed external systems unless the tool output is provided."
       ].join(" ")
     },
@@ -1039,7 +1235,15 @@ async function callLocalModel(prompt) {
       ? payload?.response
       : payload?.choices?.[0]?.message?.content;
   if (!message) throw new Error("Model response did not include a message.");
-  return { model: modelMode.model, baseUrl: modelMode.baseUrl, provider: modelMode.provider, message, raw: payload };
+  return {
+    role,
+    model: modelMode.model,
+    baseUrl: modelMode.baseUrl,
+    provider: modelMode.provider,
+    availableModels: modelMode.availableModels || [],
+    message,
+    raw: payload
+  };
 }
 
 async function ask(promptArgs) {
@@ -1067,8 +1271,10 @@ async function ask(promptArgs) {
 async function modelStatus() {
   const fleet = await readModelFleetConfig();
   const modelMode = resolveModelMode(fleet.config);
+  const codeModel = await resolveModelSelection(fleet.config, "code");
+  const reasoningModel = await resolveModelSelection(fleet.config, "reasoning");
   if (!modelMode.baseUrl) {
-    logLine(JSON.stringify({ ok: false, available: false, reason: "No model endpoint configured", model: modelMode.model, fleetConfigPath: fleet.configPath }, null, 2));
+    logLine(JSON.stringify({ ok: false, available: false, reason: "No model endpoint configured", model: modelMode.model, fleetConfigPath: fleet.configPath, codeModel, reasoningModel }, null, 2));
     return 1;
   }
 
@@ -1089,6 +1295,8 @@ async function modelStatus() {
           provider: modelMode.provider,
           baseUrl: modelMode.baseUrl,
           model: modelMode.model,
+          codeModel,
+          reasoningModel,
           fleetConfigPath: fleet.configPath,
           endpoint,
           body
@@ -1099,9 +1307,42 @@ async function modelStatus() {
     );
     return response.ok ? 0 : 1;
   } catch (error) {
-    logLine(JSON.stringify({ ok: false, available: true, provider: modelMode.provider, baseUrl: modelMode.baseUrl, model: modelMode.model, fleetConfigPath: fleet.configPath, error: error.message }, null, 2));
+    logLine(JSON.stringify({ ok: false, available: true, provider: modelMode.provider, baseUrl: modelMode.baseUrl, model: modelMode.model, codeModel, reasoningModel, fleetConfigPath: fleet.configPath, error: error.message }, null, 2));
     return 1;
   }
+}
+
+async function animeStatus() {
+  const contract = animeImageProviderContract();
+  const backendState = await readJsonIfExists(ANIME_BACKEND_STATE_PATH);
+  const status = {
+    ok: Boolean(contract.ready),
+    provider: contract.provider,
+    mode: contract.mode,
+    command: contract.command,
+    url: contract.url || null,
+    timeoutMs: contract.timeoutMs,
+    backendStatePath: contract.backendStatePath,
+    backendState,
+    ready: Boolean(contract.ready)
+  };
+  logLine(JSON.stringify(status, null, 2));
+  return status.ok ? 0 : 1;
+}
+
+async function q9Status() {
+  const contract = q9Contract();
+  const storage = await reportQ9Storage();
+  const status = {
+    ok: true,
+    contract,
+    storage,
+    mediaPublicBaseUrl: TILELLI_MEDIA_PUBLIC_BASE_URL,
+    q9Root: GRAVNOVA_Q9_ROOT,
+    localMediaRoot: LOCAL_MEDIA_ROOT
+  };
+  logLine(JSON.stringify(status, null, 2));
+  return 0;
 }
 
 async function modelPull(args) {
@@ -1255,56 +1496,38 @@ async function modelServe(args) {
 
 async function workerCommand(args) {
   const [subcommand, ...rest] = args;
-  if (!subcommand) fail("Usage: tilelli worker <deploy|status|test>");
-  const script = path.join(DEFAULT_REPO_ROOT, "scripts/tilelli-wrangler.sh");
-  if (subcommand === "deploy") {
-    const { stdout, stderr } = await execFileAsync(script, ["deploy", "--config", "workers/tilelli-api/wrangler.toml"], {
-      cwd: DEFAULT_REPO_ROOT,
-      maxBuffer: 1024 * 1024
-    });
-    if (stdout.trim()) logLine(stdout.trim());
-    if (stderr.trim()) errorLine(stderr.trim());
-    return 0;
-  }
-  if (subcommand === "test") {
-    const { stdout, stderr } = await execFileAsync("curl", ["-sS", "https://tilelli-api.hauwamusiq.workers.dev/health"], {
-      cwd: DEFAULT_REPO_ROOT,
-      maxBuffer: 1024 * 1024
-    });
-    if (stdout.trim()) logLine(stdout.trim());
-    if (stderr.trim()) errorLine(stderr.trim());
-    return 0;
-  }
-  if (subcommand === "status") {
-    const { stdout, stderr } = await execFileAsync(script, ["d1", "list", "--config", "workers/tilelli-api/wrangler.toml"], {
-      cwd: DEFAULT_REPO_ROOT,
-      maxBuffer: 1024 * 1024
-    });
-    if (stdout.trim()) logLine(stdout.trim());
-    if (stderr.trim()) errorLine(stderr.trim());
-    return 0;
-  }
-  fail(`Unknown worker subcommand: ${subcommand}${rest.length ? ` ${rest.join(" ")}` : ""}`);
+  fail(`Legacy worker path removed. Use tilelli local ${subcommand || "<serve|db>"} instead.`);
 }
 
 async function d1Command(args) {
   const [subcommand] = args;
-  if (!subcommand) fail("Usage: tilelli d1 <apply-local|apply-remote|list>");
-  const script = path.join(DEFAULT_REPO_ROOT, "scripts/tilelli-wrangler.sh");
-  const argv =
-    subcommand === "apply-local"
-      ? ["d1", "execute", "tilelli-core", "--local", "--file", "workers/tilelli-api/schema/0001_initial.sql", "--config", "workers/tilelli-api/wrangler.toml"]
-      : subcommand === "apply-remote"
-        ? ["d1", "execute", "tilelli-core", "--remote", "--file", "workers/tilelli-api/schema/0001_initial.sql", "--config", "workers/tilelli-api/wrangler.toml"]
-        : subcommand === "list"
-          ? ["d1", "list", "--config", "workers/tilelli-api/wrangler.toml"]
-          : null;
+  fail(`Legacy D1 path removed. Use tilelli local db init instead of ${subcommand || "d1"}.`);
+}
 
-  if (!argv) fail(`Unknown d1 subcommand: ${subcommand}`);
-  const { stdout, stderr } = await execFileAsync(script, argv, { cwd: DEFAULT_REPO_ROOT, maxBuffer: 1024 * 1024 });
-  if (stdout.trim()) logLine(stdout.trim());
-  if (stderr.trim()) errorLine(stderr.trim());
-  return 0;
+async function localCommand(args) {
+  const [subcommand, ...rest] = args;
+  const script = path.join(DEFAULT_REPO_ROOT, "scripts/tilelli-local-stack.mjs");
+  if (!subcommand || subcommand === "serve") {
+    const child = execFileAsync("node", [script, "serve"], {
+      cwd: DEFAULT_REPO_ROOT,
+      maxBuffer: 1024 * 1024
+    });
+    logLine("Starting local Tilelli stack. Use Ctrl+C to stop.");
+    const { stdout, stderr } = await child;
+    if (stdout.trim()) logLine(stdout.trim());
+    if (stderr.trim()) errorLine(stderr.trim());
+    return 0;
+  }
+  if (subcommand === "db") {
+    const { stdout, stderr } = await execFileAsync("node", [script, "db", "init"], {
+      cwd: DEFAULT_REPO_ROOT,
+      maxBuffer: 1024 * 1024
+    });
+    if (stdout.trim()) logLine(stdout.trim());
+    if (stderr.trim()) errorLine(stderr.trim());
+    return 0;
+  }
+  fail(`Unknown local subcommand: ${subcommand}${rest.length ? ` ${rest.join(" ")}` : ""}`);
 }
 
 function usage() {
@@ -1322,9 +1545,9 @@ function usage() {
       "  tilelli model fleet",
       "  tilelli model pull <model-name>",
       "  tilelli model serve [--background]",
+      "  tilelli anime status",
       "  tilelli render <generation|bundle>",
-      "  tilelli worker <deploy|status|test>",
-      "  tilelli d1 <apply-local|apply-remote|list>"
+      "  tilelli local <serve|db>"
     ].join("\n")
   );
 }
@@ -1372,8 +1595,18 @@ async function main() {
       return workerCommand(args);
     case "d1":
       return d1Command(args);
+    case "local":
+      return localCommand(args);
     case "render":
       return renderCommand(args);
+    case "anime":
+      if (args[0] === "status") return animeStatus();
+      fail("Usage: tilelli anime status");
+      break;
+    case "q9":
+      if (args[0] === "status") return q9Status();
+      fail("Usage: tilelli q9 status");
+      break;
     default:
       fail(`Unknown command: ${command}`);
   }

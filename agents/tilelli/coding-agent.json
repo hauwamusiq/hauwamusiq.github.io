@@ -6,13 +6,14 @@
     "TILELLI_ environment namespace",
     "Repo files",
     "Tilelli CLI",
-    "Local Qwen model",
-    "Cloudflare and GitHub credentials"
+    "Local Qwen code model",
+    "Optional DeepSeek reasoning model",
+    "Local stack services"
   ],
   "outputs": [
     "Code patches",
     "Verification results",
-    "Token mint requests",
+    "Local stack notes",
     "Deployment prep notes"
   ],
   "safety": [
@@ -26,13 +27,18 @@
     "agents/tilelli/forms/coding-task.request.json",
     "agents/tilelli/forms/coding-task.schema.json",
     "scripts/tilelli-cli.mjs",
-    "scripts/tilelli-cloudflare.mjs",
+    "scripts/tilelli-local-stack.mjs",
     "workers/tilelli-api"
   ],
   "agent": "tilelli-coding-agent",
   "version": "0.1.0",
   "scope": "TILELLI",
-  "mission": "Carry a coding task from intent through inspection, implementation, validation, and deployment preparation.",
+  "mission": "Carry a coding task from intent through inspection, implementation, validation, and local-stack preparation.",
+  "modelRouting": {
+    "code": "qwen2.5-coder:7b",
+    "reasoning": "deepseek-r1:7b",
+    "fallback": "qwen2.5-coder:7b"
+  },
   "executionModel": {
     "inspect": [
       "Read relevant files",
@@ -60,13 +66,9 @@
       "tilelli ask",
       "tilelli model status"
     ],
-    "cloudflare": [
-      "tilelli agent mint",
-      "scripts/tilelli-cloudflare.mjs mint-token"
-    ],
-    "deployment": [
-      "tilelli worker deploy",
-      "tilelli d1 apply-remote"
+    "localStack": [
+      "tilelli local serve",
+      "tilelli local db"
     ]
   }
 }
