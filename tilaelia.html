@@ -511,15 +511,17 @@
             min-width: 0;
         }
         .sigil {
-            width: 42px;
-            height: 42px;
-            border: 1px solid var(--line);
-            display: grid;
-            place-items: center;
+            display: inline-block;
+            width: auto;
+            height: auto;
+            border: 0;
             color: var(--gold);
-            background: rgba(255,255,255,0.04);
             font-family: var(--ritual);
             font-weight: 900;
+            background: transparent;
+            font-size: 1.35rem;
+            line-height: 1;
+            transform: translateY(-0.04em);
         }
         .brand strong {
             display: block;
@@ -2392,7 +2394,7 @@
     <div class="shell">
         <header class="topbar">
             <a href="index.html" class="brand" aria-label="Return to command center">
-                <span class="sigil" aria-label="Alpha">Α</span>
+                <span class="sigil" aria-label="Alpha">α</span>
                 <span>
                     <strong>Ariadni's Thread</strong>
                     <span>Sacred creation archive</span>
@@ -6291,6 +6293,7 @@
 
         state.spotlight = loadSpotlightKeys();
         document.body.dataset.initialSection = initialSection || "";
+        document.body.dataset.qaMode = qaMode ? "1" : "0";
         if (archiveSearch) archiveSearch.value = state.archiveQuery;
         if (archiveSort) archiveSort.value = state.archiveSort;
         resizeTitleSparkCanvas();

@@ -51,14 +51,16 @@
             gap: 12px;
         }
         .sigil {
-            width: 38px;
-            height: 38px;
-            display: grid;
-            place-items: center;
-            border: 1px solid var(--line);
-            background: rgba(255,255,255,0.05);
+            display: inline-block;
+            width: auto;
+            height: auto;
+            border: 0;
+            background: transparent;
             color: var(--lime);
             font-weight: 800;
+            font-size: 1.35rem;
+            line-height: 1;
+            transform: translateY(-0.04em);
         }
         .brand strong {
             display: block;
@@ -790,7 +792,7 @@
     <div class="wrap">
         <header class="topbar">
             <a class="home" href="index.html" aria-label="Back to Ariadni Command Center">
-                <span class="sigil" aria-label="Alpha">Α</span>
+                <span class="sigil" aria-label="Alpha">α</span>
                 <span class="brand">
                     <strong>Anime Scene Generator</strong>
                     <span>Foundation for prompt-to-scene production</span>
