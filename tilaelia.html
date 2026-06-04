@@ -348,6 +348,7 @@
             z-index: 0;
             overflow: hidden;
             background: #000;
+            isolation: isolate;
         }
         .stage-image {
             position: fixed;
@@ -365,9 +366,12 @@
             transition: opacity 900ms ease, transform 1200ms ease, filter 1200ms ease, object-position 1200ms ease;
         }
         .stage-image.stage-image-next {
-            opacity: 0 !important;
+            opacity: 0;
         }
         .stage-image.stage-image-current {
+            opacity: 0.96;
+        }
+        .stage-image.stage-image-next.stage-image-visible {
             opacity: 0.96;
         }
         body.stage-traveling .stage-camera,
@@ -397,6 +401,7 @@
             opacity: 0.55;
             mix-blend-mode: screen;
             pointer-events: none;
+            z-index: 1;
         }
         .living-bg::after {
             content: "";
@@ -407,6 +412,7 @@
                 linear-gradient(90deg, rgba(0,0,0,0.40), transparent 20%, transparent 80%, rgba(0,0,0,0.40));
             opacity: 0.72;
             pointer-events: none;
+            z-index: 1;
         }
         body.unlocked .living-bg::before {
             opacity: 0.48;
@@ -2842,6 +2848,8 @@
             visitorMode: new URLSearchParams(window.location.search).get("visitor") === "1" || localStorage.getItem("tilaelia-visitor-mode") === "1",
             maintenanceImportMode: "local"
         };
+        const initialSection = new URLSearchParams(window.location.search).get("section");
+        let pendingInitialSection = initialSection;
 
         const $ = id => document.getElementById(id);
         const sectionTargets = { music: "music-grid", writing: "writing-grid", visuals: "visual-grid", research: "research-grid" };
@@ -5550,6 +5558,13 @@
             if (stageImage && config.image && stageImage.getAttribute("src") !== config.image) {
                 stageImage.setAttribute("src", config.image);
             }
+            if (stageImageNext) {
+                stageImageNext.classList.remove("stage-image-visible");
+                stageImageNext.style.opacity = "";
+                stageImageNext.style.objectPosition = "";
+                stageImageNext.style.transform = "";
+                stageImageNext.style.filter = "";
+            }
             document.body.style.setProperty("--stage-position", config.position);
             document.body.style.setProperty("--stage-scale", config.scale);
             document.body.style.setProperty("--stage-brightness", config.brightness);
@@ -5595,49 +5610,60 @@
             const midBrightness = Math.min(1.18, (fromBrightness + toBrightness) / 2 + 0.02);
             if (stageImageNext) {
                 stageImageNext.setAttribute("src", config.image);
+                stageImageNext.classList.add("stage-image-visible");
             }
             document.body.classList.add("stage-traveling");
+            const setImageLayer = (el, position, scale, brightness, opacity) => {
+                if (!el) return;
+                el.style.objectPosition = `${formatAxisValue(position.x, fromPos.x.unit)} ${formatAxisValue(position.y, fromPos.y.unit)}`;
+                el.style.transform = `scale(${scale})`;
+                el.style.filter = `brightness(${brightness}) saturate(1.14) contrast(1.06)`;
+                el.style.opacity = String(opacity);
+            };
             const step = now => {
                 const raw = Math.min(1, (now - start) / duration);
-                const t = raw < 0.5 ? raw * 2 : (raw - 0.5) * 2;
-                const phase = raw < 0.5 ? 0 : 1;
-                const mix = phase === 0 ? t : t;
-                const curve = phase === 0 ? mix : mix;
-                const position = phase === 0
-                    ? {
-                        x: lerp(fromPos.x.value, midPos.x, curve),
-                        y: lerp(fromPos.y.value, midPos.y, curve)
-                    }
-                    : {
-                        x: lerp(midPos.x, toPos.x.value, curve),
-                        y: lerp(midPos.y, toPos.y.value, curve)
-                    };
-                const cameraX = phase === 0
-                    ? lerp(fromCamX.value, midCamX, curve)
-                    : lerp(midCamX, toCamX.value, curve);
-                const cameraY = phase === 0
-                    ? lerp(fromCamY.value, midCamY, curve)
-                    : lerp(midCamY, toCamY.value, curve);
-                const cameraScale = phase === 0
-                    ? lerp(fromCamScale, midCamScale, curve)
-                    : lerp(midCamScale, toCamScale, curve);
-                const scale = phase === 0
-                    ? lerp(fromScale, midScale, curve)
-                    : lerp(midScale, toScale, curve);
-                const brightness = phase === 0
-                    ? lerp(fromBrightness, midBrightness, curve)
-                    : lerp(midBrightness, toBrightness, curve);
-                document.body.style.setProperty("--stage-position", `${formatAxisValue(position.x, fromPos.x.unit)} ${formatAxisValue(position.y, fromPos.y.unit)}`);
-                document.body.style.setProperty("--stage-scale", String(scale));
-                document.body.style.setProperty("--stage-brightness", String(brightness));
+                const cameraX = lerp(fromCamX.value, toCamX.value, raw);
+                const cameraY = lerp(fromCamY.value, toCamY.value, raw);
+                const cameraScale = lerp(fromCamScale, toCamScale, raw);
+                const scale = lerp(fromScale, toScale, raw);
+                const brightness = lerp(fromBrightness, toBrightness, raw);
+                const currentPosition = {
+                    x: lerp(fromPos.x.value, midPos.x, raw),
+                    y: lerp(fromPos.y.value, midPos.y, raw)
+                };
+                const nextPosition = {
+                    x: lerp(midPos.x, toPos.x.value, raw),
+                    y: lerp(midPos.y, toPos.y.value, raw)
+                };
+                const currentScale = lerp(fromScale, midScale, raw);
+                const nextScale = lerp(midScale, toScale, raw);
+                const currentBrightness = lerp(fromBrightness, midBrightness, raw);
+                const nextBrightness = lerp(midBrightness, toBrightness, raw);
+                setImageLayer(stageImage, currentPosition, currentScale, currentBrightness, 0.96 * (1 - raw));
+                setImageLayer(stageImageNext, nextPosition, nextScale, nextBrightness, 0.96 * raw);
                 document.body.style.setProperty("--camera-x", formatAxisValue(cameraX, fromCamX.unit));
                 document.body.style.setProperty("--camera-y", formatAxisValue(cameraY, fromCamY.unit));
                 document.body.style.setProperty("--camera-scale", String(cameraScale));
+                document.body.style.setProperty("--stage-position", `${formatAxisValue(currentPosition.x, fromPos.x.unit)} ${formatAxisValue(currentPosition.y, fromPos.y.unit)}`);
+                document.body.style.setProperty("--stage-scale", String(scale));
+                document.body.style.setProperty("--stage-brightness", String(brightness));
                 if (raw < 1) {
                     stageTravelFrame = requestAnimationFrame(step);
                     return;
                 }
                 document.body.classList.remove("stage-traveling");
+                if (stageImageNext) {
+                    stageImage.setAttribute("src", config.image);
+                    stageImage.style.opacity = "";
+                    stageImage.style.objectPosition = "";
+                    stageImage.style.transform = "";
+                    stageImage.style.filter = "";
+                    stageImageNext.classList.remove("stage-image-visible");
+                    stageImageNext.style.opacity = "";
+                    stageImageNext.style.objectPosition = "";
+                    stageImageNext.style.transform = "";
+                    stageImageNext.style.filter = "";
+                }
                 applyStageScene(config);
                 stageTravelFrame = null;
             };
@@ -5669,6 +5695,7 @@
 
         function switchSection(name) {
             const next = ["home", "archive", "find", "management", "review", "versions", "collections", "exhibitions", "presentation", "gallery", "maintenance", "music", "writing", "visuals", "research", "submissions"].includes(name) ? name : "home";
+            document.body.dataset.activeSection = next;
             document.querySelectorAll(".section").forEach(section => section.classList.toggle("active", section.id === `section-${next}`));
             document.querySelectorAll(".nav button").forEach(button => button.classList.toggle("active", button.dataset.section === next));
             setStageScene(next);
@@ -5786,6 +5813,11 @@
                 document.body.classList.remove("locked");
                 document.body.classList.add("unlocked");
                 titleSparkState.active = false;
+                if (pendingInitialSection) {
+                    const targetSection = pendingInitialSection;
+                    pendingInitialSection = null;
+                    switchSection(targetSection);
+                }
             };
             gate.classList.add("entering");
             const gateCopy = gate.querySelector(".gate-copy");
@@ -6258,6 +6290,7 @@
         });
 
         state.spotlight = loadSpotlightKeys();
+        document.body.dataset.initialSection = initialSection || "";
         if (archiveSearch) archiveSearch.value = state.archiveQuery;
         if (archiveSort) archiveSort.value = state.archiveSort;
         resizeTitleSparkCanvas();
@@ -6277,6 +6310,11 @@
                     document.body.classList.remove("locked");
                     document.body.classList.add("unlocked");
                     titleSparkState.active = false;
+                    if (pendingInitialSection) {
+                        const targetSection = pendingInitialSection;
+                        pendingInitialSection = null;
+                        switchSection(targetSection);
+                    }
                 }
             }, 120);
         }
