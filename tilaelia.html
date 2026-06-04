@@ -4251,6 +4251,74 @@
                 .filter(Boolean);
         }
 
+        function homeFeatureSamples() {
+            const stamp = new Date().toISOString();
+            return [
+                {
+                    section: "visuals",
+                    category: "gallery",
+                    title: "Sample visual: Door of Light",
+                    meta: "Placeholder visual / replace with your own work",
+                    body: "This sample keeps the home slideshow alive until a real visual work takes its place.",
+                    mediaUrl: "assets/markup_1247-visuals-4k.png",
+                    mediaType: "image",
+                    createdAt: stamp,
+                    kind: "gallery"
+                },
+                {
+                    section: "music",
+                    category: "sounds",
+                    title: "Sample music: Thread of Sound",
+                    meta: "Placeholder audio stage / replace with your own track",
+                    body: "Use this as the temporary audio slide until you add a finished music work.",
+                    mediaUrl: "assets/markup_1247-music-4k.png",
+                    mediaType: "image",
+                    createdAt: stamp,
+                    kind: "sound-card"
+                },
+                {
+                    section: "research",
+                    category: "philosophy",
+                    title: "Sample research: The Left-Hand Path",
+                    meta: "Placeholder research image / replace with your own work",
+                    body: "The research chamber gets a visual placeholder until your own work is added.",
+                    mediaUrl: "assets/markup_1247-research-4k.png",
+                    mediaType: "image",
+                    createdAt: stamp,
+                    kind: "research-card"
+                },
+                {
+                    section: "writing",
+                    category: "essay",
+                    title: "Sample writing: Enter Myth",
+                    meta: "Placeholder writing feature / replace with your own piece",
+                    body: "The home feature will keep rotating with visual samples until your writing work arrives.",
+                    mediaUrl: "assets/markup_1247-home-4k.png",
+                    mediaType: "image",
+                    createdAt: stamp,
+                    kind: "writing-card"
+                }
+            ];
+        }
+
+        function homeFeatureDeck() {
+            const recent = recentOfferings(7);
+            return recent.length ? recent : homeFeatureSamples();
+        }
+
+        function homeFeatureMediaItem(item, index = 0) {
+            if (!item) return null;
+            if (item.mediaUrl) return item;
+            const sampleImage = {
+                home: "assets/markup_1247-home-4k.png",
+                visuals: "assets/markup_1247-visuals-4k.png",
+                music: "assets/markup_1247-music-4k.png",
+                research: "assets/markup_1247-research-4k.png",
+                writing: "assets/markup_1247-home-4k.png"
+            }[item.section] || (homeFeatureSamples()[index % homeFeatureSamples().length]?.mediaUrl || "assets/markup_1247-home-4k.png");
+            return { ...item, mediaUrl: sampleImage, mediaType: "image" };
+        }
+
         function renderPortfolioOverview() {
             if (!heroStatOfferings || !heroStatPublished || !heroStatPrivate || !heroStatLast) return;
             const all = archiveItems();
@@ -4312,7 +4380,7 @@
 
         function renderHomeFeature() {
             if (!homeFeatureBoard || !homeFeatureCount || !homeFeaturePrev || !homeFeatureNext) return;
-            const items = recentOfferings(7);
+            const items = homeFeatureDeck().map((item, index) => homeFeatureMediaItem(item, index)).filter(Boolean);
             if (!items.length) {
                 homeFeatureBoard.innerHTML = `
                     <article class="home-feature-slide">
@@ -4344,7 +4412,7 @@
 
             const slide = document.createElement("article");
             slide.className = "home-feature-slide";
-            const media = createMediaNode(active);
+            const media = createMediaNode(homeFeatureMediaItem(active, activeIndex));
             if (media) {
                 media.classList.add("home-feature-media");
                 slide.appendChild(media);
@@ -4377,7 +4445,7 @@
         function startHomeFeatureAutoCycle() {
             if (homeFeatureAutoTimer) window.clearInterval(homeFeatureAutoTimer);
             homeFeatureAutoTimer = window.setInterval(() => {
-                const items = recentOfferings(7);
+                const items = homeFeatureDeck().map((item, index) => homeFeatureMediaItem(item, index)).filter(Boolean);
                 if (items.length <= 1) return;
                 state.homeFeatureIndex = (state.homeFeatureIndex + 1) % items.length;
                 renderHomeFeature();
@@ -5618,18 +5686,10 @@
             const toScale = Number.parseFloat(config.scale) || 1;
             const fromBrightness = Number.parseFloat(from.brightness) || 1;
             const toBrightness = Number.parseFloat(config.brightness) || 1;
-            const midPos = {
-                x: (fromPos.x.value + toPos.x.value) / 2 + (toPos.x.value - fromPos.x.value) * 0.12,
-                y: (fromPos.y.value + toPos.y.value) / 2 - (toPos.x.value - fromPos.x.value) * 0.04
-            };
-            const midCamX = (fromCamX.value + toCamX.value) / 2 + (toCamX.value - fromCamX.value) * 0.18;
-            const midCamY = (fromCamY.value + toCamY.value) / 2 - (toCamX.value - fromCamX.value) * 0.12;
-            const midCamScale = Math.max(fromCamScale, toCamScale) * 1.045;
-            const midScale = Math.max(fromScale, toScale) * 1.03;
-            const midBrightness = Math.min(1.18, (fromBrightness + toBrightness) / 2 + 0.02);
             if (stageImageNext) {
                 stageImageNext.setAttribute("src", config.image);
-                stageImageNext.classList.add("stage-image-visible");
+                stageImageNext.classList.remove("stage-image-visible");
+                stageImageNext.style.opacity = "0";
             }
             document.body.classList.add("stage-traveling");
             const setImageLayer = (el, position, scale, brightness, opacity) => {
@@ -5646,24 +5706,15 @@
                 const cameraScale = lerp(fromCamScale, toCamScale, raw);
                 const scale = lerp(fromScale, toScale, raw);
                 const brightness = lerp(fromBrightness, toBrightness, raw);
-                const currentPosition = {
-                    x: lerp(fromPos.x.value, midPos.x, raw),
-                    y: lerp(fromPos.y.value, midPos.y, raw)
+                const position = {
+                    x: lerp(fromPos.x.value, toPos.x.value, raw),
+                    y: lerp(fromPos.y.value, toPos.y.value, raw)
                 };
-                const nextPosition = {
-                    x: lerp(midPos.x, toPos.x.value, raw),
-                    y: lerp(midPos.y, toPos.y.value, raw)
-                };
-                const currentScale = lerp(fromScale, midScale, raw);
-                const nextScale = lerp(midScale, toScale, raw);
-                const currentBrightness = lerp(fromBrightness, midBrightness, raw);
-                const nextBrightness = lerp(midBrightness, toBrightness, raw);
-                setImageLayer(stageImage, currentPosition, currentScale, currentBrightness, 0.96 * (1 - raw));
-                setImageLayer(stageImageNext, nextPosition, nextScale, nextBrightness, 0.96 * raw);
+                setImageLayer(stageImage, position, scale, brightness, 0.96);
                 document.body.style.setProperty("--camera-x", formatAxisValue(cameraX, fromCamX.unit));
                 document.body.style.setProperty("--camera-y", formatAxisValue(cameraY, fromCamY.unit));
                 document.body.style.setProperty("--camera-scale", String(cameraScale));
-                document.body.style.setProperty("--stage-position", `${formatAxisValue(currentPosition.x, fromPos.x.unit)} ${formatAxisValue(currentPosition.y, fromPos.y.unit)}`);
+                document.body.style.setProperty("--stage-position", `${formatAxisValue(position.x, fromPos.x.unit)} ${formatAxisValue(position.y, fromPos.y.unit)}`);
                 document.body.style.setProperty("--stage-scale", String(scale));
                 document.body.style.setProperty("--stage-brightness", String(brightness));
                 if (raw < 1) {
@@ -5691,22 +5742,22 @@
 
         function setStageScene(name) {
             const sceneMap = {
-                home: { image: "assets/markup_1247-4k.png", position: "50% 46%", scale: "1.04", brightness: "1.1", cameraX: "0vw", cameraY: "0vh", cameraScale: "1" },
-                visuals: { image: "assets/markup_1247-4k.png", position: "40% 34%", scale: "1.78", brightness: "1.12", cameraX: "-1.6vw", cameraY: "-0.7vh", cameraScale: "1.06" },
-                writing: { image: "assets/markup_1247-4k.png", position: "50% 34%", scale: "1.32", brightness: "1.04", cameraX: "0vw", cameraY: "-0.7vh", cameraScale: "1.03" },
-                music: { image: "assets/markup_1247-4k.png", position: "69% 47%", scale: "2.04", brightness: "1.08", cameraX: "1.8vw", cameraY: "-0.1vh", cameraScale: "1.08" },
-                research: { image: "assets/markup_1247-4k.png", position: "39% 63%", scale: "2.0", brightness: "1.06", cameraX: "-1.5vw", cameraY: "0.9vh", cameraScale: "1.07" },
-                archive: { image: "assets/markup_1247-4k.png", position: "50% 50%", scale: "1.12", brightness: "1.05", cameraX: "0vw", cameraY: "0vh", cameraScale: "1.02" },
-                gallery: { image: "assets/markup_1247-4k.png", position: "50% 48%", scale: "1.64", brightness: "1.08", cameraX: "-0.5vw", cameraY: "0vh", cameraScale: "1.03" },
-                presentation: { image: "assets/markup_1247-4k.png", position: "50% 40%", scale: "1.44", brightness: "1.08", cameraX: "0.9vw", cameraY: "-0.6vh", cameraScale: "1.04" },
-                exhibitions: { image: "assets/markup_1247-4k.png", position: "50% 30%", scale: "1.42", brightness: "1.06", cameraX: "0vw", cameraY: "-1vh", cameraScale: "1.03" },
-                submissions: { image: "assets/markup_1247-4k.png", position: "50% 58%", scale: "1.2", brightness: "1.0", cameraX: "0vw", cameraY: "0.6vh", cameraScale: "1.02" },
-                management: { image: "assets/markup_1247-4k.png", position: "63% 45%", scale: "1.18", brightness: "1.02", cameraX: "0.8vw", cameraY: "-0.1vh", cameraScale: "1.02" },
-                review: { image: "assets/markup_1247-4k.png", position: "37% 46%", scale: "1.18", brightness: "1.02", cameraX: "-0.8vw", cameraY: "0vh", cameraScale: "1.02" },
-                versions: { image: "assets/markup_1247-4k.png", position: "54% 54%", scale: "1.18", brightness: "1.02", cameraX: "0.4vw", cameraY: "0.4vh", cameraScale: "1.02" },
-                collections: { image: "assets/markup_1247-4k.png", position: "48% 39%", scale: "1.2", brightness: "1.04", cameraX: "-0.6vw", cameraY: "-0.5vh", cameraScale: "1.03" },
-                find: { image: "assets/markup_1247-4k.png", position: "50% 47%", scale: "1.12", brightness: "1.02", cameraX: "0vw", cameraY: "-0.2vh", cameraScale: "1.01" },
-                maintenance: { image: "assets/markup_1247-4k.png", position: "50% 62%", scale: "1.12", brightness: "1.0", cameraX: "0vw", cameraY: "0.8vh", cameraScale: "1.01" }
+                home: { image: "assets/markup_1247-home-4k.png", position: "50% 50%", scale: "1.0", brightness: "1.1", cameraX: "0vw", cameraY: "0vh", cameraScale: "1" },
+                visuals: { image: "assets/markup_1247-visuals-4k.png", position: "50% 50%", scale: "1.0", brightness: "1.12", cameraX: "0.2vw", cameraY: "-0.2vh", cameraScale: "1.02" },
+                writing: { image: "assets/markup_1247-home-4k.png", position: "50% 50%", scale: "1.02", brightness: "1.04", cameraX: "0vw", cameraY: "0vh", cameraScale: "1.02" },
+                music: { image: "assets/markup_1247-music-focus-4k.png", position: "50% 50%", scale: "1.0", brightness: "1.08", cameraX: "0.2vw", cameraY: "0vh", cameraScale: "1.02" },
+                research: { image: "assets/markup_1247-research-focus-4k.png", position: "50% 50%", scale: "1.0", brightness: "1.06", cameraX: "-0.2vw", cameraY: "0.1vh", cameraScale: "1.02" },
+                archive: { image: "assets/markup_1247-home-4k.png", position: "50% 50%", scale: "1.02", brightness: "1.05", cameraX: "0vw", cameraY: "0vh", cameraScale: "1.02" },
+                gallery: { image: "assets/markup_1247-home-4k.png", position: "50% 50%", scale: "1.02", brightness: "1.08", cameraX: "-0.2vw", cameraY: "0vh", cameraScale: "1.03" },
+                presentation: { image: "assets/markup_1247-home-4k.png", position: "50% 50%", scale: "1.02", brightness: "1.08", cameraX: "0.2vw", cameraY: "-0.2vh", cameraScale: "1.02" },
+                exhibitions: { image: "assets/markup_1247-home-4k.png", position: "50% 50%", scale: "1.02", brightness: "1.06", cameraX: "0vw", cameraY: "0vh", cameraScale: "1.02" },
+                submissions: { image: "assets/markup_1247-home-4k.png", position: "50% 50%", scale: "1.02", brightness: "1.0", cameraX: "0vw", cameraY: "0vh", cameraScale: "1.02" },
+                management: { image: "assets/markup_1247-home-4k.png", position: "50% 50%", scale: "1.02", brightness: "1.02", cameraX: "0vw", cameraY: "0vh", cameraScale: "1.02" },
+                review: { image: "assets/markup_1247-home-4k.png", position: "50% 50%", scale: "1.02", brightness: "1.02", cameraX: "0vw", cameraY: "0vh", cameraScale: "1.02" },
+                versions: { image: "assets/markup_1247-home-4k.png", position: "50% 50%", scale: "1.02", brightness: "1.02", cameraX: "0vw", cameraY: "0vh", cameraScale: "1.02" },
+                collections: { image: "assets/markup_1247-home-4k.png", position: "50% 50%", scale: "1.02", brightness: "1.04", cameraX: "0vw", cameraY: "0vh", cameraScale: "1.02" },
+                find: { image: "assets/markup_1247-home-4k.png", position: "50% 50%", scale: "1.0", brightness: "1.02", cameraX: "0vw", cameraY: "0vh", cameraScale: "1.01" },
+                maintenance: { image: "assets/markup_1247-home-4k.png", position: "50% 50%", scale: "1.0", brightness: "1.0", cameraX: "0vw", cameraY: "0vh", cameraScale: "1.01" }
             };
             const config = sceneMap[name] || sceneMap.home;
             animateStageScene(config);
@@ -5754,13 +5805,13 @@
             applyVisitorMode();
         });
         homeFeaturePrev?.addEventListener("click", () => {
-            const items = recentOfferings(7);
+            const items = homeFeatureDeck().map((item, index) => homeFeatureMediaItem(item, index)).filter(Boolean);
             if (items.length <= 1) return;
             state.homeFeatureIndex = (state.homeFeatureIndex - 1 + items.length) % items.length;
             renderHomeFeature();
         });
         homeFeatureNext?.addEventListener("click", () => {
-            const items = recentOfferings(7);
+            const items = homeFeatureDeck().map((item, index) => homeFeatureMediaItem(item, index)).filter(Boolean);
             if (items.length <= 1) return;
             state.homeFeatureIndex = (state.homeFeatureIndex + 1) % items.length;
             renderHomeFeature();
