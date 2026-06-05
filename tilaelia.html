@@ -2426,7 +2426,7 @@
             .word-space span {
                 font-size: clamp(0.48rem, 1.9vw, 0.7rem);
                 letter-spacing: 0.09em;
-                animation-duration: calc(var(--duration, 11s) * 1.42);
+                animation-duration: calc(var(--duration, 11s) * 1.8);
                 transform: translate3d(var(--x, 0), var(--y, 0), 0) scale(0.46);
             }
             .sanctum-aura {
@@ -2458,23 +2458,18 @@
                 animation: gateDiveMobile 1.05s linear forwards !important;
             }
             .stage-image {
-                position: absolute;
-                left: 50%;
-                top: 50%;
-                width: 100%;
-                height: 100%;
-                max-width: none;
-                max-height: none;
-                object-fit: contain;
-                object-position: center center;
-                transform: translate3d(calc(-50% + var(--stage-pan-x, 0vw)), calc(-50% + var(--stage-pan-y, 0vh)), 0) scale(var(--stage-scale, 1.08));
-                filter: brightness(var(--stage-brightness, 0.76)) saturate(1.02) contrast(1.02);
+                display: none;
             }
             .living-bg {
-                background: #000 url("assets/markup_1247-4k.png") center center / cover no-repeat;
+                background: #000 url("assets/markup_1247-4k.png") center center / contain no-repeat;
             }
             .living-bg::before {
-                opacity: 0.52;
+                background:
+                    radial-gradient(circle at 50% 40%, rgba(255, 238, 194, 0.34), rgba(255, 198, 122, 0.16) 18%, transparent 44%),
+                    radial-gradient(circle at 50% 40%, rgba(255, 141, 185, 0.10), transparent 34%),
+                    linear-gradient(180deg, rgba(0,0,0,0.04), rgba(0,0,0,0.18)),
+                    url("assets/markup_1247-4k.png") center center / cover no-repeat;
+                opacity: 0.78;
             }
             .living-bg::after {
                 opacity: 0.78;
@@ -2544,8 +2539,8 @@
                 width: min(100%, 16rem);
             }
             .word-space span {
-                animation-duration: calc(var(--duration, 11s) * 1.65);
-                transform: translate3d(var(--x, 0), var(--y, 0), 0) scale(0.4);
+                animation-duration: calc(var(--duration, 11s) * 2.05);
+                transform: translate3d(var(--x, 0), var(--y, 0), 0) scale(0.38);
             }
             .stage-image {
                 transform: translate3d(calc(-50% + var(--stage-pan-x, 0vw)), calc(-50% + var(--stage-pan-y, 0vh)), 0) scale(var(--stage-scale, 1.02));
