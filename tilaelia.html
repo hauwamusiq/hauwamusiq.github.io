@@ -161,7 +161,7 @@
             transform-style: preserve-3d;
             transform-origin: 50% 16%;
             transform: translate3d(var(--camera-x, 0vw), var(--camera-y, 0vh), 0) scale(var(--camera-scale, 1));
-            transition: transform 1160ms cubic-bezier(0.16, 1, 0.3, 1), opacity 760ms ease;
+            transition: opacity 760ms ease;
             will-change: transform, opacity;
         }
         .shell {
@@ -354,18 +354,21 @@
         }
         .stage-image {
             position: fixed;
-            inset: 0;
-            width: 100%;
-            height: 100%;
+            left: 50%;
+            top: 50%;
+            width: 100vw;
+            height: 100vh;
+            max-width: none;
+            max-height: none;
             object-fit: cover;
-            object-position: var(--stage-position, 50% 50%);
             z-index: 0;
             pointer-events: none;
             user-select: none;
             opacity: 0;
-            transform: scale(var(--stage-scale, 1.06));
+            transform: translate3d(calc(-50% + var(--stage-pan-x, 0vw)), calc(-50% + var(--stage-pan-y, 0vh)), 0) scale(var(--stage-scale, 1.14));
+            transform-origin: center center;
             filter: brightness(var(--stage-brightness, 1.02)) saturate(1.14) contrast(1.06);
-            transition: opacity 900ms ease, transform 1200ms ease, filter 1200ms ease, object-position 1200ms ease;
+            transition: none;
         }
         .stage-image.stage-image-next {
             opacity: 0;
@@ -397,10 +400,10 @@
             position: absolute;
             inset: 0;
             background:
-                radial-gradient(circle at 50% 42%, rgba(255, 231, 177, 0.30), rgba(255, 193, 112, 0.14) 18%, transparent 46%),
-                radial-gradient(circle at 50% 42%, rgba(255, 109, 158, 0.10), transparent 36%),
-                linear-gradient(180deg, rgba(0,0,0,0.06), rgba(0,0,0,0.24));
-            opacity: 0.55;
+                radial-gradient(circle at 50% 40%, rgba(255, 238, 194, 0.46), rgba(255, 198, 122, 0.22) 18%, transparent 44%),
+                radial-gradient(circle at 50% 40%, rgba(255, 141, 185, 0.14), transparent 34%),
+                linear-gradient(180deg, rgba(0,0,0,0.02), rgba(0,0,0,0.18));
+            opacity: 0.72;
             mix-blend-mode: screen;
             pointer-events: none;
             z-index: 1;
@@ -410,26 +413,84 @@
             position: absolute;
             inset: 0;
             background:
-                radial-gradient(circle at 50% 44%, transparent 30%, rgba(0,0,0,0.08) 52%, rgba(0,0,0,0.62) 100%),
-                linear-gradient(90deg, rgba(0,0,0,0.40), transparent 20%, transparent 80%, rgba(0,0,0,0.40));
-            opacity: 0.72;
+                radial-gradient(circle at 50% 42%, transparent 14%, rgba(0,0,0,0.18) 34%, rgba(0,0,0,0.58) 64%, rgba(0,0,0,0.94) 100%);
+            opacity: 1;
             pointer-events: none;
             z-index: 1;
         }
-        body.unlocked .living-bg::before {
-            opacity: 0.48;
+        .stage-halo {
+            position: fixed;
+            inset: 0;
+            z-index: 1;
+            pointer-events: none;
+            background:
+                radial-gradient(circle at 50% 38%, rgba(255, 241, 214, 0.34) 0%, rgba(255, 214, 148, 0.16) 14%, rgba(255, 214, 148, 0.06) 28%, transparent 52%),
+                radial-gradient(circle at 50% 38%, rgba(255, 169, 100, 0.10), transparent 38%);
+            mix-blend-mode: screen;
+            opacity: 0.82;
+            filter: blur(6px) saturate(1.06);
+            animation: haloPulse 12s ease-in-out infinite alternate;
         }
-        body.unlocked .living-bg::after {
-            opacity: 0.66;
+        .stage-shimmer {
+            position: fixed;
+            inset: 0;
+            z-index: 1;
+            pointer-events: none;
+            background:
+                radial-gradient(circle at 50% 40%, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.04) 10%, transparent 26%),
+                radial-gradient(circle at 47% 46%, rgba(255, 223, 168, 0.05), transparent 30%);
+            mix-blend-mode: screen;
+            opacity: 0.34;
+            filter: blur(10px);
+            animation: shimmerPulse 9s ease-in-out infinite alternate;
         }
-        .sanctum-aura {
+        .stage-particles {
             position: fixed;
             inset: 0;
             z-index: 2;
             pointer-events: none;
-            background: #000;
-            mix-blend-mode: normal;
+            overflow: hidden;
+            mix-blend-mode: screen;
             opacity: 1;
+        }
+        .stage-particles span {
+            position: absolute;
+            width: var(--size, 8px);
+            height: var(--size, 8px);
+            left: var(--x, 50%);
+            top: var(--y, 50%);
+            border-radius: 999px;
+            background:
+                radial-gradient(circle at 50% 50%, rgba(255, 250, 236, 1) 0%, rgba(255, 232, 173, 0.62) 28%, rgba(255, 198, 126, 0.18) 58%, transparent 78%);
+            filter: blur(var(--blur, 0.8px)) drop-shadow(0 0 16px rgba(255, 232, 173, 0.78));
+            opacity: 0;
+            transform: translate3d(-50%, -50%, 0) scale(var(--scale, 1));
+            animation: sacredParticle var(--d, 18s) linear infinite;
+            animation-delay: var(--delay, 0s);
+        }
+        body.unlocked .living-bg::before {
+            opacity: 0.64;
+        }
+        body.unlocked .living-bg::after {
+            opacity: 1;
+        }
+        body.unlocked .stage-halo {
+            opacity: 0.92;
+        }
+        body.unlocked .stage-shimmer {
+            opacity: 0.42;
+        }
+        body.unlocked .stage-particles {
+            display: block;
+        }
+        .sanctum-aura {
+            position: fixed;
+            inset: 0;
+            z-index: 1;
+            pointer-events: none;
+            background: radial-gradient(circle at 50% 42%, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.22) 42%, rgba(0,0,0,0.60) 100%);
+            mix-blend-mode: normal;
+            opacity: 0.34;
             filter: none;
         }
         .thread-field, .living-words {
@@ -466,6 +527,31 @@
         body.unlocked .thread-field,
         body.unlocked .living-words {
             display: none;
+        }
+        body.unlocked .stage-halo,
+        body.unlocked .stage-shimmer {
+            display: block;
+        }
+        @keyframes haloPulse {
+            0% { transform: scale(1); opacity: 0.76; }
+            100% { transform: scale(1.02); opacity: 0.92; }
+        }
+        @keyframes shimmerPulse {
+            0% { transform: translate3d(0, 0, 0) scale(0.995); opacity: 0.28; }
+            100% { transform: translate3d(0, -0.2vh, 0) scale(1.01); opacity: 0.46; }
+        }
+        @keyframes sacredParticle {
+            0% {
+                opacity: 0;
+                transform: translate3d(-50%, -50%, 0) translate3d(0, 0, 0) scale(calc(var(--scale, 1) * 0.8));
+            }
+            10% { opacity: 0.72; }
+            36% { opacity: 1; }
+            66% { opacity: 0.88; }
+            100% {
+                opacity: 0;
+                transform: translate3d(-50%, -50%, 0) translate3d(var(--dx, 6vw), var(--dy, -8vh), 0) scale(calc(var(--scale, 1) * 1.12));
+            }
         }
         @keyframes threadDrift {
             from { transform: translate3d(-4vw, 0, 0) rotate(var(--r)); opacity: 0.24; }
@@ -2114,7 +2200,8 @@
             }
             .shell { width: min(100% - 12px, 1280px); }
             main {
-                width: 100vw;
+                width: 100%;
+                max-width: 100%;
                 overflow-x: clip;
             }
             .stage-camera {
@@ -2124,18 +2211,43 @@
                 width: 100%;
                 overflow-x: clip;
             }
-            .topbar { align-items: flex-start; flex-direction: column; }
+            .topbar {
+                align-items: flex-start;
+                flex-direction: column;
+                min-height: 0;
+                padding: 12px 0 10px;
+                gap: 8px;
+            }
+            .brand {
+                gap: 8px;
+            }
+            .brand strong {
+                font-size: 0.62rem;
+                letter-spacing: 0.11em;
+            }
+            .brand span {
+                display: none;
+            }
             .nav {
+                display: flex;
                 justify-content: flex-start;
-                flex-wrap: wrap;
-                overflow-x: hidden;
+                flex-wrap: nowrap;
+                overflow-x: auto;
                 width: 100%;
                 max-width: 100%;
                 scrollbar-width: none;
                 padding-bottom: 2px;
-                gap: 6px;
+                gap: 4px;
             }
             .nav::-webkit-scrollbar { display: none; }
+            .nav button {
+                width: auto;
+                min-width: 72px;
+                padding: 5px 3px;
+                font-size: 0.52rem;
+                letter-spacing: 0.05em;
+                line-height: 1.05;
+            }
             .hero {
                 min-height: auto;
                 padding: 10px 0 28px;
@@ -2288,18 +2400,18 @@
                 margin-inline: auto;
             }
             .gate-kicker {
-                font-size: 0.48rem;
-                letter-spacing: 0.14em;
+                font-size: 0.58rem;
+                letter-spacing: 0.12em;
                 margin-bottom: 4px;
             }
             .gate-copy h1 {
-                font-size: clamp(2.3rem, 15.2vw, 3.35rem);
+                font-size: clamp(2rem, 13vw, 2.9rem);
                 line-height: 0.8;
-                max-width: 9.2ch;
+                max-width: 8.8ch;
                 margin-inline: auto;
             }
             .gate-copy p {
-                font-size: 0.68rem;
+                font-size: 0.72rem;
                 line-height: 1.32;
                 margin: 6px auto 8px;
                 width: min(100%, 18rem);
@@ -2308,22 +2420,36 @@
             .title-drifter { animation: titleBreathe 11s ease-in-out infinite; }
             .word-space {
                 display: block;
-                perspective: 560px;
-                perspective-origin: 50% 52%;
+                perspective: 900px;
+                perspective-origin: 50% 56%;
             }
             .word-space span {
-                font-size: clamp(0.78rem, 3.3vw, 1.04rem);
-                letter-spacing: 0.14em;
-                animation-duration: calc(var(--duration, 11s) * 0.78);
+                font-size: clamp(0.48rem, 1.9vw, 0.7rem);
+                letter-spacing: 0.09em;
+                animation-duration: calc(var(--duration, 11s) * 0.82);
+                transform: translate3d(var(--x, 0), var(--y, 0), 0) scale(0.46);
             }
             .sanctum-aura {
-                opacity: 0.58;
-                filter: blur(1px);
+                opacity: 0.46;
+                filter: blur(0.8px);
+            }
+            .stage-halo {
+                filter: blur(5px) saturate(1.04);
+            }
+            .stage-shimmer {
+                opacity: 0.28;
             }
             #title-spark-canvas { display: none; }
             .gate-copy .enter-btn {
-                font-size: 0.68rem;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                min-height: 44px;
+                padding: 10px 14px;
+                font-size: 0.7rem;
                 letter-spacing: 0.08em;
+                touch-action: manipulation;
+                -webkit-tap-highlight-color: transparent;
             }
             .gate-copy h1, .gate-copy p, .gate-copy .enter-btn {
                 overflow-wrap: anywhere;
@@ -2333,14 +2459,28 @@
             }
             .stage-image {
                 position: absolute;
-                transform: scale(var(--stage-scale, 1.02));
+                left: 50%;
+                top: 50%;
+                width: 100%;
+                height: 100%;
+                max-width: none;
+                max-height: none;
+                object-fit: contain;
+                object-position: center center;
+                transform: translate3d(calc(-50% + var(--stage-pan-x, 0vw)), calc(-50% + var(--stage-pan-y, 0vh)), 0) scale(var(--stage-scale, 0.98));
                 filter: brightness(var(--stage-brightness, 0.76)) saturate(1.02) contrast(1.02);
             }
             .living-bg::before {
                 opacity: 0.64;
             }
             .living-bg::after {
-                opacity: 0.76;
+                opacity: 0.90;
+            }
+            .stage-halo {
+                opacity: 0.74;
+            }
+            .stage-shimmer {
+                opacity: 0.22;
             }
             .gate-copy h1, .gate-copy p, .gate-copy .enter-btn {
                 max-width: 100%;
@@ -2401,6 +2541,22 @@
     <div class="living-bg" aria-hidden="true">
         <img class="stage-image stage-image-current" id="stage-image" src="assets/markup_1247-4k.png" alt="" decoding="async" fetchpriority="high">
         <img class="stage-image stage-image-next" id="stage-image-next" src="assets/markup_1247-4k.png" alt="" decoding="async" fetchpriority="high">
+        <div class="stage-halo"></div>
+        <div class="stage-shimmer"></div>
+        <div class="stage-particles" aria-hidden="true">
+            <span style="--x:14%;--y:18%;--dx:8vw;--dy:10vh;--d:22s;--delay:-2s;--size:10px;--blur:0.7px;--scale:1.08;"></span>
+            <span style="--x:28%;--y:30%;--dx:-6vw;--dy:12vh;--d:26s;--delay:-10s;--size:9px;--blur:0.8px;--scale:0.98;"></span>
+            <span style="--x:52%;--y:24%;--dx:5vw;--dy:14vh;--d:24s;--delay:-14s;--size:11px;--blur:0.75px;--scale:1.1;"></span>
+            <span style="--x:76%;--y:32%;--dx:-7vw;--dy:11vh;--d:28s;--delay:-6s;--size:8px;--blur:0.9px;--scale:0.88;"></span>
+            <span style="--x:18%;--y:70%;--dx:10vw;--dy:-6vh;--d:20s;--delay:-18s;--size:12px;--blur:0.85px;--scale:1.18;"></span>
+            <span style="--x:42%;--y:78%;--dx:-8vw;--dy:-8vh;--d:23s;--delay:-8s;--size:10px;--blur:0.8px;--scale:1.04;"></span>
+            <span style="--x:64%;--y:84%;--dx:6vw;--dy:-10vh;--d:27s;--delay:-20s;--size:9px;--blur:0.75px;--scale:0.94;"></span>
+            <span style="--x:84%;--y:66%;--dx:-5vw;--dy:-4vh;--d:25s;--delay:-12s;--size:11px;--blur:0.85px;--scale:1.06;"></span>
+            <span style="--x:10%;--y:44%;--dx:9vw;--dy:8vh;--d:21s;--delay:-16s;--size:9px;--blur:0.8px;--scale:1;"></span>
+            <span style="--x:48%;--y:50%;--dx:-7vw;--dy:9vh;--d:25s;--delay:-4s;--size:10px;--blur:0.8px;--scale:1.08;"></span>
+            <span style="--x:88%;--y:40%;--dx:-8vw;--dy:7vh;--d:29s;--delay:-22s;--size:8px;--blur:0.9px;--scale:0.9;"></span>
+            <span style="--x:34%;--y:88%;--dx:11vw;--dy:-7vh;--d:19s;--delay:-9s;--size:13px;--blur:0.75px;--scale:1.14;"></span>
+        </div>
         <canvas id="world-canvas"></canvas>
         <div class="thread-field">
             <span style="--x:4%;--y:18%;--r:-10deg;--d:13s;"></span>
@@ -5651,6 +5807,16 @@
             return { x, y };
         }
 
+        function positionToPan(position) {
+            const point = parsePosition(position);
+            const panX = (50 - point.x.value) * 0.28;
+            const panY = (50 - point.y.value) * 0.28;
+            return {
+                x: `${Number(panX.toFixed(2))}vw`,
+                y: `${Number(panY.toFixed(2))}vh`
+            };
+        }
+
         function lerp(a, b, t) {
             return a + (b - a) * t;
         }
@@ -5663,17 +5829,18 @@
 
         function applyStageScene(scene) {
             const config = { ...stageSceneDefaults, ...scene };
+            const pan = positionToPan(config.position);
             if (stageImage && config.image && stageImage.getAttribute("src") !== config.image) {
                 stageImage.setAttribute("src", config.image);
             }
             if (stageImageNext) {
                 stageImageNext.classList.remove("stage-image-visible");
                 stageImageNext.style.opacity = "";
-                stageImageNext.style.objectPosition = "";
                 stageImageNext.style.transform = "";
                 stageImageNext.style.filter = "";
             }
-            document.body.style.setProperty("--stage-position", config.position);
+            document.body.style.setProperty("--stage-pan-x", pan.x);
+            document.body.style.setProperty("--stage-pan-y", pan.y);
             document.body.style.setProperty("--stage-scale", config.scale);
             document.body.style.setProperty("--stage-brightness", config.brightness);
             document.body.style.setProperty("--camera-x", config.cameraX);
@@ -5699,6 +5866,12 @@
             const from = currentStageScene;
             const fromPos = parsePosition(from.position);
             const toPos = parsePosition(config.position);
+            const fromPan = positionToPan(from.position);
+            const toPan = positionToPan(config.position);
+            const fromPanX = parseAxisValue(fromPan.x);
+            const toPanX = parseAxisValue(toPan.x);
+            const fromPanY = parseAxisValue(fromPan.y);
+            const toPanY = parseAxisValue(toPan.y);
             const fromCamX = parseAxisValue(from.cameraX);
             const toCamX = parseAxisValue(config.cameraX);
             const fromCamY = parseAxisValue(from.cameraY);
@@ -5716,13 +5889,6 @@
                 stageImageNext.style.opacity = "0";
             }
             document.body.classList.add("stage-traveling");
-            const setImageLayer = (el, position, scale, brightness, opacity) => {
-                if (!el) return;
-                el.style.objectPosition = `${formatAxisValue(position.x, fromPos.x.unit)} ${formatAxisValue(position.y, fromPos.y.unit)}`;
-                el.style.transform = `scale(${scale})`;
-                el.style.filter = `brightness(${brightness}) saturate(1.14) contrast(1.06)`;
-                el.style.opacity = String(opacity);
-            };
             const step = now => {
                 const raw = Math.min(1, (now - start) / duration);
                 const motion = raw;
@@ -5731,44 +5897,29 @@
                 const cameraScale = lerp(fromCamScale, toCamScale, motion);
                 const scale = lerp(fromScale, toScale, motion);
                 const brightness = lerp(fromBrightness, toBrightness, motion);
-                const position = {
-                    x: lerp(fromPos.x.value, toPos.x.value, motion),
-                    y: lerp(fromPos.y.value, toPos.y.value, motion)
-                };
+                const panX = lerp(fromPanX.value, toPanX.value, motion);
+                const panY = lerp(fromPanY.value, toPanY.value, motion);
                 if (typeof onProgress === "function") onProgress(raw, {
                     cameraX,
                     cameraY,
                     cameraScale,
                     scale,
-                    brightness,
-                    position
+                    brightness
                 });
                 if (!switched && raw >= 0.54) {
                     switched = true;
                     if (typeof onSwitch === "function") onSwitch();
                 }
-                setImageLayer(stageImage, position, scale, brightness, 0.96);
                 document.body.style.setProperty("--camera-x", formatAxisValue(cameraX, fromCamX.unit));
                 document.body.style.setProperty("--camera-y", formatAxisValue(cameraY, fromCamY.unit));
                 document.body.style.setProperty("--camera-scale", String(cameraScale));
-                document.body.style.setProperty("--stage-position", `${formatAxisValue(position.x, fromPos.x.unit)} ${formatAxisValue(position.y, fromPos.y.unit)}`);
+                document.body.style.setProperty("--stage-pan-x", formatAxisValue(panX, "vw"));
+                document.body.style.setProperty("--stage-pan-y", formatAxisValue(panY, "vh"));
                 document.body.style.setProperty("--stage-scale", String(scale));
                 document.body.style.setProperty("--stage-brightness", String(brightness));
                 if (raw < 1) {
                     stageTravelFrame = requestAnimationFrame(step);
                     return;
-                }
-                if (stageImageNext) {
-                    stageImage.setAttribute("src", config.image);
-                    stageImage.style.opacity = "";
-                    stageImage.style.objectPosition = "";
-                    stageImage.style.transform = "";
-                    stageImage.style.filter = "";
-                    stageImageNext.classList.remove("stage-image-visible");
-                    stageImageNext.style.opacity = "";
-                    stageImageNext.style.objectPosition = "";
-                    stageImageNext.style.transform = "";
-                    stageImageNext.style.filter = "";
                 }
                 applyStageScene(config);
                 stageTravelFrame = null;
@@ -5780,23 +5931,41 @@
 
         function getStageSceneConfig(name) {
             const masterStageImage = "assets/markup_1247-4k.png";
-            const sceneMap = {
-                home: { image: masterStageImage, position: "50% 52%", scale: "1.38", brightness: "1.08", cameraX: "0vw", cameraY: "0vh", cameraScale: "1.04" },
-                visuals: { image: masterStageImage, position: "49% 24%", scale: "2.28", brightness: "1.08", cameraX: "-24vw", cameraY: "-12vh", cameraScale: "1.22" },
-                writing: { image: masterStageImage, position: "50% 50%", scale: "1.18", brightness: "1.03", cameraX: "0vw", cameraY: "0vh", cameraScale: "1.02" },
-                music: { image: masterStageImage, position: "82% 58%", scale: "2.34", brightness: "1.06", cameraX: "24vw", cameraY: "6vh", cameraScale: "1.22" },
-                research: { image: masterStageImage, position: "18% 64%", scale: "2.36", brightness: "1.04", cameraX: "-26vw", cameraY: "8vh", cameraScale: "1.22" },
-                archive: { image: masterStageImage, position: "50% 50%", scale: "1.16", brightness: "1.04", cameraX: "0vw", cameraY: "0vh", cameraScale: "1.02" },
-                gallery: { image: masterStageImage, position: "50% 50%", scale: "1.18", brightness: "1.06", cameraX: "-8vw", cameraY: "0vh", cameraScale: "1.05" },
-                presentation: { image: masterStageImage, position: "50% 50%", scale: "1.18", brightness: "1.06", cameraX: "8vw", cameraY: "-1vh", cameraScale: "1.05" },
-                exhibitions: { image: masterStageImage, position: "50% 50%", scale: "1.16", brightness: "1.04", cameraX: "0vw", cameraY: "0vh", cameraScale: "1.02" },
-                submissions: { image: masterStageImage, position: "50% 50%", scale: "1.12", brightness: "1.0", cameraX: "0vw", cameraY: "0vh", cameraScale: "1.01" },
-                management: { image: masterStageImage, position: "50% 50%", scale: "1.12", brightness: "1.02", cameraX: "0vw", cameraY: "0vh", cameraScale: "1.01" },
-                review: { image: masterStageImage, position: "50% 50%", scale: "1.12", brightness: "1.02", cameraX: "0vw", cameraY: "0vh", cameraScale: "1.01" },
-                versions: { image: masterStageImage, position: "50% 50%", scale: "1.12", brightness: "1.02", cameraX: "0vw", cameraY: "0vh", cameraScale: "1.01" },
-                collections: { image: masterStageImage, position: "50% 50%", scale: "1.14", brightness: "1.04", cameraX: "0vw", cameraY: "0vh", cameraScale: "1.01" },
-                find: { image: masterStageImage, position: "50% 50%", scale: "1.1", brightness: "1.02", cameraX: "0vw", cameraY: "0vh", cameraScale: "1.01" },
-                maintenance: { image: masterStageImage, position: "50% 50%", scale: "1.1", brightness: "1.0", cameraX: "0vw", cameraY: "0vh", cameraScale: "1.01" }
+            const mobile = window.matchMedia("(max-width: 620px)").matches;
+            const sceneMap = mobile ? {
+                home: { image: masterStageImage, position: "50% 50%", scale: "0.82", brightness: "1.10", cameraX: "0vw", cameraY: "0vh", cameraScale: "1" },
+                visuals: { image: masterStageImage, position: "50% 40%", scale: "0.88", brightness: "1.12", cameraX: "0vw", cameraY: "0vh", cameraScale: "1" },
+                writing: { image: masterStageImage, position: "70% 72%", scale: "0.86", brightness: "1.04", cameraX: "0vw", cameraY: "0vh", cameraScale: "1" },
+                music: { image: masterStageImage, position: "80% 50%", scale: "0.86", brightness: "1.08", cameraX: "0vw", cameraY: "0vh", cameraScale: "1" },
+                research: { image: masterStageImage, position: "26% 76%", scale: "0.86", brightness: "1.06", cameraX: "0vw", cameraY: "0vh", cameraScale: "1" },
+                archive: { image: masterStageImage, position: "50% 50%", scale: "0.82", brightness: "1.04", cameraX: "0vw", cameraY: "0vh", cameraScale: "1" },
+                gallery: { image: masterStageImage, position: "50% 50%", scale: "0.82", brightness: "1.06", cameraX: "0vw", cameraY: "0vh", cameraScale: "1" },
+                presentation: { image: masterStageImage, position: "50% 50%", scale: "0.82", brightness: "1.06", cameraX: "0vw", cameraY: "0vh", cameraScale: "1" },
+                exhibitions: { image: masterStageImage, position: "50% 50%", scale: "0.82", brightness: "1.04", cameraX: "0vw", cameraY: "0vh", cameraScale: "1" },
+                submissions: { image: masterStageImage, position: "50% 50%", scale: "0.80", brightness: "1.0", cameraX: "0vw", cameraY: "0vh", cameraScale: "1" },
+                management: { image: masterStageImage, position: "50% 50%", scale: "0.82", brightness: "1.02", cameraX: "0vw", cameraY: "0vh", cameraScale: "1" },
+                review: { image: masterStageImage, position: "50% 50%", scale: "0.82", brightness: "1.02", cameraX: "0vw", cameraY: "0vh", cameraScale: "1" },
+                versions: { image: masterStageImage, position: "50% 50%", scale: "0.82", brightness: "1.02", cameraX: "0vw", cameraY: "0vh", cameraScale: "1" },
+                collections: { image: masterStageImage, position: "50% 50%", scale: "0.82", brightness: "1.04", cameraX: "0vw", cameraY: "0vh", cameraScale: "1" },
+                find: { image: masterStageImage, position: "50% 50%", scale: "0.82", brightness: "1.02", cameraX: "0vw", cameraY: "0vh", cameraScale: "1" },
+                maintenance: { image: masterStageImage, position: "50% 50%", scale: "0.80", brightness: "1.0", cameraX: "0vw", cameraY: "0vh", cameraScale: "1" }
+            } : {
+                home: { image: masterStageImage, position: "50% 50%", scale: "0.94", brightness: "1.08", cameraX: "0vw", cameraY: "0vh", cameraScale: "1" },
+                visuals: { image: masterStageImage, position: "50% 34%", scale: "1.02", brightness: "1.12", cameraX: "0vw", cameraY: "0vh", cameraScale: "1" },
+                writing: { image: masterStageImage, position: "74% 78%", scale: "1.00", brightness: "1.03", cameraX: "0vw", cameraY: "0vh", cameraScale: "1" },
+                music: { image: masterStageImage, position: "84% 50%", scale: "1.02", brightness: "1.08", cameraX: "0vw", cameraY: "0vh", cameraScale: "1" },
+                research: { image: masterStageImage, position: "18% 84%", scale: "1.06", brightness: "1.06", cameraX: "0vw", cameraY: "0vh", cameraScale: "1" },
+                archive: { image: masterStageImage, position: "50% 50%", scale: "0.94", brightness: "1.04", cameraX: "0vw", cameraY: "0vh", cameraScale: "1" },
+                gallery: { image: masterStageImage, position: "50% 50%", scale: "0.96", brightness: "1.06", cameraX: "0vw", cameraY: "0vh", cameraScale: "1" },
+                presentation: { image: masterStageImage, position: "50% 50%", scale: "0.96", brightness: "1.06", cameraX: "0vw", cameraY: "0vh", cameraScale: "1" },
+                exhibitions: { image: masterStageImage, position: "50% 50%", scale: "0.94", brightness: "1.04", cameraX: "0vw", cameraY: "0vh", cameraScale: "1" },
+                submissions: { image: masterStageImage, position: "50% 50%", scale: "0.92", brightness: "1.0", cameraX: "0vw", cameraY: "0vh", cameraScale: "1" },
+                management: { image: masterStageImage, position: "50% 50%", scale: "0.94", brightness: "1.02", cameraX: "0vw", cameraY: "0vh", cameraScale: "1" },
+                review: { image: masterStageImage, position: "50% 50%", scale: "0.94", brightness: "1.02", cameraX: "0vw", cameraY: "0vh", cameraScale: "1" },
+                versions: { image: masterStageImage, position: "50% 50%", scale: "0.94", brightness: "1.02", cameraX: "0vw", cameraY: "0vh", cameraScale: "1" },
+                collections: { image: masterStageImage, position: "50% 50%", scale: "0.96", brightness: "1.04", cameraX: "0vw", cameraY: "0vh", cameraScale: "1" },
+                find: { image: masterStageImage, position: "50% 50%", scale: "0.94", brightness: "1.02", cameraX: "0vw", cameraY: "0vh", cameraScale: "1" },
+                maintenance: { image: masterStageImage, position: "50% 50%", scale: "0.92", brightness: "1.0", cameraX: "0vw", cameraY: "0vh", cameraScale: "1" }
             };
             return sceneMap[name] || sceneMap.home;
         }
@@ -5972,7 +6141,7 @@
         enterBtn.addEventListener("focus", () => setEnterSparkActive(true));
         enterBtn.addEventListener("blur", () => setEnterSparkActive(false));
 
-        enterBtn.addEventListener("click", () => {
+        function triggerGateOpen() {
             const gate = $("gate");
             if (gate.classList.contains("entering") || gate.classList.contains("open")) return;
             const targetSection = pendingInitialSection || "home";
@@ -5994,6 +6163,21 @@
             };
             gateCopy?.addEventListener("animationend", onGateAnimationEnd, { once: true });
             window.setTimeout(finishGateOpen, 1700);
+        }
+
+        enterBtn.addEventListener("click", triggerGateOpen);
+        enterBtn.addEventListener("pointerup", event => {
+            if (event.pointerType === "touch") triggerGateOpen();
+        });
+        enterBtn.addEventListener("touchend", event => {
+            event.preventDefault();
+            triggerGateOpen();
+        }, { passive: false });
+        enterBtn.addEventListener("keydown", event => {
+            if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                triggerGateOpen();
+            }
         });
 
         const titleSparkState = { sparks: [], lastX: 0, lastY: 0, lastEmit: 0, active: false };
