@@ -5862,7 +5862,7 @@
                 stageTravelFrame = null;
             }
             const start = performance.now();
-            const duration = window.matchMedia("(max-width: 620px)").matches ? 1500 : 2000;
+            const duration = window.matchMedia("(max-width: 620px)").matches ? 1900 : 2000;
             const from = currentStageScene;
             const fromPos = parsePosition(from.position);
             const toPos = parsePosition(config.position);
@@ -5906,7 +5906,7 @@
                     scale,
                     brightness
                 });
-                if (!switched && raw >= 0.54) {
+                if (!switched && raw >= 0.7) {
                     switched = true;
                     if (typeof onSwitch === "function") onSwitch();
                 }
