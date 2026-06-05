@@ -2467,20 +2467,23 @@
                 max-height: none;
                 object-fit: contain;
                 object-position: center center;
-                transform: translate3d(calc(-50% + var(--stage-pan-x, 0vw)), calc(-50% + var(--stage-pan-y, 0vh)), 0) scale(var(--stage-scale, 0.96));
+                transform: translate3d(calc(-50% + var(--stage-pan-x, 0vw)), calc(-50% + var(--stage-pan-y, 0vh)), 0) scale(var(--stage-scale, 1.08));
                 filter: brightness(var(--stage-brightness, 0.76)) saturate(1.02) contrast(1.02);
             }
+            .living-bg {
+                background: #000 url("assets/markup_1247-4k.png") center center / cover no-repeat;
+            }
             .living-bg::before {
-                opacity: 0.64;
+                opacity: 0.52;
             }
             .living-bg::after {
-                opacity: 0.90;
+                opacity: 0.78;
             }
             .stage-halo {
-                opacity: 0.74;
+                opacity: 0.62;
             }
             .stage-shimmer {
-                opacity: 0.22;
+                opacity: 0.18;
             }
             .gate-copy h1, .gate-copy p, .gate-copy .enter-btn {
                 max-width: 100%;
