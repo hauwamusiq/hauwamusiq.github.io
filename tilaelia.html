@@ -2426,7 +2426,7 @@
             .word-space span {
                 font-size: clamp(0.48rem, 1.9vw, 0.7rem);
                 letter-spacing: 0.09em;
-                animation-duration: calc(var(--duration, 11s) * 0.82);
+                animation-duration: calc(var(--duration, 11s) * 1.42);
                 transform: translate3d(var(--x, 0), var(--y, 0), 0) scale(0.46);
             }
             .sanctum-aura {
@@ -2490,6 +2490,74 @@
             }
             .contact-band {
                 margin-top: 18px;
+            }
+        }
+        @media (max-width: 420px) {
+            .topbar {
+                padding: 10px 0 8px;
+                gap: 6px;
+            }
+            .brand strong {
+                font-size: 0.56rem;
+            }
+            .nav {
+                gap: 3px;
+            }
+            .nav button {
+                min-width: 60px;
+                padding: 4px 2px;
+                font-size: 0.47rem;
+                letter-spacing: 0.035em;
+            }
+            .hero {
+                padding: 8px 0 20px;
+            }
+            .hero-grid {
+                gap: 10px;
+            }
+            .hero h2 {
+                font-size: clamp(1.55rem, 11vw, 2.2rem);
+            }
+            .hero p {
+                font-size: 0.78rem;
+                line-height: 1.42;
+            }
+            .home-intro-stack {
+                gap: 14px;
+            }
+            .home-feature-stage {
+                margin-top: 10px;
+                padding: 12px 10px 10px;
+            }
+            .gate-copy {
+                width: min(100% - 10px, 330px);
+            }
+            .gate-kicker {
+                font-size: 0.54rem;
+            }
+            .gate-copy h1 {
+                font-size: clamp(1.75rem, 12vw, 2.35rem);
+                max-width: 9ch;
+            }
+            .gate-copy p {
+                font-size: 0.68rem;
+                width: min(100%, 16rem);
+            }
+            .word-space span {
+                animation-duration: calc(var(--duration, 11s) * 1.65);
+                transform: translate3d(var(--x, 0), var(--y, 0), 0) scale(0.4);
+            }
+            .stage-image {
+                transform: translate3d(calc(-50% + var(--stage-pan-x, 0vw)), calc(-50% + var(--stage-pan-y, 0vh)), 0) scale(var(--stage-scale, 1.02));
+            }
+            .living-bg::before {
+                opacity: 0.48;
+            }
+            .living-bg::after {
+                opacity: 0.72;
+            }
+            .stage-halo {
+                opacity: 0.54;
             }
         }
         @keyframes gateDiveMobile {
